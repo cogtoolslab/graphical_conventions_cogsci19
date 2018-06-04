@@ -28,7 +28,7 @@ if(argv.gameport) {
   console.log('no gameport specified: using 8886\nUse the --gameport flag to change');
 }
 
-var exp = 'sketchpad_repeated'.replace(/\/$/, "");
+var exp = 'draw';
 var gameServer = new Server(exp);
 
 try {
@@ -44,7 +44,7 @@ try {
       io          = require('socket.io')(server);
 }
 
-var utils = require('./sharedUtils/sharedUtils.js');
+var utils = require('./utils/sharedUtils.js');
 
 var global_player_set = {};
 
