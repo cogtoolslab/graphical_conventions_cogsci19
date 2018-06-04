@@ -339,7 +339,7 @@ var client_onjoingame = function(num_players, role) {
 function monitorProgress(){
     console.log('start monitoring')
     progress(globalGame.timeLimit, globalGame.timeLimit, $('.progress')); // show progress bar
-    $('.progress-bar').attr('aria-valuemax',timeLimit);
+    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
     $('.progress').show(); // don't show progress bar until we start monitorung
 };
 
