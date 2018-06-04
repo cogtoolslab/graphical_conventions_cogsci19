@@ -97,34 +97,34 @@ var drawScreen = function(game, player) {
 
 function Sketchpad() {
   paper.setup('sketchpad');
-       
+
   // var actual_height = $('#sketchpad').innerHeight();
-  // var actual_width = $('#sketchpad').innerWidth()    
-  // view.viewSize = new Size(actual_height, actual_width); 
+  // var actual_width = $('#sketchpad').innerWidth()
+  // view.viewSize = new Size(actual_height, actual_width);
    // view.viewSize = new Size(view.element.width,view.element.height)
-  view.viewSize = new Size(300,300)//view.element.width, view.element.height); 
+  view.viewSize = new Size(300,300)//view.element.width, view.element.height);
   //  view.setViewSize = new Size(view.element.width,view.element.height)
 }
 
 Sketchpad.prototype.setupTool = function() {
   globalGame.path = [];
   var tool = new Tool();
-  
+
   tool.onKeyDown = function(event) {
     if(event.key === 'shift') {
       globalGame.penDown = true;
-      globalGame.shiftKeyUsed = 1;      
+      globalGame.shiftKeyUsed = 1;
       startStroke();
     }
   };
 
   tool.onKeyUp = function(event) {
     if(event.key === 'shift') {
-      globalGame.penDown = false;      
+      globalGame.penDown = false;
       endStroke();
     }
   };
-  
+
   tool.onMouseMove = function(event) {
     if(globalGame.drawingAllowed) {
       var point = event.point.round();
@@ -153,13 +153,13 @@ Sketchpad.prototype.setupTool = function() {
     endStroke(event);
   };
 
-  
+
 };
 
 function startStroke(event) {
   if (globalGame.drawingAllowed) {
 
-    // If a path is ongoing, send it along before starting this new one 
+    // If a path is ongoing, send it along before starting this new one
     if(!_.isEmpty(globalGame.path)) {
       endStroke(event);
     }
@@ -176,7 +176,7 @@ function startStroke(event) {
 
 function endStroke(event) {
   // Only send stroke if actual line (single points don't get rendered)
-  if (globalGame.drawingAllowed && globalGame.path.length > 1) {    
+  if (globalGame.drawingAllowed && globalGame.path.length > 1) {
     // Increment stroke num
     globalGame.currStrokeNum += 1;
 
@@ -185,10 +185,10 @@ function endStroke(event) {
 
     // Send stroke (in both svg & json forms) to server
     var packet = ['stroke',
-      globalGame.currStrokeNum,
-      globalGame.path.exportSVG({asString: true}).replace(/\./g,'~~~'),
-      globalGame.path.exportJSON({asString: true}).replace(/\./g,'~~~'),
-      globalGame.shiftKeyUsed,
+		  globalGame.currStrokeNum,
+		  globalGame.path.exportSVG({asString: true}).replace(/\./g,'~~~'),
+		  globalGame.path.exportJSON({asString: true}).replace(/\./g,'~~~'),
+		  globalGame.shiftKeyUsed,
       globalGame.data.subject_information.score].join('.');
     globalGame.socket.send(packet);
   };

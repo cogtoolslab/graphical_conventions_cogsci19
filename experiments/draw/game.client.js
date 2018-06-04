@@ -56,7 +56,7 @@ var client_onserverupdate_received = function(data){
   // If your objects are out-of-date (i.e. if there's a new round), set up
   // machinery to draw them
   if (globalGame.roundNum != data.roundNum) {
-    var alreadyLoaded = 0; 
+    var alreadyLoaded = 0;
     $('#occluder').show();
     // globalGame.drawingAllowed = false;
     globalGame.objects = _.map(data.objects, function(obj) {
@@ -204,7 +204,7 @@ var customSetup = function(game) {
 
     urlParams = {};
     while (match = search.exec(query))
-    urlParams[decode(match[1])] = decode(match[2]);  
+    urlParams[decode(match[1])] = decode(match[2]);
     globalGame.workerId = urlParams.workerId;
     globalGame.assignmentId = urlParams.assignmentId;
     globalGame.hitId = urlParams.hitId;
@@ -220,7 +220,7 @@ var customSetup = function(game) {
     // reset drawing stuff
     globalGame.doneDrawing = false;
     globalGame.path = [];
-    
+
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
 
@@ -247,7 +247,7 @@ var customSetup = function(game) {
       $('#sketchpad').hide();
       $('#instructs').html('Thanks for participating in our experiment! ' +
         "Before you submit your HIT, we'd like to ask you a few questions.");
-      $('#roundnumber').empty()	
+      $('#roundnumber').empty()
         .append("Round\n" + (game.roundNum + 1) + " of " + game.numRounds);
     } else {
       $('#roundnumber').empty()
@@ -355,11 +355,15 @@ function responseListener(evt) {
         var dataURL = document.getElementById('sketchpad').toDataURL();
         dataURL = dataURL.replace('data:image/png;base64,','');
 
-        var packet = ["clickedObj", obj.subordinate,
-          dataURL,
-          globalGame.objects[0]['pose'],
-          globalGame.objects[0]['condition'],
-          globalGame.data.subject_information.score];
+        var packet = ["clickedObj",
+                      obj.subordinate,
+            		      dataURL,
+            		      globalGame.objects[0]['pose'],
+            		      globalGame.objects[0]['condition'],
+            		      globalGame.objects[0]['phase'],
+            		      globalGame.objects[0]['repetition'],
+                      globalGame.data.subject_information.score];
+
         globalGame.socket.send(packet.join('.'));
       }
     });
