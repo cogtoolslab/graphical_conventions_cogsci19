@@ -233,9 +233,9 @@ var customSetup = function(game) {
     //                 globalGame.drawingAllowed = true;
     //               });
 
-    if (globalGame.my_role === globalGame.playerRoleNames.role2) {
-      $("#loading").fadeIn('fast');
-    }
+    // if (globalGame.my_role === globalGame.playerRoleNames.role2) {
+    //   $("#loading").fadeIn('fast');
+    // }
 
     // clear feedback blurb
     $('#feedback').html(" ");
