@@ -1,8 +1,8 @@
 /*  Copyright (c) 2012 Sven "FuzzYspo0N" Bergström, 2013 Robert XD Hawkins
-    
+
     written by : http://underscorediscovery.com
     written for : http://buildnewgames.com/real-time-multiplayer/
-    
+
     modified for collective behavior experiments on Amazon Mechanical Turk
 
     MIT Licensed.
@@ -24,8 +24,8 @@ var onMessage = function(client,message) {
   var message_parts = message.split('.');
 
   //The first is always the type of message
-  var message_type = message_parts[0];  
-  
+  var message_type = message_parts[0];
+
   //Extract important variables
   var gc = client.game;
   var id = gc.id;
@@ -37,23 +37,23 @@ var onMessage = function(client,message) {
   case 'stroke' :
     // Send json format to partner (FIXME: they'll send it back to be written...)
     _.map(others, function(p) {
-      p.player.instance.emit( 'stroke', message_parts[3].replace(/~~~/g, '.'));  
-    });                                                     
+      p.player.instance.emit( 'stroke', message_parts[3].replace(/~~~/g, '.'));
+    });
 
     break;
   case 'clickedObj' :
 //    writeData(client, "clickedObj", message_parts);
-    others[0].player.instance.send("s.feedback." + message_parts[1]); 
+    others[0].player.instance.send("s.feedback." + message_parts[1]);
     target.instance.send("s.feedback." + message_parts[1]);
-    
+
     setTimeout(function() {
       _.map(all, function(p){
         p.player.instance.emit('newRoundUpdate', {user: client.userid} );
       });
       gc.newRound();
     }, 4000);
-    break; 
-  
+    break;
+
   case 'h' : // Receive message when browser focus shifts
     target.visible = message_parts[1];
     break;
@@ -98,7 +98,7 @@ var dataOutput = function() {
       return _.map(['Name', 'SketcherLoc', 'ViewerLoc'], v => 'object' + i + v);
     }));
   };
-  
+
   function commonOutput (client, message_data) {
     return {
       iterationName: client.game.iterationName,
@@ -123,10 +123,12 @@ var dataOutput = function() {
       pngString: message_data[2],
       pose: parseInt(message_data[3]),
       condition : message_data[4],
-      score : message_data[5]
+      phase : message_data[5],
+      repetition : message_data[6],
+      score : message_data[7]
       }
     );
-    console.log(JSON.stringify(_.pick(output, ['repetition', 'correct']), null, 3));
+    console.log(JSON.stringify(_.pick(output, ['repetition', 'correct', 'responseTime']), null, 3));
     return output;
   };
 
@@ -147,7 +149,7 @@ var dataOutput = function() {
     console.log(JSON.stringify(output, null, 3));
     return output;
   };
-  
+
   return {
     'stroke' : strokeOutput,
     'clickedObj' : clickedObjOutput
