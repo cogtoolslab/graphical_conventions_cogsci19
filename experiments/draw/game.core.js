@@ -19,7 +19,7 @@ var has_require = typeof require !== 'undefined';
 if( typeof _ === 'undefined' ) {
   if( has_require ) {
     _ = require('lodash');
-    utils  = require(__base + 'sharedUtils/sharedUtils.js');
+    utils  = require(__base + 'utils/sharedUtils.js');
   }
   else throw 'mymodule requires underscore, see http://underscorejs.org';
 }
@@ -136,7 +136,7 @@ var game_player = function( game_instance, player_instance) {
 // server side we set some classes to global types, so that
 // we can use them in other files (specifically, game.server.js)
 if('undefined' != typeof global) {
-  var stimList = _.map(require('./stimList_subord_2', _.clone));
+  var stimList = _.map(require('./stimList_subord', _.clone));
   // console.log(stimList);
   module.exports = {game_core, game_player};
 }
