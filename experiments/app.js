@@ -16,7 +16,7 @@ var
     fs            = require('fs'),
     app           = require('express')(),
     _             = require('underscore'),
-    Server        = require('./sharedUtils/serverBase.js');
+    Server        = require('./utils/serverBase.js');
 
 var gameport;
 
