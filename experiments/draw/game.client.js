@@ -185,14 +185,15 @@ var customSetup = function(game) {
   game.sketchpad = new Sketchpad();
 
   $(document).ready(function() {
-    $("#submitbutton").click(function(){
-      if (globalGame.currStrokeNum > 0) { // only allow submit button to be pressed if at least one stroke made
-        var finished = ['doneDrawing',1];
-        globalGame.socket.send(finished.join('.'));
-      } else {
-        $('#feedback').html("Please make your sketch.");
-      }
-    });
+
+    // $("#submitbutton").click(function(){
+    //   if (globalGame.currStrokeNum > 0) { // only allow submit button to be pressed if at least one stroke made
+    //     var finished = ['doneDrawing',1];
+    //     globalGame.socket.send(finished.join('.'));
+    //   } else {
+    //     $('#feedback').html("Please make your sketch.");
+    //   }
+    // });
 
     // get workerId, etc. from URL
     var urlParams;
@@ -218,7 +219,7 @@ var customSetup = function(game) {
     project.activeLayer.removeChildren();
 
     // reset drawing stuff
-    globalGame.doneDrawing = false;
+    // globalGame.doneDrawing = false;
     globalGame.path = [];
 
     // Reset stroke counter
@@ -266,17 +267,17 @@ var customSetup = function(game) {
 
   });
 
-  game.socket.on('mutualDoneDrawing', function(role) {
-    globalGame.doneDrawing = true;
-    globalGame.drawingAllowed = false;
-    if (globalGame.my_role === globalGame.playerRoleNames.role1) {
-      $('#feedback').html(" ");
-      setTimeout(function(){$('#turnIndicator').html("Your partner's turn to guess the target!");},globalGame.feedbackDelay);
-    } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
-      $("#loading").fadeOut('fast');
-      setTimeout(function(){$('#turnIndicator').html('Your turn: Select the target!');},globalGame.feedbackDelay);
-    }
-  });
+  // game.socket.on('mutualDoneDrawing', function(role) {
+  //   globalGame.doneDrawing = true;
+  //   globalGame.drawingAllowed = false;
+  //   if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+  //     $('#feedback').html(" ");
+  //     setTimeout(function(){$('#turnIndicator').html("Your partner's turn to guess the target!");},globalGame.feedbackDelay);
+  //   } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
+  //     $("#loading").fadeOut('fast');
+  //     setTimeout(function(){$('#turnIndicator').html('Your turn: Select the target!');},globalGame.feedbackDelay);
+  //   }
+  // });
 
 };
 
@@ -347,7 +348,7 @@ function responseListener(evt) {
   if (globalGame.messageSent) {
     // find which shape was clicked
     _.forEach(globalGame.objects, function(obj) {
-      if (hitTest(obj, mouseX, mouseY) && globalGame.doneDrawing) {
+      if (hitTest(obj, mouseX, mouseY)) {
         globalGame.messageSent = false;
 
         // Send packet about trial to server
