@@ -56,27 +56,20 @@
 
     <div id='main'>
       <span>
-  <canvas id="sketchpad" tabindex=1 height='500px' width='500px'></canvas>
-        <canvas id="viewport"> </canvas>
+      <canvas id="sketchpad" tabindex=1 height='500px' width='500px'></canvas>
+            <canvas id="viewport"> </canvas>
 
-  <div id='occluder' style="display: none"> </div>
+      <div id='occluder' style="display: none"> </div>
 
-  <!-- include chatarea/chatbox below just in case-->
-  <div id="chatarea" style="display: none">
-          <form action="">
-            <input id="chatbox" style="display: none" autocomplete="off" />
-            <button id="chatbutton" style="display: none">Send</button>
-          </form>
-  </div>
     </div>
 
     <div id="exit_survey" style="display:none">
       <br><br><br>
       <p> Did you believe you were playing against another human player? </p>
       <select onChange="dropdownTip('human::' + this.value)">
-  <option value=""></option>
-  <option value="yes">Yes, I thought they were a human</option>
-  <option value="no">No, I thought it was a computer program</option>
+      <option value=""></option>
+      <option value="yes">Yes, I thought they were a human</option>
+      <option value="no">No, I thought it was a computer program</option>
       </select>
       <p id='humanResult' style="display:none;color:red"> Thank you for your response -- in fact, all players were paired with other human turkers! <p>
 
