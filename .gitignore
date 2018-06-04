@@ -4,6 +4,11 @@ __pycache__/
 *$py.class
 *.DS_Store
 
+auth.json
+auth.txt
+
+node_modules/
+
 # C extensions
 *.so
 
