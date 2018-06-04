@@ -195,69 +195,43 @@ ALOT...don't understand how to adjust that.*/
     border: solid 1px #999;
 }
 
-/*#messages {
-	height:85%;
-	text-align: left;
-	font-size: 200%;
-	overflow-y: scroll;
-}*/
 
-#chatarea form {
-	padding: 3px;
-	height: 5vh;
-	width: 100vh;
+#progressBar {
+    width: 90%;
+    margin: 3vw;
+    height: 2vw;
+    background-color: #0A5F44;
+    position: absolute;
+    left: 0;
+    right:0;
+    bottom: 2%;
 }
 
-#chatarea input {
-	border: 0;
-	height: 99%;
-	font-size: 125%;
-	width: 89%;
-	margin-left: .5%;
-	margin-right: .5%;
-	margin-top: .5%;
-	margin-bottom: .5%;
-	padding: 5px;
-	float: left;
+#progressBar div {
+    height: 100%;
+    text-align: right;
+    padding: 0 10px;
+    line-height: 1vw; /* same as #progressBar height if we want text middle aligned */
+    width: 0;
+    background-color: #CBEA00;
+    box-sizing: border-box;
+    left: 0;
+    right:0;
+    bottom: 2%;
+
 }
 
-
-#chatarea button {
-	width: 9%;
-	height: 5vh;
-	font-size: 150%;
-	background: rgb(130, 224, 255);
-	border: none;
-	padding: 5px;
-	margin-left: .5%;
-	margin-right: .5%;
+.progress{
+    padding-left:0px;
+    padding-right:0px;
+    height: 2vw;
+    margin-bottom: 4vw;
+    font-size:2vw
 }
 
-#loading {
-	color:black;
-	z-index: 10;
-    height: 10%;
-    width: 8%;
-    float: left;
-	right: 6%; top: 10%;
-	position: absolute;
-    background: rgb(255,255,255);
-    border: none;
-    padding: 5px;
-	font-size: 6vh;
-	font-weight: normal;
-	border-radius: 50%;
-	border: none;
-}
-
-#loading:after {
-  overflow: hidden;
-  display: inline-block;
-  vertical-align: bottom;
-  -webkit-animation: ellipsis steps(4,end) 900ms infinite;
-  animation: ellipsis steps(4,end) 900ms infinite;
-  content: "\2026"; /* ascii code for the ellipsis character */
-  width: 0px;
+.progress-bar{
+    -webkit-transition: none !important;
+    transition: none !important;
 }
 
 @keyframes ellipsis {

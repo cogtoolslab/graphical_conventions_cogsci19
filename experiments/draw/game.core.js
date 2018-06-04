@@ -73,6 +73,9 @@ var game_core = function(options){
   // time (in ms) to wait before giving feedback
   this.feedbackDelay = 300;
 
+  // how long the sketcher has to finish their drawing
+  this.timeLimit = 30;
+
   // Which round (a.k.a. "trial") are we on (initialize at -1 so that first round is 0-indexed)
   this.roundNum = -1;
 

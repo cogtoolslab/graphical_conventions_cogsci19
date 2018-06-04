@@ -58,7 +58,7 @@ var client_onserverupdate_received = function(data){
   if (globalGame.roundNum != data.roundNum) {
     var alreadyLoaded = 0;
     $('#occluder').show();
-    // globalGame.drawingAllowed = false;
+    globalGame.drawingAllowed = false;
     globalGame.objects = _.map(data.objects, function(obj) {
       // Extract the coordinates matching your role
       var customCoords = globalGame.my_role == "sketcher" ? obj.speakerCoords : obj.listenerCoords;
@@ -84,6 +84,8 @@ var client_onserverupdate_received = function(data){
               $('#occluder').hide();
               globalGame.drawingAllowed = true;
             },750);
+            // start countdown timer (progress bar)
+            monitorProgress();
           }
       };
       return _.extend(customObj, {img: imgObj});
@@ -186,15 +188,6 @@ var customSetup = function(game) {
 
   $(document).ready(function() {
 
-    // $("#submitbutton").click(function(){
-    //   if (globalGame.currStrokeNum > 0) { // only allow submit button to be pressed if at least one stroke made
-    //     var finished = ['doneDrawing',1];
-    //     globalGame.socket.send(finished.join('.'));
-    //   } else {
-    //     $('#feedback').html("Please make your sketch.");
-    //   }
-    // });
-
     // get workerId, etc. from URL
     var urlParams;
     var match,
@@ -219,7 +212,7 @@ var customSetup = function(game) {
     project.activeLayer.removeChildren();
 
     // reset drawing stuff
-    // globalGame.doneDrawing = false;
+    globalGame.doneDrawing = false;
     globalGame.path = [];
 
     // Reset stroke counter
@@ -256,6 +249,10 @@ var customSetup = function(game) {
     }
     $('#score').empty().append(score + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
 			       + ((score * 3)/100).toFixed(2));
+
+    // reset and show progress bar
+
+
   });
 
   game.socket.on('stroke', function(jsonData) {
@@ -267,17 +264,17 @@ var customSetup = function(game) {
 
   });
 
-  // game.socket.on('mutualDoneDrawing', function(role) {
-  //   globalGame.doneDrawing = true;
-  //   globalGame.drawingAllowed = false;
-  //   if (globalGame.my_role === globalGame.playerRoleNames.role1) {
-  //     $('#feedback').html(" ");
-  //     setTimeout(function(){$('#turnIndicator').html("Your partner's turn to guess the target!");},globalGame.feedbackDelay);
-  //   } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
-  //     $("#loading").fadeOut('fast');
-  //     setTimeout(function(){$('#turnIndicator').html('Your turn: Select the target!');},globalGame.feedbackDelay);
-  //   }
-  // });
+  game.socket.on('mutualDoneDrawing', function(role) {
+    globalGame.doneDrawing = true;
+    globalGame.drawingAllowed = false;
+    if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+      $('#feedback').html(" ");
+      setTimeout(function(){$('#turnIndicator').html("Your partner's turn to guess the target!");},globalGame.feedbackDelay);
+    } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
+      $("#loading").fadeOut('fast');
+      setTimeout(function(){$('#turnIndicator').html('Your turn: Select the target!');},globalGame.feedbackDelay);
+    }
+  });
 
 };
 
@@ -336,6 +333,42 @@ var client_onjoingame = function(num_players, role) {
     globalGame.sketchpad.setupTool();
   }
 };
+
+// PROGRESS BAR HANDLERS
+
+function monitorProgress(){
+    console.log('start monitoring')
+    progress(globalGame.timeLimit, globalGame.timeLimit, $('.progress')); // show progress bar
+    $('.progress-bar').attr('aria-valuemax',timeLimit);
+    $('.progress').show(); // don't show progress bar until we start monitorung
+};
+
+//  monitoring progress spent on a trial and triggering next events
+function progress(timeleft, timetotal, $element) {
+    var progressBarWidth = timeleft * $element.width()/ timetotal;
+    var totalBarWidth = $element.width();
+    $element.find('.progress-bar').attr("aria-valuenow", timeleft).text(timeleft)
+    $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
+    console.log("time left = " + timeleft)
+    if(timeleft > 0) {
+        setTimeout(function() {
+            progress(timeleft - 1, timetotal, $element);
+        }, 1000);
+    }
+    else if(timeleft == 0){
+      console.log('no more drawing, trial timed out');
+      if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+        $('#feedback').html(" ");
+        setTimeout(function(){$('#turnIndicator').html("Time is up! Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
+      } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
+        setTimeout(function(){$('#turnIndicator').html('Your partner ran out of time! Please select the target!');},globalGame.feedbackDelay);
+      }
+      var finished = ['doneDrawing',1];
+      globalGame.socket.send(finished.join('.'));
+      return; //  get out of here
+    }
+};
+
 
 /*
  MOUSE EVENT LISTENERS

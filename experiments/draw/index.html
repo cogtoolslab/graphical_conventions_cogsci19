@@ -42,8 +42,6 @@
 
   <body>
     <div id='header'>
-      <button id='submitbutton' style="display: none">SUBMIT</button>
-      <div id="loading" style="display: none"></div>
         <h1 id='roleLabel'> You are the </h1>
         <p id='instructs'> </p>
       <!-- <div id='textInfo'>
@@ -52,6 +50,14 @@
       <p style="color:white" id='turnIndicator'> </p>
       <p style="color:white" id='roundnumber'>Round 1 of 32</p>
       <p style="color:white" id='score'> </p>
+
+    </div>
+
+
+    <div class="progress offset-md-2 col-md-8" style="display:none">
+        <div class="progress-bar bg-info" role="progressbar" aria-valuenow="100"
+             aria-valuemin="0" aria-valuemax="100" style="width:100%">30
+        </div>
     </div>
 
     <div id='main'>
@@ -74,20 +80,21 @@
       <p id='humanResult' style="display:none;color:red"> Thank you for your response -- in fact, all players were paired with other human turkers! <p>
 
   <br> <br>
-      <p> Are you a native English speaker? </p>
-      <select onChange="dropdownTip('language::' + this.value)">
-  <option value = ""></option>
-  <option value="yes">Yes</option>
-  <option value="no">No</option>
+      <p> What is your gender? </p>
+      <select onChange="dropdownTip('gender::' + this.value)">
+        <option value =""></option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
       </select>
       <br><br>
       <p> Did you read the instructions and do you think you did the
   HIT correctly? </p>
       <select onChange="dropdownTip('confused::' + this.value)">
-  <option value = ""></option>
-  <option value="yes">Yes</option>
-  <option value="no">No</option>
-  <option value="confused">I was confused</option>
+        <option value = ""></option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+        <option value="confused">I was confused</option>
       </select>
 
       <br><br>
