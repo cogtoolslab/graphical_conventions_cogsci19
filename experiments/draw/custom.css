@@ -196,7 +196,7 @@ ALOT...don't understand how to adjust that.*/
 }
 
 
-#progressBar {
+/* #progressBar {
     width: 90%;
     margin: 3vw;
     height: 2vw;
@@ -214,7 +214,7 @@ ALOT...don't understand how to adjust that.*/
     height: 100%;
     text-align: right;
     padding: 0 10px;
-    line-height: 1vw; /* same as #progressBar height if we want text middle aligned */
+    line-height: 1vw;
     width: 0;
     background-color: #49779b;
     color: #49779b;
@@ -224,7 +224,7 @@ ALOT...don't understand how to adjust that.*/
     bottom: 2%;
     z-index: 100;
 
-}
+} */
 
 .progress{
     padding-left:0px;
