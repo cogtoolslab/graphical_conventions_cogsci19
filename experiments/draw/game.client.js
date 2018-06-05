@@ -269,10 +269,9 @@ var customSetup = function(game) {
     globalGame.drawingAllowed = false;
     if (globalGame.my_role === globalGame.playerRoleNames.role1) {
       $('#feedback').html(" ");
-      setTimeout(function(){$('#turnIndicator').html("Your partner's turn to guess the target!");},globalGame.feedbackDelay);
+      setTimeout(function(){$('#turnIndicator').html("Time is up! Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
     } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
-      $("#loading").fadeOut('fast');
-      setTimeout(function(){$('#turnIndicator').html('Your turn: Select the target!');},globalGame.feedbackDelay);
+      setTimeout(function(){$('#turnIndicator').html('Your partner ran out of time! Please select the target!');},globalGame.feedbackDelay);
     }
   });
 
@@ -357,12 +356,12 @@ function progress(timeleft, timetotal, $element) {
     }
     else if(timeleft == 0){
       console.log('no more drawing, trial timed out');
-      if (globalGame.my_role === globalGame.playerRoleNames.role1) {
-        $('#feedback').html(" ");
-        setTimeout(function(){$('#turnIndicator').html("Time is up! Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
-      } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
-        setTimeout(function(){$('#turnIndicator').html('Your partner ran out of time! Please select the target!');},globalGame.feedbackDelay);
-      }
+      // if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+      //   $('#feedback').html(" ");
+      //   setTimeout(function(){$('#turnIndicator').html("Time is up! Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
+      // } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
+      //   setTimeout(function(){$('#turnIndicator').html('Your partner ran out of time! Please select the target!');},globalGame.feedbackDelay);
+      // }
       var finished = ['doneDrawing',1];
       globalGame.socket.send(finished.join('.'));
       return; //  get out of here
