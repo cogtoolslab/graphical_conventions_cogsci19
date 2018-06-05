@@ -338,17 +338,17 @@ var client_onjoingame = function(num_players, role) {
 
 function monitorProgress(){
     console.log('start monitoring')
-    progress(globalGame.timeLimit, globalGame.timeLimit, $('.progress')); // show progress bar
-    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
-    $('.progress').show(); // don't show progress bar until we start monitorung
+    progress(globalGame.timeLimit, globalGame.timeLimit, $('#progress')); // show progress bar
+    $('#progress-bar').attr('aria-valuemax',globalGame.timeLimit);
+    $('#progress').show(); // don't show progress bar until we start monitorung
 };
 
 //  monitoring progress spent on a trial and triggering next events
 function progress(timeleft, timetotal, $element) {
     var progressBarWidth = timeleft * $element.width()/ timetotal;
     var totalBarWidth = $element.width();
-    $element.find('.progress-bar').attr("aria-valuenow", timeleft).text(timeleft)
-    $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
+    $element.find('#progress-bar').attr("aria-valuenow", timeleft).text(timeleft)
+    $element.find('#progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
     console.log("time left = " + timeleft)
     if(timeleft > 0) {
         setTimeout(function() {
