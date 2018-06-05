@@ -298,13 +298,13 @@ var client_onjoingame = function(num_players, role) {
     $('#instructs').html("<p>Make a sketch of the target (orange)" +
       " so that your partner can tell which it is. " +
       " When you are done, click SUBMIT. </p>" +
-      "<p> Please draw only what you see, and do not include letters, arrows, or any surrounding context around object. </p>" +
-      "<p> Also please do not resize browser window or change zoom during the game.</p>");
+      "<p> Draw only what you see, and do not include letters, arrows, or any surrounding context around object. </p>" +
+      "<p> Please do not resize browser window or change zoom during the game.</p>");
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
     $('#instructs').html("<p>Your partner is going to draw one of these four objects." +
       " When they are done, click on the object they sketched. </p>" +
-      " <p> Important: Please do NOT resize browser window or change zoom during the game.</p>".bold());
+      "<p> Please do not resize browser window or change zoom during the game.</p>");
     // $("#loading").show();
   }
 
