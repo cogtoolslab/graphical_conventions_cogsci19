@@ -354,7 +354,7 @@ function progress(timeleft, timetotal, $element) {
             progress(timeleft - 1, timetotal, $element);
         }, 1000);
     }
-    else if(timeleft == 0){
+    else if(timeleft <= 0){
       console.log('no more drawing, trial timed out');
       // if (globalGame.my_role === globalGame.playerRoleNames.role1) {
       //   $('#feedback').html(" ");
