@@ -195,14 +195,8 @@ ALOT...don't understand how to adjust that.*/
     border: solid 1px #999;
 }
 
-.progress{
-    padding-left:0px;
-    padding-right:0px;
-    height: 1vw;
-    margin-left: 1%;
-  	margin-top: 1%;
-  	margin-right: auto;
-  	margin-bottom: auto;
+#progress{
+    height: 2vw;
   	left:auto; right:auto; top:auto; bottom: 4vh;
   	position: absolute;
     font-size:2vw;
@@ -211,7 +205,7 @@ ALOT...don't understand how to adjust that.*/
     border-color: #e5e8ea;
 }
 
-.progress-bar{
+#progress-bar{
     -webkit-transition: none !important;
     transition: none !important;
 }
