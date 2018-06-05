@@ -348,7 +348,7 @@ function progress(timeleft, timetotal, $element) {
     var totalBarWidth = $element.width();
     $element.find('.progress-bar').attr("aria-valuenow", timeleft).text(timeleft)
     $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
-    console.log("time left = " + timeleft)
+    // console.log("time left = " + timeleft)
     if(timeleft > 0) {
         setTimeout(function() {
             progress(timeleft - 1, timetotal, $element);
