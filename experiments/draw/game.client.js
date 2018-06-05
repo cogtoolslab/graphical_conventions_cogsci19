@@ -303,7 +303,7 @@ var client_onjoingame = function(num_players, role) {
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
     $('#instructs').html("<p>Your partner is going to draw one of these four objects." +
-      " When they are done, click on the object they sketched. </p>" +
+      " As soon as you can tell, click on the object they sketched. </p>" +
       "<p> Please do not resize browser window or change zoom during the game.</p>");
     // $("#loading").show();
   }
