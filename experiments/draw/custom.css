@@ -95,7 +95,9 @@ html , body {
     padding-left:0px;
     padding-right:0px;
     height: 2vw;
+    top: auto; left: auto; right: auto;
     bottom: 3vh;
+    color: #f4f5f7;
     margin-bottom: 4vw;
     font-size:2vw
 }
