@@ -91,7 +91,7 @@ html , body {
   font-weight:lighter;
 }
 
-#progress{
+.progress{
     padding-left:0px;
     padding-right:0px;
     height: 2vw;
@@ -100,7 +100,7 @@ html , body {
     font-size:2vw
 }
 
-#progress-bar{
+.progress-bar{
     width: 100%;
     -webkit-transition: none !important;
     transition: none !important;
