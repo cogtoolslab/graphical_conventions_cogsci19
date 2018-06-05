@@ -92,21 +92,11 @@ html , body {
 }
 
 #progress{
+    padding-left:0px;
+    padding-right:0px;
     height: 2vw;
-    width: 100%;
-    text-align: right;
-    margin-left: 85%;
-  	margin-top: 1%;
-  	margin-right: auto;
-  	margin-bottom: auto;
-  	left:auto; right:auto; top:auto; bottom: 4vh;
-  	position: absolute;
-    font-size:2vw;
-    background-color: #ffffff;
-    color: #49779b;
-    border-color: #ffffff;
-    border-width: 3px;
-    z-index: 100;
+    margin-bottom: 4vw;
+    font-size:2vw
 }
 
 #progress-bar{
