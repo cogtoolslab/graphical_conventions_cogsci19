@@ -84,7 +84,7 @@ html , body {
 	margin-left: 85%;
 	margin-top: 1%;
 	margin-right: auto;
-	margin-bottom: auto ;
+	margin-bottom: auto;
 	left:auto; right:3vh; top:auto; bottom: 3vh;
 	position: absolute;
 	font-size: 2.5vh;
@@ -195,42 +195,16 @@ ALOT...don't understand how to adjust that.*/
     border: solid 1px #999;
 }
 
-
-/* #progressBar {
-    width: 90%;
-    margin: 3vw;
-    height: 2vw;
-    background-color: #49779b;
-    color: #49779b;
-    border-style: solid;
-    border-color: #e5e8ea;
-    position: absolute;
-    left: 0;
-    right:0;
-    bottom: 2%;
-}
-
-#progressBar div {
-    height: 100%;
-    text-align: right;
-    padding: 0 10px;
-    line-height: 1vw;
-    width: 0;
-    background-color: #49779b;
-    color: #49779b;
-    box-sizing: border-box;
-    left: 0;
-    right:0;
-    bottom: 2%;
-    z-index: 100;
-
-} */
-
 .progress{
     padding-left:0px;
     padding-right:0px;
-    height: 2vw;
-    margin-bottom: 4vw;
+    height: 1vw;
+    margin-left: 1%;
+  	margin-top: 1%;
+  	margin-right: auto;
+  	margin-bottom: auto;
+  	left:auto; right:auto; top:auto; bottom: 4vh;
+  	position: absolute;
     font-size:2vw;
     background-color: #e5e8ea;
     color: #49779b;
