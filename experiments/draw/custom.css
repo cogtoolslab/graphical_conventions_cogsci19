@@ -200,9 +200,11 @@ ALOT...don't understand how to adjust that.*/
   	left:auto; right:auto; top:auto; bottom: 4vh;
   	position: absolute;
     font-size:2vw;
-    background-color: #e5e8ea;
+    background-color: #ffffff;
     color: #49779b;
-    border-color: #e5e8ea;
+    border-color: #ffffff;
+    border-width: 3px;
+    z-index: 100;
 }
 
 #progress-bar{
