@@ -379,7 +379,7 @@ function responseListener(evt) {
   var mouseX = (evt.clientX - bRect.left)*(globalGame.viewport.width/bRect.width);
   var mouseY = (evt.clientY - bRect.top)*(globalGame.viewport.height/bRect.height);
   // only allow to respond after message has been sent
-  if (globalGame.messageSent) {
+  if (globalGame.messageSent) || (globalGame.doneDrawing) {
     // find which shape was clicked
     _.forEach(globalGame.objects, function(obj) {
       if (hitTest(obj, mouseX, mouseY)) {
