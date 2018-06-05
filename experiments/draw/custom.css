@@ -200,7 +200,10 @@ ALOT...don't understand how to adjust that.*/
     width: 90%;
     margin: 3vw;
     height: 2vw;
-    background-color: #0A5F44;
+    background-color: #49779b;
+    color: #49779b;
+    border-style: solid;
+    border-color: #e5e8ea;
     position: absolute;
     left: 0;
     right:0;
@@ -213,7 +216,8 @@ ALOT...don't understand how to adjust that.*/
     padding: 0 10px;
     line-height: 1vw; /* same as #progressBar height if we want text middle aligned */
     width: 0;
-    background-color: #CBEA00;
+    background-color: #49779b;
+    color: #49779b;
     box-sizing: border-box;
     left: 0;
     right:0;
@@ -227,7 +231,10 @@ ALOT...don't understand how to adjust that.*/
     padding-right:0px;
     height: 2vw;
     margin-bottom: 4vw;
-    font-size:2vw
+    font-size:2vw;
+    background-color: #49779b;
+    color: #49779b;
+    border-color: #e5e8ea;
 }
 
 .progress-bar{
