@@ -1,6 +1,3 @@
-//////// jefan debugging 3/17/17
-//////// originally from colorReference & original sketchpad
-
 //   Copyright (c) 2012 Sven "FuzzYspo0N" Bergström,
 //                   2013 Robert XD Hawkins
 
@@ -26,6 +23,9 @@ var waiting;
 //test: let's try a variable selecting, for when the listener selects an object
 // we don't need the dragging.
 var selecting;
+
+// variable to store whether an object has just been clicked
+var objClicked = false;
 
 /*
  Note: If you add some new variable to your game that must be shared
@@ -143,6 +143,8 @@ var client_onMessage = function(data) {
       $('#chatbox').attr("disabled", "disabled");
       var clickedObjName = commanddata;
 
+      var objClicked = true; // set clicked obj toggle variable to true
+      console.log('objClicked',objClicked);	
       // update local score
       var target = _.filter(globalGame.objects, function(x){
 	return x.target_status == 'target';
@@ -216,8 +218,9 @@ var customSetup = function(game) {
     globalGame.path = [];
 
     // reset clicked obj flag
-    globalGame.objClicked = false;
-
+    var objClicked = false;
+    console.log('objClicked',objClicked);
+      
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
 
@@ -351,24 +354,28 @@ function progress(timeleft, timetotal, $element) {
     var totalBarWidth = $element.width();
     $element.find('.progress-bar').attr("aria-valuenow", timeleft).text(timeleft)
     $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
-    // console.log("time left = " + timeleft)
-    if(timeleft > 0 & !globalGame.objClicked) {
-        setTimeout(function() {
+    console.log("time left = " + timeleft)
+    if(timeleft > 0 & !objClicked) {
+        theTimer = setTimeout(function() {
             progress(timeleft - 1, timetotal, $element);
         }, 1000);
     }
-    else if(timeleft <= 0){
-      console.log('no more drawing, trial timed out');
-      // if (globalGame.my_role === globalGame.playerRoleNames.role1) {
-      //   $('#feedback').html(" ");
-      //   setTimeout(function(){$('#turnIndicator').html("Time is up! Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
-      // } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
-      //   setTimeout(function(){$('#turnIndicator').html('Your partner ran out of time! Please select the target!');},globalGame.feedbackDelay);
-      // }
-      var finished = ['doneDrawing',1];
-      globalGame.socket.send(finished.join('.'));
-      return; //  get out of here
+    else if(timeleft <= 0 & !objClicked){
+	console.log('no more drawing, trial timed out');
+	clearTimeout(theTimer);
+	var finished = ['doneDrawing',1];
+	globalGame.socket.send(finished.join('.'));
+	return; //  get out of here
+
+    } else if (objClicked) {
+	console.log('an object was clicked, so end the trial');
+	clearTimeout(theTimer);
+	var finished = ['doneDrawing',1];
+	globalGame.socket.send(finished.join('.'));
+	return; //  get out of here	
     }
+
+    
 };
 
 
@@ -377,17 +384,15 @@ function progress(timeleft, timetotal, $element) {
  */
 
 function responseListener(evt) {
-  globalGame.objClicked = true; // set clicked obj toggle variable to true
-
-  var bRect = globalGame.viewport.getBoundingClientRect();
-  var mouseX = (evt.clientX - bRect.left)*(globalGame.viewport.width/bRect.width);
-  var mouseY = (evt.clientY - bRect.top)*(globalGame.viewport.height/bRect.height);
-  // only allow to respond after message has been sent
-  if ((globalGame.messageSent) || (globalGame.doneDrawing)){
-    // find which shape was clicked
-    _.forEach(globalGame.objects, function(obj) {
-      if (hitTest(obj, mouseX, mouseY)) {
-        globalGame.messageSent = false;
+    var bRect = globalGame.viewport.getBoundingClientRect();
+    var mouseX = (evt.clientX - bRect.left)*(globalGame.viewport.width/bRect.width);
+    var mouseY = (evt.clientY - bRect.top)*(globalGame.viewport.height/bRect.height);
+    // only allow to respond after message has been sent
+    if ((globalGame.messageSent) || (globalGame.doneDrawing)){
+	// find which shape was clicked
+	_.forEach(globalGame.objects, function(obj) {
+	    if (hitTest(obj, mouseX, mouseY)) {
+		globalGame.messageSent = false;
 
         // Send packet about trial to server
         var dataURL = document.getElementById('sketchpad').toDataURL();
