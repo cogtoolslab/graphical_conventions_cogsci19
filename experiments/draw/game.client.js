@@ -144,7 +144,7 @@ var client_onMessage = function(data) {
       var clickedObjName = commanddata;
 
       objClicked = true; // set clicked obj toggle variable to true
-      console.log('objClicked',objClicked);	
+      console.log('objClicked',objClicked);
       // update local score
       var target = _.filter(globalGame.objects, function(x){
 	return x.target_status == 'target';
@@ -220,7 +220,7 @@ var customSetup = function(game) {
     // reset clicked obj flag
     objClicked = false;
     console.log('objClicked',objClicked);
-      
+
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
 
@@ -273,10 +273,10 @@ var customSetup = function(game) {
   game.socket.on('mutualDoneDrawing', function(role) {
     globalGame.doneDrawing = true;
     globalGame.drawingAllowed = false;
-    if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+    if (globalGame.my_role === globalGame.playerRoleNames.role1 && !objClicked) {
       $('#feedback').html(" ");
       setTimeout(function(){$('#turnIndicator').html("Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
-    } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
+    } else if (globalGame.my_role === globalGame.playerRoleNames.role2 && !objClicked) {
       setTimeout(function(){$('#turnIndicator').html('Now your turn to select the target!');},globalGame.feedbackDelay);
     }
   });
@@ -361,21 +361,21 @@ function progress(timeleft, timetotal, $element) {
         }, 1000);
     }
     else if(timeleft <= 0 & !objClicked){
-	console.log('no more drawing, trial timed out, so clear timer');
-	clearTimeout(theTimer);
-	var finished = ['doneDrawing',1];
-	globalGame.socket.send(finished.join('.'));
-	return; //  get out of here
+    	console.log('no more drawing, trial timed out, so clear timer');
+    	clearTimeout(theTimer);
+    	var finished = ['doneDrawing',1];
+    	globalGame.socket.send(finished.join('.'));
+    	return; //  get out of here
 
     } else if (objClicked) {
-	console.log('an object was clicked, so end the trial and clear timer');
-	clearTimeout(theTimer);
-	var finished = ['doneDrawing',1];
-	globalGame.socket.send(finished.join('.'));
-	return; //  get out of here	
+    	console.log('an object was clicked, so end the trial and clear timer');
+    	clearTimeout(theTimer);
+    	var finished = ['doneDrawing',1];
+    	globalGame.socket.send(finished.join('.'));
+    	return; //  get out of here
     }
 
-    
+
 };
 
 

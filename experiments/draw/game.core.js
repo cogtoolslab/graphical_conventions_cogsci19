@@ -76,6 +76,9 @@ var game_core = function(options){
   // how long the sketcher has to finish their drawing
   this.timeLimit = 20;
 
+  // toggle whether an object has been clicked
+  this.objClicked = false;
+
   // Which round (a.k.a. "trial") are we on (initialize at -1 so that first round is 0-indexed)
   this.roundNum = -1;
 
