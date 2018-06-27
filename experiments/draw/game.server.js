@@ -51,7 +51,7 @@ var onMessage = function(client,message) {
         p.player.instance.emit('newRoundUpdate', {user: client.userid} );
       });
       gc.newRound();
-    }, 4000);
+    }, 2000);
     break;
 
   case 'h' : // Receive message when browser focus shifts
