@@ -215,6 +215,9 @@ var customSetup = function(game) {
     globalGame.doneDrawing = false;
     globalGame.path = [];
 
+    // reset clicked obj flag
+    globalGame.objClicked = false;
+
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
 
@@ -349,7 +352,7 @@ function progress(timeleft, timetotal, $element) {
     $element.find('.progress-bar').attr("aria-valuenow", timeleft).text(timeleft)
     $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
     // console.log("time left = " + timeleft)
-    if(timeleft > 0) {
+    if(timeleft > 0 & !globalGame.objClicked) {
         setTimeout(function() {
             progress(timeleft - 1, timetotal, $element);
         }, 1000);
@@ -374,6 +377,8 @@ function progress(timeleft, timetotal, $element) {
  */
 
 function responseListener(evt) {
+  globalGame.objClicked = true; // set clicked obj toggle variable to true
+
   var bRect = globalGame.viewport.getBoundingClientRect();
   var mouseX = (evt.clientX - bRect.left)*(globalGame.viewport.width/bRect.width);
   var mouseY = (evt.clientY - bRect.top)*(globalGame.viewport.height/bRect.height);
