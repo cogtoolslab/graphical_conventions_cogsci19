@@ -28,8 +28,14 @@ if(argv.gameport) {
   console.log('no gameport specified: using 8886\nUse the --gameport flag to change');
 }
 
-var exp = 'draw';
-var gameServer = new Server(exp);
+if(argv.expname) {
+  var exp = argv.expname.replace(/\/$/, "");
+  var gameServer = new Server(exp);  
+} else {
+  console.log('no expname specified; using the default expname, "draw"')
+  var exp = 'draw';
+  var gameServer = new Server(exp);
+}
 
 try {
   var privateKey  = fs.readFileSync('/etc/apache2/ssl/rxdhawkins.me.key'),
