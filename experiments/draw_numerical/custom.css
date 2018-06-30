@@ -44,8 +44,8 @@ xyhtml , body {
 	text-align: center;
 	margin-left: auto;
 	margin-right: auto;
-	margin-bottom: auto ;
-	left:0; right:0; top:5.2vh; bottom: 0;
+	margin-bottom: auto;
+	left:0; right:0; top:7vh; bottom: 1vh;
 	position: absolute;
 	font-size: 2vh;
 	font-weight:lighter;
@@ -55,10 +55,10 @@ xyhtml , body {
 	height: 5%;
 	width: 20%;
 	text-align: center;
-	margin-left: 0;
-	margin-right: auto;
-	margin-bottom: auto;
-	left:auto; right:1%; top:35%; bottom: 0;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: auto;
+  left: auto; right: 3vh; top: auto; bottom: 3vh;
 	position: absolute;
 	font-size: 2.2vh;
 	font-weight:lighter;
@@ -68,7 +68,8 @@ xyhtml , body {
 	height: 5%;
 	width: 20%;
 	text-align: center;
-	margin-left: 0;
+  margin-left: 85%;
+  margin-top: 1%;
 	margin-right: auto;
 	margin-bottom: auto;
 	left:auto; right:1%; top:25%; bottom: 0;
@@ -92,15 +93,12 @@ xyhtml , body {
 }
 
 .progress{
-    padding-left:1%;
-    padding-right:1%;
     height: 1.6vw;
     position: absolute;
-    top: 12vh; left: 20%; right: 20%;
-    bottom: auto;
+    top: 15vh; left: 20%; right: 20%;
+    bottom: 30vh;
     background-color: #292b29;
     margin-bottom: 4vw;
-    font-size:1.5vw;
     z-index:100;
     width: 60%
 }
@@ -111,7 +109,35 @@ xyhtml , body {
     transition: none !important;
     z-index: 100;
     background-color:#356ba5;
-    font-color: #1d1e1e
+}
+
+.value-bar{
+    display: flex;
+    flex-direction; column;
+    justify-content: space-between;
+    align-items: center;
+    width: 105%;
+    margin-left: -2.5%;
+}
+
+.value{
+    font-size: 2vh;
+    display: inline-block;
+    width: 10%;
+    text-align: center;
+}
+
+.bonus{
+  position: absolute;
+  top: 20vh;
+  right: 20%;
+  font-size: 2.5vh;
+  text-align: right;
+  margin-bottom: 4vw;
+}
+
+.max {
+  float: left;
 }
 
 #score {
@@ -124,7 +150,7 @@ xyhtml , body {
 	margin-bottom: auto ;
 	left:0; right:0; top:20%; bottom: 0;
 	position: absolute;
-	font-size: 2vh;
+	font-size: 1vh;
 	font-weight:lighter;
 }
 
@@ -210,7 +236,7 @@ ALOT...don't understand how to adjust that.*/
     height: 300px;
     width: 300px;
     position: absolute;
-    top: 6vh;
+    top: 15vh;
     right:0;left:0;
     float: top;
     margin: auto;
