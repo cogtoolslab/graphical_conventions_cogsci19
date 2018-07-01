@@ -40,7 +40,7 @@ xyhtml , body {
 
 #instructs {
 	height: 2vh;
-	width: 110vh;
+	width: 130vh;
 	text-align: center;
 	margin-left: auto;
 	margin-right: auto;
@@ -58,7 +58,7 @@ xyhtml , body {
   margin-left: auto;
   margin-right: auto;
   margin-bottom: auto;
-  left: auto; right: 3vh; top: auto; bottom: 3vh;
+  left: auto; right: 3vh; top: auto; bottom: 10vh;
 	position: absolute;
 	font-size: 2.2vh;
 	font-weight:lighter;
@@ -92,45 +92,10 @@ xyhtml , body {
     font-weight:lighter;
 }
 
-.progress{
-    height: 1.6vw;
-    position: absolute;
-    top: 15vh; left: 20%; right: 20%;
-    bottom: 30vh;
-    background-color: #292b29;
-    margin-bottom: 4vw;
-    z-index:100;
-    width: 60%
-}
-
-.progress-bar{
-    width: 100%;
-    -webkit-transition: none !important;
-    transition: none !important;
-    z-index: 100;
-    background-color:#356ba5;
-}
-
-.value-bar{
-    display: flex;
-    flex-direction; column;
-    justify-content: space-between;
-    align-items: center;
-    width: 105%;
-    margin-left: -2.5%;
-}
-
-.value{
-    font-size: 2vh;
-    display: inline-block;
-    width: 10%;
-    text-align: center;
-}
-
 .bonus{
   position: absolute;
   top: 20vh;
-  right: 20%;
+  right: 25%;
   font-size: 2.5vh;
   text-align: right;
   margin-bottom: 4vw;
@@ -150,7 +115,7 @@ xyhtml , body {
 	margin-bottom: auto ;
 	left:0; right:0; top:20%; bottom: 0;
 	position: absolute;
-	font-size: 1vh;
+	font-size: 2vh;
 	font-weight:lighter;
 }
 
@@ -236,7 +201,7 @@ ALOT...don't understand how to adjust that.*/
     height: 300px;
     width: 300px;
     position: absolute;
-    top: 15vh;
+    top: 10vh;
     right:0;left:0;
     float: top;
     margin: auto;

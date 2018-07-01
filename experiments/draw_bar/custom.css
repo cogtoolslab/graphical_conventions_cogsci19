@@ -39,12 +39,12 @@ xyhtml , body {
 }
 
 #instructs {
-	height: 2vh;
-	width: 110vh;
+	height: auto;
+	width: 130vh;
 	text-align: center;
 	margin-left: auto;
 	margin-right: auto;
-	margin-bottom: auto;
+	margin-bottom: 2vh;
 	left:0; right:0; top:7vh; bottom: 1vh;
 	position: absolute;
 	font-size: 2vh;
@@ -89,6 +89,34 @@ xyhtml , body {
     position: absolute;
     font-size: 2.5vh;
     font-weight:lighter;
+}
+
+#bonuslabel {
+    height: 2vh;
+    width: 20vh;
+    text-align: right;
+    margin-left: 7%;
+    margin-top: 1%;
+    margin-right: auto;
+    margin-bottom: auto;
+    left: 0; right: auto; top:13vh; bottom: auto;
+    position: absolute;
+    font-size: 2.5vh;
+    font-weight:lighter;
+}
+
+#cents {
+  height: 2vh;
+  width: 20vh;
+  text-align: center;
+  margin-left: 11%;
+  margin-top: 1%;
+  margin-right: auto;
+  margin-bottom: auto;
+  left: 0; right: auto; top:16vh; bottom: auto;
+  position: absolute;
+  font-size: 2.5vh;
+  font-weight:lighter;
 }
 
 .progress{
@@ -136,7 +164,7 @@ xyhtml , body {
 	margin-bottom: auto ;
 	left:0; right:0; top:20%; bottom: 0;
 	position: absolute;
-	font-size: 1vh;
+	font-size: 2vh;
 	font-weight:lighter;
 }
 
@@ -222,7 +250,7 @@ ALOT...don't understand how to adjust that.*/
     height: 300px;
     width: 300px;
     position: absolute;
-    top: 15vh;
+    top: 12vh;
     right:0;left:0;
     float: top;
     margin: auto;

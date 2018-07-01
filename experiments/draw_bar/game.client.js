@@ -300,16 +300,15 @@ var client_onjoingame = function(num_players, role) {
   $('#roleLabel').append(role + '.');
   if (role === globalGame.playerRoleNames.role1) {
     txt = "target";
-    $('#instructs').html("<p>Make a sketch of the target (orange)" +
-      " so that your partner can tell which it is. " +
-      " When you are done, click SUBMIT. </p>" +
-      "<p> Draw only what you see, and do not include letters, arrows, or any surrounding context around object. </p>" +
-      "<p> Please do not resize browser window or change zoom during the game.</p>");
+    $('#instructs').html("<p>Make a sketch of the target (orange) so that your partner can tell which it is, as soon as possible. " +
+      " Up to 20 seconds, you will receive </p>" +
+      "<p> a bonus that linearly correlates with how fast the guess is. When you are done, click SUBMIT. Draw only what you see, and do not </p>" +
+      "<p> include letters, arrows, or any surrounding context around object. Please do not resize browser window or change zoom during the game. </p>");
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
     $('#instructs').html("<p>Your partner is going to draw one of these four objects." +
       " As soon as you can tell, click on the object they sketched. </p>" +
-      "<p> Please do not resize browser window or change zoom during the game.</p>");
+      "<p> Please do not resize browser window or change zoom during the game. </p>");
     // $("#loading").show();
   }
 

@@ -111,7 +111,8 @@ var game_core = function(options){
       catch_trials : [], system : {},
       subject_information : {
 	    gameID: this.id,
-	    score: 0
+	    score: 0,
+      bonus_score: 0
       }
     };
     this.players = [{
