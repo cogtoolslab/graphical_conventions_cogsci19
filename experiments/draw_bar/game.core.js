@@ -186,15 +186,13 @@ game_core.prototype.newRound = function() {
 };
 
 game_core.prototype.setupTimer = function(timeleft, active_players) {
-  console.log('top of setupTimer',timeleft);
   _.map(active_players, function(p){
     p.player.instance.emit('updateTimer', timeleft);
-    console.log("emitting time to clients", timeleft);
+    // console.log("emitting time to clients", timeleft);
   });  
   if (timeleft > 0) {
     theTimer = setTimeout(function(){
       game_core.prototype.setupTimer(timeleft - 1,active_players);
-      console.log("repeating setupTimer call in the setTimeout", timeleft);
     }, 1000);
   } else {
     clearTimeout(theTimer);
