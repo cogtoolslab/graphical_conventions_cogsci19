@@ -104,8 +104,10 @@ var client_onserverupdate_received = function(data){
   globalGame.player_count = data.pc;
   globalGame.roundNum = data.roundNum;
   // update data object on first round, don't overwrite (FIXME)
+  console.log("data already defined" + globalGame.data)
   if(!_.has(globalGame, 'data')) {
     globalGame.data = data.dataObj;
+    console.log(globalGame.data);
   }
 
   // Draw all this new stuff
@@ -364,7 +366,7 @@ function progress(centsleft, centstotal, $element) {
     console.log("cents left = " + displaynum);
     if(centsleft > 0 & !objClicked) {
         theTimer = setTimeout(function() {
-            progress(strip(centsleft - 0.2), centstotal, $element);
+            progress(strip(centsleft - 0.1), centstotal, $element);
         }, 1000);
     }
     else if(centsleft <= 0 & !objClicked){

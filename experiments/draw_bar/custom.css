@@ -168,7 +168,50 @@ xyhtml , body {
 	font-weight:lighter;
 }
 
-#submitbutton {
+#startbutton {
+    z-index: 10;
+    position: absolute;
+    margin: auto;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    background-color: #5f8c7e;
+    color: black;
+    font-size: 40px;
+    padding: 16px 30px;
+    border-style: solid;
+    border-width: 5px;
+    cursor: pointer;
+    border-radius: 20px;
+    text-align: center;
+}
+
+#startbutton:hover {
+    background-color: #2e2f30;
+    color: white;
+}
+  /* #startbutton:active {
+      z-index: 10;
+      height: 6vh;
+      width: 12vw;
+      float: left;
+      margin-left: 10%;
+      margin-top: 2%;
+      right: 2vh; top: 10vh;
+      position: absolute;
+      background: rgb(255,255,255);
+      border: none;
+      padding: .5vh;
+      font-size: 4vh;
+      font-weight: normal;
+      border-radius: 100%;
+      border: none;
+      box-shadow: 0 5px #666;
+      transform: translateY(1vh);
+  } */
+
+/* #submitbutton {
 	z-index: 10;
 	height: 6vh;
 	width: 12vw;
@@ -183,14 +226,13 @@ xyhtml , body {
 	font-size: 4vh;
 	font-weight: normal;
 	border-radius: 100%;
-	border: none;
+	border: none; */
 
 
 /*trying to change around attributes of click button reduces the clickable area
 ALOT...don't understand how to adjust that.*/
-}
 
-#submitbutton:active {
+/* #submitbutton:active {
     z-index: 10;
     height: 6vh;
     width: 12vw;
@@ -208,7 +250,7 @@ ALOT...don't understand how to adjust that.*/
     border: none;
     box-shadow: 0 5px #666;
     transform: translateY(1vh);
-}
+} */
 
 #main {
 	height: auto;

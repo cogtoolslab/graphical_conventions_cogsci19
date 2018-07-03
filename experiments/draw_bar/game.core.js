@@ -1,9 +1,7 @@
 /*  Copyright (c) 2012 Sven "FuzzYspo0N" Bergström,
                   2013 Robert XD Hawkins
-
  written by : http://underscorediscovery.com
     written for : http://buildnewgames.com/real-time-multiplayer/
-
     substantially modified for collective behavior experiments on the web
     MIT Licensed.
 */
@@ -111,7 +109,8 @@ var game_core = function(options){
       catch_trials : [], system : {},
       subject_information : {
 	    gameID: this.id,
-	    score: 0
+	    score: 0,
+      bonus_score: 0
       }
     };
     this.players = [{
@@ -180,9 +179,25 @@ game_core.prototype.newRound = function() {
     this.roundNum += 1;
     this.trialInfo = {currStim: this.trialList[this.roundNum]};
     this.objects = this.trialList[this.roundNum];
+    this.setupTimer(this.timeLimit);
     this.server_send_update();
   }
 };
+
+game_core.prototype.setupTimer = function(timeleft) {
+  _.map(this.get_active_players(), function(p){
+    p.player.instance.emit('updateTimer', timeleft);
+    console.log("calling updateTimer");
+  });
+  if (timeleft > 0) {
+    theTimer = setTimeout(function(){
+      game_core.prototype.setupTimer(timeleft - 1);
+      console.log("calling setupTimer again");
+    }, 1000);
+  } else {
+    clearTimeout(theTimer);
+  }
+}
 
 game_core.prototype.getRandomizedConditions = function() {
 
