@@ -65,8 +65,13 @@ var onMessage = function(client,message) {
         p.player.instance.emit('mutualDoneDrawing', {user: client.userid} );
       });
 
+  case 'startGame' :
+  _.map(all, function(p){
+    p.player.instance.emit('start', {user: client.userid} );
+  });
   }
 };
+
 
 const flatten = arr => arr.reduce(
   (acc, val) => acc.concat(
@@ -145,6 +150,7 @@ var dataOutput = function() {
       shiftKeyUsed: message_data[4],
       score: message_data[5]
       }
+      //console.log(message_data);
     );
     console.log(JSON.stringify(output, null, 3));
     return output;
