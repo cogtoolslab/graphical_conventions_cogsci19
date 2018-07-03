@@ -288,9 +288,7 @@ var customSetup = function(game) {
 
  // new progress bar function
   game.socket.on('updateTimer', function(timeleft) {
-    // console.log(timeleft);
     console.log('start monitoring');
-    // timeleft = globalGame.timeLimit;
     timetotal = globalGame.timeLimit;
     $element = $('.progress');
     var progressBarWidth = timeleft * $element.width()/ timetotal;
