@@ -84,7 +84,7 @@ class VGG19Embeddings(nn.Module):
         
 class FeatureExtractor():
     
-    def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=0, cohort='kid',spatial_avg=True):
+    def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=0, data_type='images',spatial_avg=True):
         self.layer = layer
         self.paths = paths
         self.num_sketches = len(self.paths)
@@ -93,7 +93,7 @@ class FeatureExtractor():
         self.padding = 10
         self.batch_size = batch_size
         self.cuda_device = cuda_device
-        self.cohort = cohort ## 'kid' if analyzing kids' drawings; 'adult' if analyzing adults' drawings
+        self.data_type = data_type ## either 'images' or 'sketches'
         self.spatial_avg = spatial_avg ## if true, collapse across spatial dimensions to just preserve channel activation
         
     def extract_feature_matrix(self):
@@ -118,7 +118,7 @@ class FeatureExtractor():
         def load_image(path, imsize=224, padding=self.padding, volatile=True, use_cuda=False):
             im = Image.open(path)
             
-            if self.cohort!='images':
+            if self.data_type!='images': ## only do this preprocessing if you are working with sketches
                 im = RGBA2RGB(im)
                 
                 # crop to sketch only (reduce white space)
