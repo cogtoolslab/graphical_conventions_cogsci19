@@ -147,14 +147,17 @@ var client_onMessage = function(data) {
       var clickedObjName = commanddata;
       var timeleft = commands[3];
       objClicked = true; // set clicked obj toggle variable to true
+      $element.find('.progress-bar').finish();
       console.log('objClicked',objClicked);
+
       // update local score
       var target = _.filter(globalGame.objects, function(x){
 	       return x.target_status == 'target';
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
       globalGame.data.subject_information.score += scoreDiff;
-      globalGame.data.subject_information.bonus_score += timeleft;
+      console.log("time left: " + timeleft)
+      globalGame.data.subject_information.bonus_score += timeleft / 10 + 1;
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
 	       drawSketcherFeedback(globalGame, scoreDiff, clickedObjName);
@@ -295,48 +298,19 @@ var customSetup = function(game) {
 
  // new progress bar function
   game.socket.on('updateTimer', function(timeleft) {
-    console.log('start monitoring');
-    timetotal = globalGame.timeLimit;
-    $element = $('.progress');
-    var progressBarWidth = timeleft * $element.width()/ timetotal;
-    var totalBarWidth = $element.width();
-    var centsleft = timeleft / 10 + 1;
-    //console.log("after all initializations");
-    $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
-    $element.find('.progress-bar').finish();
-    $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
-    console.log("animated progress bar with time left: " + timeleft);
-    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
-    $('.progress').show();
-      //console.log("time left = " + timeleft);
-    // } else if (timeleft <= 0 & !objClicked) {
-    // 	//console.log('no more drawing, trial timed out, so clear timer');
-    // 	//clearTimeout(theTimer);
-    // 	// var finished = ['doneDrawing',1];
-    // 	// globalGame.socket.send(finished.join('.'));
-    //   // console.log("finished: " + finished);
-    //   globalGame.data.subject_information.bonus_score += centsleft;
-    //   // console.log("cents left" + centsleft);
-    //   // console.log("updated bonus_score:" + globalGame.data.subject_information.bonus_score);
-    // 	// return; //  get out of here
-    //
-    // } else if (objClicked) {
-    // 	console.log('an object was clicked, so end the trial and clear timer');
-    // 	//clearTimeout(theTimer);
-    // 	var finished = ['doneDrawing',1];
-    // 	globalGame.socket.send(finished.join('.'));
-    //   globalGame.data.subject_information.bonus_score += centsleft;
-    //   console.log("cents left" + centsleft);
-    //   console.log("updated bonus_score:" + globalGame.data.subject_information.bonus_score);
-    // 	return; //  get out of here
-    // }
-     // don't show progress bar until we start monitorung
-    //monitorProgress();
+      console.log('start monitoring');
+      timetotal = globalGame.timeLimit;
+      $element = $('.progress');
+      var progressBarWidth = timeleft * $element.width()/ timetotal;
+      var totalBarWidth = $element.width();
+      var centsleft = timeleft / 10 + 1;
+      $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
+      $element.find('.progress-bar').finish();
+      $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
+      console.log("animated progress bar with time left: " + timeleft);
+      $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
+      $('.progress').show();
   });
-
-  // game.socket.on('start', function(){
-  //   client_onserverupdate_received(data);
-  // })
 
   game.socket.on('mutualDoneDrawing', function(role) {
     globalGame.doneDrawing = true;

@@ -95,6 +95,10 @@ var game_core = function(options){
   // This will be populated with the set of objects
   this.trialInfo = {};
 
+  // Progress bar timer
+  this.timer;
+
+
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
     // If we're initializing the server game copy, pre-create the list of trials
@@ -179,6 +183,7 @@ game_core.prototype.newRound = function() {
     this.roundNum += 1;
     this.trialInfo = {currStim: this.trialList[this.roundNum]};
     this.objects = this.trialList[this.roundNum];
+    this.objClicked = false;
     active_players = this.get_active_players();
     this.setupTimer(this.timeLimit,active_players);
     this.server_send_update();
@@ -187,14 +192,13 @@ game_core.prototype.newRound = function() {
 
 game_core.prototype.setupTimer = function(timeleft, active_players) {
   this.timeleft = timeleft;
-  _.map(active_players, function(p){
-    p.player.instance.emit('updateTimer', timeleft);
-    //p.player.instance.emit()
-    // console.log("emitting time to clients", timeleft);
-  });
-  if (timeleft > 0) { // and object clicked
+  var that = this;
+  if (timeleft >= 0 && !(this.objClicked)) { // and object clicked
+    _.map(active_players, function(p){
+      p.player.instance.emit('updateTimer', timeleft);
+    });
     this.timer = setTimeout(function(){
-      game_core.prototype.setupTimer(timeleft - 1,active_players);
+      that.setupTimer(timeleft - 1,active_players);
     }, 1000);
   } else {
     clearTimeout(this.timer);

@@ -45,7 +45,7 @@ var onMessage = function(client,message) {
 //    writeData(client, "clickedObj", message_parts);
     others[0].player.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
     target.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
-    clearTimeout(gc.timer);
+    gc.objClicked = true;
     setTimeout(function() {
       _.map(all, function(p){
         p.player.instance.emit('newRoundUpdate', {user: client.userid} );
