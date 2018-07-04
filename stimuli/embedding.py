@@ -87,7 +87,7 @@ class FeatureExtractor():
     def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=0, data_type='images',spatial_avg=True):
         self.layer = layer
         self.paths = paths
-        self.num_sketches = len(self.paths)
+        self.num_images = len(self.paths)
         self.use_cuda = use_cuda
         self.imsize = imsize
         self.padding = 10
@@ -137,9 +137,12 @@ class FeatureExtractor():
                 except ValueError:
                     print('Blank image {}'.format(path))
                     pass
-
+            else:
+                im = RGBA2RGB(im)
+                
             loader = transforms.Compose([
-                transforms.Pad(padding),                
+                transforms.Pad(padding), 
+                transforms.CenterCrop(imsize),
                 transforms.Scale(imsize),
                 transforms.ToTensor()])
 
@@ -193,10 +196,11 @@ class FeatureExtractor():
                     sketch_batch = sketch_batch.cuda(self.cuda_device)             
                 label_batch = [] 
                 if (n+1)%1==0:
-                    print('Batch {}'.format(n + 1))            
+                    print('Batch {}'.format(n + 1))
                 for b in range(batch_size):
                     try:
-                        sketch, label, age, session = generator.next()
+                        sketch, label = generator.next()
+                        ##print(list(sketch.size()),label)
                         sketch_batch[b] = sketch 
                         label_batch.append(label)
                     except StopIteration:
@@ -205,7 +209,7 @@ class FeatureExtractor():
                         break                
                 
                 n = n + 1       
-                if n == self.num_sketches//self.batch_size:
+                if n == self.num_images//self.batch_size:
                     sketch_batch = sketch_batch.narrow(0,0,b)
                     label_batch = label_batch[:b + 1] 
                 
@@ -220,7 +224,7 @@ class FeatureExtractor():
 
                 Labels.append(label_batch)
 
-                if n == self.num_sketches//batch_size + 1:
+                if n == self.num_images//batch_size + 1:
                     break
         Labels = np.array([item for sublist in Labels for item in sublist])
         return Features, Labels
