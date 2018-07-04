@@ -25,7 +25,7 @@ def list_files(path, ext='png'):
     result = [y for x in os.walk(path) for y in glob(os.path.join(x[0], '*.%s' % ext))]
     return result
 
-def check_invalid_sketch(filenames,invalids_path='drawings_to_exclude_clean.txt'):    
+def check_invalid_sketch(filenames,invalids_path='drawings_to_exclude.txt'):    
     if not os.path.exists(invalids_path):
         print('No file containing invalid paths at {}'.format(invalids_path))
         invalids = []        
@@ -40,10 +40,10 @@ def check_invalid_sketch(filenames,invalids_path='drawings_to_exclude_clean.txt'
             valids.append(filenames[i])
     return valids
 
-def make_dataframe(Labels,Ages,Sessions):    
-    Y = pd.DataFrame([Labels,Ages,Sessions])
+def make_dataframe(Labels):    
+    Y = pd.DataFrame([Labels])
     Y = Y.transpose()
-    Y.columns = ['label','age','session']   
+    Y.columns = ['label']
     return Y
 
 def normalize(X):
@@ -58,12 +58,12 @@ def preprocess_features(Features, Y):
     _Y = _Y.reset_index(drop=True) # reset pandas dataframe index
     return _Features, _Y
 
-def save_features(Features, Y, layer_num, cohort):
+def save_features(Features, Y, layer_num, data_type,feat_path='/data2/jefan/chairs1k/features'):
     if not os.path.exists('./features'):
         os.makedirs('./features')
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
-    np.save('/data2/jefan/kiddraw/features/FEATURES_{}_{}.npy'.format(layers[int(layer_num)], cohort), Features)
-    Y.to_csv('/data2/jefan/kiddraw/features/METADATA_{}.csv'.format(cohort))
+    np.save(os.path.join(feat_path,'/FEATURES_{}_{}.npy'.format(layers[int(layer_num)], data_type)), Features)
+    Y.to_csv(os.path.join(feat_path,'/METADATA_{}.csv'.format(data_type)))
     return layers[int(layer_num)]
 
 def convert_age(Ages):
@@ -88,9 +88,9 @@ def remove_nans(Features, Y):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data', type=str, help='full path to sketches', default='../sketches')
+    parser.add_argument('--data', type=str, help='full path to images', default='/data2/jefan/chairs1k/pooled')
     parser.add_argument('--layer_ind', help='fc6 = 5, fc7 = 6', default=6)
-    parser.add_argument('--cohort', help='"kid" or "adult"', default='kid')
+    parser.add_argument('--data_type', help='"images" or "sketch"', default='images')
     parser.add_argument('--spatial_avg', type=bool, help='collapse over spatial dimensions, preserving channel activation only if true', default=True)     
     parser.add_argument('--test', type=bool, help='testing only, do not save features', default=False)  
     parser.add_argument('--ext', type=str, help='image extension type (e.g., "png")', default="png")    
@@ -107,21 +107,13 @@ if __name__ == "__main__":
     
     ## extract features
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
-    extractor = FeatureExtractor(sketch_paths,layer=args.layer_ind,cohort=args.cohort,spatial_avg=args.spatial_avg)
-    Features, Labels, Ages, Sessions = extractor.extract_feature_matrix()
+    extractor = FeatureExtractor(sketch_paths,layer=args.layer_ind,data_type=args.data_type,spatial_avg=args.spatial_avg)
+    Features, Labels = extractor.extract_feature_matrix()   
     
-    ## handle trials where we didn't have age information
-    if args.cohort=='kid':
-        Ages = convert_age(Ages)       
-        
     # organize metadata into dataframe
-    Y = make_dataframe(Labels,Ages,Sessions)
+    Y = make_dataframe(Labels)
     _Features, _Y = preprocess_features(Features, Y)
-    
-    # remove nans from kid dataframe (where we didn't have age information)
-    if args.cohort=='kid':
-        _Features, _Y = remove_nans(_Features, _Y) 
 
     if args.test==False:
-        layer = save_features(_Features, _Y, args.layer_ind, args.cohort)
+        layer = save_features(_Features, _Y, args.layer_ind, args.data_type)
        
