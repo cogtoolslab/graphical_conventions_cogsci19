@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.DS_Store
 *.png
+chairs1k_triplets/
 
 auth.json
 auth.txt
