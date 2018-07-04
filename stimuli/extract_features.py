@@ -52,7 +52,7 @@ def normalize(X):
     return X
 
 def preprocess_features(Features, Y):
-    _Y = Y.sort_values(['label','age','session'])
+    _Y = Y.sort_values(['label'])
     inds = np.array(_Y.index)
     _Features = normalize(Features[inds])
     _Y = _Y.reset_index(drop=True) # reset pandas dataframe index
@@ -65,25 +65,6 @@ def save_features(Features, Y, layer_num, data_type,feat_path='/data2/jefan/chai
     np.save(os.path.join(feat_path,'/FEATURES_{}_{}.npy'.format(layers[int(layer_num)], data_type)), Features)
     Y.to_csv(os.path.join(feat_path,'/METADATA_{}.csv'.format(data_type)))
     return layers[int(layer_num)]
-
-def convert_age(Ages):
-    '''
-    handle trials where we didn't have age information
-    '''
-    ages = []
-    for a in Ages:
-        if len(a)>0:
-            ages.append(int(a))
-        else:
-            ages.append(-1)
-    return ages
-
-## remove data where you dont have age information
-def remove_nans(Features, Y):
-    ind = Y.index[(Y['age'] > 0)]
-    _Y = Y.loc[ind]
-    _Features = Features[ind.tolist()]
-    return _Features, _Y
 
 if __name__ == "__main__":
     import argparse
@@ -98,16 +79,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     ## get list of all sketch paths
-    sketch_paths = sorted(list_files(args.data,args.ext))
-    print('Length of sketch_paths before filtering: {}'.format(len(sketch_paths)))
+    image_paths = sorted(list_files(args.data,args.ext))
+    print('Length of image_paths before filtering: {}'.format(len(image_paths)))
     
     ## filter out invalid sketches
-    sketch_paths = check_invalid_sketch(sketch_paths)
-    print('Length of sketch_paths after filtering: {}'.format(len(sketch_paths)))    
+    image_paths = check_invalid_sketch(image_paths)
+    print('Length of image_paths after filtering: {}'.format(len(image_paths)))    
     
     ## extract features
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
-    extractor = FeatureExtractor(sketch_paths,layer=args.layer_ind,data_type=args.data_type,spatial_avg=args.spatial_avg)
+    extractor = FeatureExtractor(image_paths,layer=args.layer_ind,data_type=args.data_type,spatial_avg=args.spatial_avg)
     Features, Labels = extractor.extract_feature_matrix()   
     
     # organize metadata into dataframe
