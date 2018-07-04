@@ -43,9 +43,9 @@ var onMessage = function(client,message) {
     break;
   case 'clickedObj' :
 //    writeData(client, "clickedObj", message_parts);
-    others[0].player.instance.send("s.feedback." + message_parts[1]);
-    target.instance.send("s.feedback." + message_parts[1]);
-
+    others[0].player.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
+    target.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
+    clearTimeout(gc.timer);
     setTimeout(function() {
       _.map(all, function(p){
         p.player.instance.emit('newRoundUpdate', {user: client.userid} );
@@ -64,12 +64,13 @@ var onMessage = function(client,message) {
       _.map(all, function(p){
         p.player.instance.emit('mutualDoneDrawing', {user: client.userid} );
       });
+      break;
 
   case 'startGame' :
-  _.map(all, function(p){
-    p.player.instance.emit('start', {user: client.userid} );
-  });
-  }
+   gc.newRound();
+   console.log("startGame in server.js called")
+   break;
+ }
 };
 
 

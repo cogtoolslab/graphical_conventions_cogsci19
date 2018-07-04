@@ -179,23 +179,25 @@ game_core.prototype.newRound = function() {
     this.roundNum += 1;
     this.trialInfo = {currStim: this.trialList[this.roundNum]};
     this.objects = this.trialList[this.roundNum];
-    active_players = this.get_active_players();    
+    active_players = this.get_active_players();
     this.setupTimer(this.timeLimit,active_players);
     this.server_send_update();
   }
 };
 
 game_core.prototype.setupTimer = function(timeleft, active_players) {
+  this.timeleft = timeleft;
   _.map(active_players, function(p){
     p.player.instance.emit('updateTimer', timeleft);
+    //p.player.instance.emit()
     // console.log("emitting time to clients", timeleft);
-  });  
-  if (timeleft > 0) {
-    theTimer = setTimeout(function(){
+  });
+  if (timeleft > 0) { // and object clicked
+    this.timer = setTimeout(function(){
       game_core.prototype.setupTimer(timeleft - 1,active_players);
     }, 1000);
   } else {
-    clearTimeout(theTimer);
+    clearTimeout(this.timer);
   }
 }
 

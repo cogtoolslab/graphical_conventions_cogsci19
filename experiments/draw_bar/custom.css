@@ -172,7 +172,7 @@ xyhtml , body {
     z-index: 10;
     position: absolute;
     margin: auto;
-    top: 42%;
+    top: 70%;
     left: 50%;
     transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);

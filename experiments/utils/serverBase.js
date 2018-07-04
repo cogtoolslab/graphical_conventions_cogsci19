@@ -71,7 +71,7 @@ class ReferenceGameServer {
 	});
 
 	// Start game
-	this.startGame(game);
+
       }
     }
 

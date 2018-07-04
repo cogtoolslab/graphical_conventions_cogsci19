@@ -96,7 +96,7 @@ var client_onserverupdate_received = function(data){
   if(data.players.length > 1) {
     $('#messages').empty();
     $('#occluder').show();
-    globalGame.get_player(globalGame.my_id).message = "";
+    globalGame.get_player(globalGame.my_id).message = ('Waiting for the sketcher to click begin.\nPlease do not refresh the page!\n ');
   }
 
   globalGame.game_started = data.gs;
@@ -145,15 +145,16 @@ var client_onMessage = function(data) {
       // Prevent them from sending messages b/w trials
       $('#chatbox').attr("disabled", "disabled");
       var clickedObjName = commanddata;
-
+      var timeleft = commands[3];
       objClicked = true; // set clicked obj toggle variable to true
       console.log('objClicked',objClicked);
       // update local score
       var target = _.filter(globalGame.objects, function(x){
-	return x.target_status == 'target';
+	       return x.target_status == 'target';
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
       globalGame.data.subject_information.score += scoreDiff;
+      globalGame.data.subject_information.bonus_score += timeleft;
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
 	       drawSketcherFeedback(globalGame, scoreDiff, clickedObjName);
@@ -179,12 +180,15 @@ var client_onMessage = function(data) {
         flashTitle("GO!");
       }
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+        $('#message').hide();
         $('#startbutton').show();
         //console.log("showed button because sketcher");
         $('#startbutton').click(function start() {
           $('#startbutton').hide();
           //var startpacket = ['startGame'];// change later
           globalGame.socket.send('startGame');
+          // occluder for Viewer
+          // button for sketcher on occluder without the other message
         });
       }
       // button shows  in sketcher's side
@@ -254,6 +258,9 @@ var customSetup = function(game) {
     // clear feedback blurb
     $('#feedback').html(" ");
     $('#turnIndicator').html(" ");
+    // set up progress bar
+    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
+    $('.progress').show();
 
     // Update display
     var score = game.data.subject_information.score;
@@ -295,35 +302,35 @@ var customSetup = function(game) {
     var totalBarWidth = $element.width();
     var centsleft = timeleft / 10 + 1;
     //console.log("after all initializations");
-    if (timeleft > 0 & !objClicked) {
-      //console.log("timeleft is greater than 0");
-      $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
-      $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
-      console.log("animated progress bar with time left: " + timeleft);
-      //console.log("time left = " + timeleft);
-    } else if (timeleft <= 0 & !objClicked) {
-    	console.log('no more drawing, trial timed out, so clear timer');
-    	//clearTimeout(theTimer);
-    	var finished = ['doneDrawing',1];
-    	globalGame.socket.send(finished.join('.'));
-      console.log("finished: " + finished);
-      globalGame.data.subject_information.bonus_score += centsleft;
-      console.log("cents left" + centsleft);
-      console.log("updated bonus_score:" + globalGame.data.subject_information.bonus_score);
-    	return; //  get out of here
-
-    } else if (objClicked) {
-    	console.log('an object was clicked, so end the trial and clear timer');
-    	//clearTimeout(theTimer);
-    	var finished = ['doneDrawing',1];
-    	globalGame.socket.send(finished.join('.'));
-      globalGame.data.subject_information.bonus_score += centsleft;
-      console.log("cents left" + centsleft);
-      console.log("updated bonus_score:" + globalGame.data.subject_information.bonus_score);
-    	return; //  get out of here
-    }
+    $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
+    $element.find('.progress-bar').finish();
+    $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
+    console.log("animated progress bar with time left: " + timeleft);
     $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
-    $('.progress').show(); // don't show progress bar until we start monitorung
+    $('.progress').show();
+      //console.log("time left = " + timeleft);
+    // } else if (timeleft <= 0 & !objClicked) {
+    // 	//console.log('no more drawing, trial timed out, so clear timer');
+    // 	//clearTimeout(theTimer);
+    // 	// var finished = ['doneDrawing',1];
+    // 	// globalGame.socket.send(finished.join('.'));
+    //   // console.log("finished: " + finished);
+    //   globalGame.data.subject_information.bonus_score += centsleft;
+    //   // console.log("cents left" + centsleft);
+    //   // console.log("updated bonus_score:" + globalGame.data.subject_information.bonus_score);
+    // 	// return; //  get out of here
+    //
+    // } else if (objClicked) {
+    // 	console.log('an object was clicked, so end the trial and clear timer');
+    // 	//clearTimeout(theTimer);
+    // 	var finished = ['doneDrawing',1];
+    // 	globalGame.socket.send(finished.join('.'));
+    //   globalGame.data.subject_information.bonus_score += centsleft;
+    //   console.log("cents left" + centsleft);
+    //   console.log("updated bonus_score:" + globalGame.data.subject_information.bonus_score);
+    // 	return; //  get out of here
+    // }
+     // don't show progress bar until we start monitorung
     //monitorProgress();
   });
 
@@ -396,54 +403,6 @@ var client_onjoingame = function(num_players, role) {
     globalGame.sketchpad.setupTool();
   }
 };
-
-// PROGRESS BAR HANDLERS
-
-function monitorProgress(){
-    console.log('start monitoring')
-    progress(globalGame.timeLimit, globalGame.timeLimit, $('.progress')); // show progress bar
-    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
-    $('.progress').show(); // don't show progress bar until we start monitorung
-};
-
-//  monitoring progress spent on a trial and triggering next events
-function progress(timeleft, timetotal, $element) {
-    var progressBarWidth = timeleft * $element.width()/ timetotal;
-    var totalBarWidth = $element.width();
-    var centsleft = timeleft / 10 + 1;
-    $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
-    $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
-    //console.log("time left = " + timeleft);
-    if(timeleft > 0 & !objClicked) {
-        theTimer = setTimeout(function() {
-            progress(timeleft - 1, timetotal, $element);
-        }, 1000);
-    }
-    else if(timeleft <= 0 & !objClicked){
-    	console.log('no more drawing, trial timed out, so clear timer');
-    	clearTimeout(theTimer);
-    	var finished = ['doneDrawing',1];
-    	globalGame.socket.send(finished.join('.'));
-      console.log("finished: " + finished);
-      globalGame.data.subject_information.bonus_score += centsleft;
-      console.log("cents left" + centsleft);
-      console.log("updated bonus_score:" + globalGame.data.subject_information.bonus_score);
-    	return; //  get out of here
-
-    } else if (objClicked) {
-    	console.log('an object was clicked, so end the trial and clear timer');
-    	clearTimeout(theTimer);
-    	var finished = ['doneDrawing',1];
-    	globalGame.socket.send(finished.join('.'));
-      globalGame.data.subject_information.bonus_score += centsleft;
-      console.log("cents left" + centsleft);
-      console.log("updated bonus_score:" + globalGame.data.subject_information.bonus_score);
-    	return; //  get out of here
-    }
-
-
-};
-
 
 /*
  MOUSE EVENT LISTENERS
