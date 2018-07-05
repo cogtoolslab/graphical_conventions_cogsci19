@@ -24,8 +24,8 @@ if(argv.gameport) {
   gameport = argv.gameport;
   console.log('using port ' + gameport);
 } else {
-  gameport = 8886;
-  console.log('no gameport specified: using 8886\nUse the --gameport flag to change');
+  gameport = 8889;
+  console.log('no gameport specified: using 8889\nUse the --gameport flag to change');
 }
 
 if(argv.expname) {
