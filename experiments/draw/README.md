@@ -17,9 +17,12 @@ Implemented re-design of sketchpad_repeated.
 
 Each pair now only sees objects from one of the categories (birds, chairs, cars, dogs), each containing 8 objects.
 
-There are three phases to this experiment: pre: All 8 objects sketched repeating: A subset of 4 objects sketched 6 times each, mini-blocked. post: All 8 objects sketched again
+There are three phases to this experiment: 
+    - pre: All 8 objects sketched 
+    - repeating: A subset of 4 objects sketched 4 times each, mini-blocked. 
+    - post: All 8 objects sketched again
 
-For a total of 8 + 24 + 8 = 40 trials total.
+For a total of 8 + 16 + 8 = 32 trials total.
 
 We want to counterbalance the category assignment across pairs.
 
