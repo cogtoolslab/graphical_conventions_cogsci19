@@ -190,7 +190,7 @@ function endStroke(event) {
 		  globalGame.path.exportJSON({asString: true}).replace(/\./g,'~~~'),
 		  globalGame.shiftKeyUsed,
       globalGame.data.subject_information.score,
-      globalGame.data.subject_information.bonus_score].join('.'); // 
+      globalGame.data.subject_information.bonus_score].join('.'); //
     globalGame.socket.send(packet);
   };
 
