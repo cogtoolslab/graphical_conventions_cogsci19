@@ -80,6 +80,9 @@ var game_core = function(options){
   // Which round (a.k.a. "trial") are we on (initialize at -1 so that first round is 0-indexed)
   this.roundNum = -1;
 
+  // How many repetitions do we want?
+  this.numReps = 6;
+
   // How many rounds do we want people to complete?
   this.numRounds = 32;
 
@@ -304,6 +307,7 @@ game_core.prototype.getRandomizedConditions = function() {
   // repeated (four trained objects in random order x 6 reps)
   _repeated = new Array;
   numReps = this.numReps;
+  console.log('numReps',numReps);
   for (j=0; j<numReps;j++) {
     __repeated = new Array;
     for (i=0; i<zipped.length;i++) {
