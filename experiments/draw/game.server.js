@@ -43,9 +43,9 @@ var onMessage = function(client,message) {
     break;
   case 'clickedObj' :
 //    writeData(client, "clickedObj", message_parts);
-    others[0].player.instance.send("s.feedback." + message_parts[1]);
-    target.instance.send("s.feedback." + message_parts[1]);
-
+    others[0].player.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
+    target.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
+    gc.objClicked = true;
     setTimeout(function() {
       _.map(all, function(p){
         p.player.instance.emit('newRoundUpdate', {user: client.userid} );
@@ -58,15 +58,21 @@ var onMessage = function(client,message) {
     target.visible = message_parts[1];
     break;
 
-  case 'doneDrawing' : // sketcher has declared that drawing is finished
-    drawing_status = message_parts[1];
-    console.log('drawing submitted: ', drawing_status);
-      _.map(all, function(p){
-        p.player.instance.emit('mutualDoneDrawing', {user: client.userid} );
-      });
+  // case 'doneDrawing' : // sketcher has declared that drawing is finished
+  //   drawing_status = message_parts[1];
+  //   console.log('drawing submitted: ', drawing_status);
+  //     _.map(all, function(p){
+  //       p.player.instance.emit('mutualDoneDrawing', {user: client.userid} );
+  //     });
+  //     break;
 
-  }
+  case 'startGame' :
+   gc.newRound();
+   console.log("startGame in server.js called")
+   break;
+ }
 };
+
 
 const flatten = arr => arr.reduce(
   (acc, val) => acc.concat(
@@ -145,6 +151,7 @@ var dataOutput = function() {
       shiftKeyUsed: message_data[4],
       score: message_data[5]
       }
+      //console.log(message_data);
     );
     console.log(JSON.stringify(output, null, 3));
     return output;
