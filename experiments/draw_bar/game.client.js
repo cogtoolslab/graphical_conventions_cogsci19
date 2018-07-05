@@ -80,29 +80,27 @@ var client_onserverupdate_received = function(data){
           }
           alreadyLoaded += 1
           if (alreadyLoaded == 4) {
-            setTimeout(function() {
+              setTimeout(function() {
               $('#occluder').hide();
               globalGame.drawingAllowed = true;
             },750);
-            // start countdown timer (progress bar)
-            monitorProgress();
           }
       };
       return _.extend(customObj, {img: imgObj});
     });
   };
 
-
   // Get rid of "waiting" screen and allow drawing if there are multiple players
   if(data.players.length > 1) {
     $('#messages').empty();
-    globalGame.get_player(globalGame.my_id).message = "";
+    $('#occluder').show();
   }
 
   globalGame.game_started = data.gs;
   globalGame.players_threshold = data.pt;
   globalGame.player_count = data.pc;
   globalGame.roundNum = data.roundNum;
+
   // update data object on first round, don't overwrite (FIXME)
   if(!_.has(globalGame, 'data')) {
     globalGame.data = data.dataObj;
@@ -142,15 +140,19 @@ var client_onMessage = function(data) {
       // Prevent them from sending messages b/w trials
       $('#chatbox').attr("disabled", "disabled");
       var clickedObjName = commanddata;
-
+      var timeleft = commands[3]; // commands[3] is what we used for player role ???
       objClicked = true; // set clicked obj toggle variable to true
-      console.log('objClicked',objClicked);
+      $element.find('.progress-bar').finish();
+
       // update local score
       var target = _.filter(globalGame.objects, function(x){
-	return x.target_status == 'target';
+	       return x.target_status == 'target';
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
       globalGame.data.subject_information.score += scoreDiff;
+      if (scoreDiff == 1) {
+        globalGame.data.subject_information.bonus_score += timeleft / 10;
+      }
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
 	       drawSketcherFeedback(globalGame, scoreDiff, clickedObjName);
@@ -164,18 +166,27 @@ var client_onMessage = function(data) {
       window.location.replace('http://nodejs.org'); break;
 
     case 'join' : //join a game requested
+      $('#startbutton').hide();
       var num_players = commanddata;
       client_onjoingame(num_players, commands[3]); break;
 
     case 'add_player' : // New player joined... Need to add them to our list.
-      console.log("adding player" + commanddata);
-      console.log("cancelling timeout");
       clearTimeout(globalGame.timeoutID);
       if(hidden === 'hidden') {
         flashTitle("GO!");
       }
+      globalGame.get_player(globalGame.my_id).message = ('');
+      drawScreen(globalGame, globalGame.get_player(globalGame.my_id));
+      $('#occluder').show();
+      $('#startbutton').show();
+      $('#startbutton').click(function start() {
+        $('#startbutton').hide();
+        globalGame.socket.send('startGame');
+      });
       globalGame.players.push({id: commanddata,
-                 player: new game_player(globalGame)}); break;
+                 player: new game_player(globalGame)});
+
+      break;
     }
   }
 };
@@ -219,7 +230,6 @@ var customSetup = function(game) {
 
     // reset clicked obj flag
     objClicked = false;
-    console.log('objClicked',objClicked);
 
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
@@ -239,9 +249,17 @@ var customSetup = function(game) {
     // clear feedback blurb
     $('#feedback').html(" ");
     $('#turnIndicator').html(" ");
+    // set up progress bar
+    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
+    $('.progress').show();
 
     // Update display
     var score = game.data.subject_information.score;
+    console.log("SCORE: " + score);
+    var bonus_score = game.data.subject_information.bonus_score;
+    console.log("BONUS: " + bonus_score);
+    var displaytotal = (parseFloat(score) + parseFloat(bonus_score)).toFixed(2);
+    console.log("TOTAL: " + displaytotal); // added
     if(game.roundNum + 2 > game.numRounds) {
       $('#roundnumber').empty();
       $('#sketchpad').hide();
@@ -254,11 +272,9 @@ var customSetup = function(game) {
         .append("Round\n" + (game.roundNum + 2) + " of " + game.numRounds);
     }
     $('#score').empty().append(score + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
-			       + ((score * 3)/100).toFixed(2));
+			       + displaytotal);
 
     // reset and show progress bar
-
-
   });
 
   game.socket.on('stroke', function(jsonData) {
@@ -268,6 +284,22 @@ var customSetup = function(game) {
     var path = new Path();
     path.importJSON(jsonData);
 
+  });
+
+ // new progress bar function
+  game.socket.on('updateTimer', function(timeleft) {
+      //console.log('start monitoring');
+      timetotal = globalGame.timeLimit;
+      $element = $('.progress');
+      var progressBarWidth = timeleft * $element.width()/ timetotal;
+      var totalBarWidth = $element.width();
+      var centsleft = timeleft / 10 + 1;
+      $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
+      $element.find('.progress-bar').finish();
+      $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
+      //console.log("animated progress bar with time left: " + timeleft);
+      $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
+      $('.progress').show();
   });
 
   game.socket.on('mutualDoneDrawing', function(role) {
@@ -280,8 +312,8 @@ var customSetup = function(game) {
       setTimeout(function(){$('#turnIndicator').html('Now your turn to select the target!');},globalGame.feedbackDelay);
     }
   });
-
 };
+
 
 var client_onjoingame = function(num_players, role) {
   // set role locally
@@ -300,16 +332,15 @@ var client_onjoingame = function(num_players, role) {
   $('#roleLabel').append(role + '.');
   if (role === globalGame.playerRoleNames.role1) {
     txt = "target";
-    $('#instructs').html("<p>Make a sketch of the target (orange)" +
-      " so that your partner can tell which it is. " +
-      " When you are done, click SUBMIT. </p>" +
-      "<p> Draw only what you see, and do not include letters, arrows, or any surrounding context around object. </p>" +
-      "<p> Please do not resize browser window or change zoom during the game.</p>");
+    $('#instructs').html("<p>Make a sketch of the target (orange) so that your partner can tell which it is, as soon as possible. " +
+      " You will receive 1¢ for correct and 0¢ for incorrect </p>" +
+      "<p> guesses. If a correct guess is made under 20 seconds, you will receive an additional bonus proportional to how fast the guess is. Draw only what you </p>" +
+      "<p> see, and do not include letters, arrows, or any surrounding context around object. Please do not resize browser window or change zoom during the game. </p>");
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
     $('#instructs').html("<p>Your partner is going to draw one of these four objects." +
       " As soon as you can tell, click on the object they sketched. </p>" +
-      "<p> Please do not resize browser window or change zoom during the game.</p>");
+      "<p> Please do not resize browser window or change zoom during the game. </p>");
     // $("#loading").show();
   }
 
@@ -321,63 +352,23 @@ var client_onjoingame = function(num_players, role) {
   	window.opener.turk.submit(this.data, true);
   	window.close();
       } else {
-  	console.log("would have submitted the following :");
-  	console.log(this.data);
+  	//console.log("would have submitted the following :");
+  	//console.log(this.data);
       }
     }, 1000 * 60 * 15);
-
     globalGame.get_player(globalGame.my_id).message = ('Waiting for another player...\nPlease do not refresh the page!\n If wait exceeds 15 minutes, we recommend returning the HIT and trying again later.');
   }
-
 
 
   // set mouse-tracking event handler
   if(role === globalGame.playerRoleNames.role2) {
     globalGame.viewport.addEventListener("click", responseListener, false);
+    globalGame.get_player(globalGame.my_id).message = ('Waiting for the sketcher to click begin.\nPlease do not refresh the page!\n ');
+    drawScreen(globalGame, globalGame.get_player(globalGame.my_id));
   } else {
     globalGame.sketchpad.setupTool();
   }
 };
-
-// PROGRESS BAR HANDLERS
-
-function monitorProgress(){
-    console.log('start monitoring')
-    progress(globalGame.timeLimit, globalGame.timeLimit, $('.progress')); // show progress bar
-    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
-    $('.progress').show(); // don't show progress bar until we start monitorung
-};
-
-//  monitoring progress spent on a trial and triggering next events
-function progress(timeleft, timetotal, $element) {
-    var progressBarWidth = timeleft * $element.width()/ timetotal;
-    var totalBarWidth = $element.width();
-    $element.find('.progress-bar').attr("aria-valuenow", timeleft).text(timeleft)
-    $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
-    console.log("time left = " + timeleft)
-    if(timeleft > 0 & !objClicked) {
-        theTimer = setTimeout(function() {
-            progress(timeleft - 1, timetotal, $element);
-        }, 1000);
-    }
-    else if(timeleft <= 0 & !objClicked){
-    	console.log('no more drawing, trial timed out, so clear timer');
-    	clearTimeout(theTimer);
-    	var finished = ['doneDrawing',1];
-    	globalGame.socket.send(finished.join('.'));
-    	return; //  get out of here
-
-    } else if (objClicked) {
-    	console.log('an object was clicked, so end the trial and clear timer');
-    	clearTimeout(theTimer);
-    	var finished = ['doneDrawing',1];
-    	globalGame.socket.send(finished.join('.'));
-    	return; //  get out of here
-    }
-
-
-};
-
 
 /*
  MOUSE EVENT LISTENERS
@@ -405,8 +396,11 @@ function responseListener(evt) {
             		      globalGame.objects[0]['condition'],
             		      globalGame.objects[0]['phase'],
             		      globalGame.objects[0]['repetition'],
-                      globalGame.data.subject_information.score];
+                      globalGame.data.subject_information.score,
+                      globalGame.data.subject_information.bonus_score];
 
+        //console.log("score:" + globalGame.data.subject_information.score);
+        //console.log("bonus score:" + globalGame.data.subject_information.bonus_score);
         globalGame.socket.send(packet.join('.'));
       }
     });

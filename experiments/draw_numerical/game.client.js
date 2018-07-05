@@ -104,8 +104,10 @@ var client_onserverupdate_received = function(data){
   globalGame.player_count = data.pc;
   globalGame.roundNum = data.roundNum;
   // update data object on first round, don't overwrite (FIXME)
+  console.log("data already defined" + globalGame.data)
   if(!_.has(globalGame, 'data')) {
     globalGame.data = data.dataObj;
+    console.log(globalGame.data);
   }
 
   // Draw all this new stuff
@@ -150,7 +152,9 @@ var client_onMessage = function(data) {
   return x.target_status == 'target';
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
+      console.log("Score: " + globalGame.data.subject_information.score);
       globalGame.data.subject_information.score += scoreDiff;
+      console.log(scoreDiff);
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
          drawSketcherFeedback(globalGame, scoreDiff, clickedObjName);
@@ -242,6 +246,8 @@ var customSetup = function(game) {
 
     // Update display
     var score = game.data.subject_information.score;
+    var bonus_score = game.data.subject_information.bonus_score;
+    console.log("Bonus score:" + bonus_score);
     if(game.roundNum + 2 > game.numRounds) {
       $('#roundnumber').empty();
       $('#sketchpad').hide();
@@ -254,7 +260,7 @@ var customSetup = function(game) {
         .append("Round\n" + (game.roundNum + 2) + " of " + game.numRounds);
     }
     $('#score').empty().append(score + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
-             + ((score * 3)/100).toFixed(2));
+             + ((score * 3)/100).toFixed(2)) + bonus_score; // add bonus_score
 
     // reset and show progress bar
 
@@ -300,11 +306,10 @@ var client_onjoingame = function(num_players, role) {
   $('#roleLabel').append(role + '.');
   if (role === globalGame.playerRoleNames.role1) {
     txt = "target";
-    $('#instructs').html("<p>Make a sketch of the target (orange)" +
-      " so that your partner can tell which it is. " +
-      " When you are done, click SUBMIT. </p>" +
-      "<p> Draw only what you see, and do not include letters, arrows, or any surrounding context around object. </p>" +
-      "<p> Please do not resize browser window or change zoom during the game.</p>");
+    $('#instructs').html("<p>Make a sketch of the target (orange) so that your partner can tell which it is, as soon as possible. " +
+      " Up to 20 seconds, you will receive </p>" +
+      "<p> a bonus that linearly correlates with how fast the guess is. When you are done, click SUBMIT. Draw only what you see, and do not </p>" +
+      "<p> include letters, arrows, or any surrounding context around object. Please do not resize browser window or change zoom during the game. </p>");
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
     $('#instructs').html("<p>Your partner is going to draw one of these four objects." +
@@ -361,7 +366,7 @@ function progress(centsleft, centstotal, $element) {
     console.log("cents left = " + displaynum);
     if(centsleft > 0 & !objClicked) {
         theTimer = setTimeout(function() {
-            progress(strip(centsleft - 0.2), centstotal, $element);
+            progress(strip(centsleft - 0.1), centstotal, $element);
         }, 1000);
     }
     else if(centsleft <= 0 & !objClicked){
@@ -372,6 +377,9 @@ function progress(centsleft, centstotal, $element) {
       return; //  get out of here
 
     } else if (objClicked) {
+      console.log("Cents left: " + centsleft);
+      globalGame.data.subject_information.bonus_score += centsleft; // added
+      console.log("updated bonuse_score:" + globalGame.data.subject_information.bonus_score);
       console.log('an object was clicked, so end the trial and clear timer');
       clearTimeout(theTimer);
       var finished = ['doneDrawing',1];
@@ -412,7 +420,8 @@ function responseListener(evt) {
                       globalGame.objects[0]['condition'],
                       globalGame.objects[0]['phase'],
                       globalGame.objects[0]['repetition'],
-                      globalGame.data.subject_information.score];
+                      globalGame.data.subject_information.score,
+                      globalGame.data.subject_information.bonus_score];
 
         globalGame.socket.send(packet.join('.'));
       }
