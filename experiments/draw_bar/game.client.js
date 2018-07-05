@@ -150,7 +150,9 @@ var client_onMessage = function(data) {
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
       globalGame.data.subject_information.score += scoreDiff;
-      globalGame.data.subject_information.bonus_score += timeleft / 10 + 1;
+      if (scoreDiff == 1) {
+        globalGame.data.subject_information.bonus_score += timeleft / 10;
+      }
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
 	       drawSketcherFeedback(globalGame, scoreDiff, clickedObjName);
@@ -256,7 +258,7 @@ var customSetup = function(game) {
     console.log("SCORE: " + score);
     var bonus_score = game.data.subject_information.bonus_score;
     console.log("BONUS: " + bonus_score);
-    var displaytotal = (parseFloat(((score * 3)/100).toFixed(2)) + parseFloat(bonus_score)).toFixed(2);
+    var displaytotal = (parseFloat(score) + parseFloat(bonus_score)).toFixed(2);
     console.log("TOTAL: " + displaytotal); // added
     if(game.roundNum + 2 > game.numRounds) {
       $('#roundnumber').empty();
@@ -331,9 +333,9 @@ var client_onjoingame = function(num_players, role) {
   if (role === globalGame.playerRoleNames.role1) {
     txt = "target";
     $('#instructs').html("<p>Make a sketch of the target (orange) so that your partner can tell which it is, as soon as possible. " +
-      " Up to 20 seconds, you will receive </p>" +
-      "<p> a bonus that linearly correlates with how fast the guess is. Draw only what you see, and do not include letters, arrows, </p>" +
-      "<p> or any surrounding context around object. Please do not resize browser window or change zoom during the game. </p>");
+      " You will receive 1¢ for correct and 0¢ for incorrect </p>" +
+      "<p> guesses. If a correct guess is made under 20 seconds, you will receive an additional bonus proportional to how fast the guess is. Draw only what you </p>" +
+      "<p> see, and do not include letters, arrows, or any surrounding context around object. Please do not resize browser window or change zoom during the game. </p>");
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
     $('#instructs').html("<p>Your partner is going to draw one of these four objects." +
