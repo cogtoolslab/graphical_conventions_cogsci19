@@ -162,29 +162,31 @@ xyhtml , body {
 	margin-top: 1%;
 	margin-right: auto;
 	margin-bottom: auto ;
-	left:0; right:0; top:20%; bottom: 0;
+	left:0; right:0; top:25%; bottom: 0;
 	position: absolute;
 	font-size: 2vh;
 	font-weight:lighter;
 }
 
 #startbutton {
-    z-index: 10;
+    z-index: 20;
     position: absolute;
     margin: auto;
-    top: 70%;
+    top: 78.5%;
     left: 50%;
     transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
-    background-color: #5f8c7e;
+    background-color: white;
     color: black;
-    font-size: 40px;
+    font-size: 45px;
     padding: 16px 30px;
     border-style: solid;
     border-width: 5px;
+    border-color: black;
     cursor: pointer;
     border-radius: 20px;
     text-align: center;
+    font-weight: bold;
 }
 
 #startbutton:hover {
