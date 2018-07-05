@@ -39,12 +39,12 @@ xyhtml , body {
 }
 
 #instructs {
-	height: 2vh;
-	width: 130vh;
+	height: auto;
+	width: 120vh;
 	text-align: center;
 	margin-left: auto;
 	margin-right: auto;
-	margin-bottom: auto;
+	margin-bottom: 2vh;
 	left:0; right:0; top:7vh; bottom: 1vh;
 	position: absolute;
 	font-size: 2vh;
@@ -55,10 +55,10 @@ xyhtml , body {
 	height: 5%;
 	width: 20%;
 	text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: auto;
-  left: auto; right: 3vh; top: auto; bottom: 10vh;
+	margin-left: 0;
+	margin-right: auto;
+	margin-bottom: auto;
+	left:auto; right:1%; top:35%; bottom: 0;
 	position: absolute;
 	font-size: 2.2vh;
 	font-weight:lighter;
@@ -68,8 +68,7 @@ xyhtml , body {
 	height: 5%;
 	width: 20%;
 	text-align: center;
-  margin-left: 85%;
-  margin-top: 1%;
+	margin-left: 0;
 	margin-right: auto;
 	margin-bottom: auto;
 	left:auto; right:1%; top:25%; bottom: 0;
@@ -92,17 +91,67 @@ xyhtml , body {
     font-weight:lighter;
 }
 
-.bonus{
-  position: absolute;
-  top: 20vh;
-  right: 25%;
-  font-size: 2.5vh;
-  text-align: right;
-  margin-bottom: 4vw;
+#bonuslabel {
+    height: 2vh;
+    width: 30vh;
+    text-align: center;
+    margin-left: 3%;
+    margin-top: 1%;
+    margin-right: auto;
+    margin-bottom: auto;
+    left: 0; right: auto; top:13vh; bottom: auto;
+    position: absolute;
+    font-size: 2vh;
+    font-weight:lighter;
 }
 
-.max {
-  float: left;
+#cents {
+  height: 2vh;
+  width: 30vh;
+  text-align: center;
+  margin-left: 3%;
+  margin-top: 1%;
+  margin-right: auto;
+  margin-bottom: auto;
+  left: 0; right: auto; top:15.5vh; bottom: auto;
+  position: absolute;
+  font-size: 2vh;
+  font-weight:lighter;
+}
+
+.progress{
+    height: 1.6vw;
+    position: absolute;
+    top: 15vh; left: 20%; right: 20%;
+    bottom: 30vh;
+    background-color: #292b29;
+    margin-bottom: 4vw;
+    z-index:100;
+    width: 60%
+}
+
+.progress-bar{
+    width: 100%;
+    -webkit-transition: none !important;
+    transition: none !important;
+    z-index: 100;
+    background-color:#356ba5;
+}
+
+.value-bar{
+    display: flex;
+    flex-direction; column;
+    justify-content: space-between;
+    align-items: center;
+    width: 105%;
+    margin-left: -2.5%;
+}
+
+.value{
+    font-size: 2vh;
+    display: inline-block;
+    width: 10%;
+    text-align: center;
 }
 
 #score {
@@ -113,13 +162,58 @@ xyhtml , body {
 	margin-top: 1%;
 	margin-right: auto;
 	margin-bottom: auto ;
-	left:0; right:0; top:20%; bottom: 0;
+	left:0; right:0; top:25%; bottom: 0;
 	position: absolute;
 	font-size: 2vh;
 	font-weight:lighter;
 }
 
-#submitbutton {
+#startbutton {
+    z-index: 20;
+    position: absolute;
+    margin: auto;
+    top: 78.5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    background-color: white;
+    color: black;
+    font-size: 45px;
+    padding: 16px 30px;
+    border-style: solid;
+    border-width: 5px;
+    border-color: black;
+    cursor: pointer;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#startbutton:hover {
+    background-color: #2e2f30;
+    color: white;
+}
+  /* #startbutton:active {
+      z-index: 10;
+      height: 6vh;
+      width: 12vw;
+      float: left;
+      margin-left: 10%;
+      margin-top: 2%;
+      right: 2vh; top: 10vh;
+      position: absolute;
+      background: rgb(255,255,255);
+      border: none;
+      padding: .5vh;
+      font-size: 4vh;
+      font-weight: normal;
+      border-radius: 100%;
+      border: none;
+      box-shadow: 0 5px #666;
+      transform: translateY(1vh);
+  } */
+
+/* #submitbutton {
 	z-index: 10;
 	height: 6vh;
 	width: 12vw;
@@ -134,14 +228,13 @@ xyhtml , body {
 	font-size: 4vh;
 	font-weight: normal;
 	border-radius: 100%;
-	border: none;
+	border: none; */
 
 
 /*trying to change around attributes of click button reduces the clickable area
 ALOT...don't understand how to adjust that.*/
-}
 
-#submitbutton:active {
+/* #submitbutton:active {
     z-index: 10;
     height: 6vh;
     width: 12vw;
@@ -159,7 +252,7 @@ ALOT...don't understand how to adjust that.*/
     border: none;
     box-shadow: 0 5px #666;
     transform: translateY(1vh);
-}
+} */
 
 #main {
 	height: auto;
@@ -201,7 +294,7 @@ ALOT...don't understand how to adjust that.*/
     height: 300px;
     width: 300px;
     position: absolute;
-    top: 10vh;
+    top: 12vh;
     right:0;left:0;
     float: top;
     margin: auto;
