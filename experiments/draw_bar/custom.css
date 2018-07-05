@@ -39,12 +39,12 @@ xyhtml , body {
 }
 
 #instructs {
-	height: 2vh;
-	width: 110vh;
+	height: auto;
+	width: 140vh;
 	text-align: center;
 	margin-left: auto;
 	margin-right: auto;
-	margin-bottom: auto;
+	margin-bottom: 2vh;
 	left:0; right:0; top:7vh; bottom: 1vh;
 	position: absolute;
 	font-size: 2vh;
@@ -91,6 +91,34 @@ xyhtml , body {
     font-weight:lighter;
 }
 
+#bonuslabel {
+    height: 2vh;
+    width: 20vh;
+    text-align: right;
+    margin-left: 7%;
+    margin-top: 1%;
+    margin-right: auto;
+    margin-bottom: auto;
+    left: 0; right: auto; top:13vh; bottom: auto;
+    position: absolute;
+    font-size: 2.5vh;
+    font-weight:lighter;
+}
+
+#cents {
+  height: 2vh;
+  width: 20vh;
+  text-align: center;
+  margin-left: 11%;
+  margin-top: 1%;
+  margin-right: auto;
+  margin-bottom: auto;
+  left: 0; right: auto; top:16vh; bottom: auto;
+  position: absolute;
+  font-size: 2.5vh;
+  font-weight:lighter;
+}
+
 .progress{
     height: 1.6vw;
     position: absolute;
@@ -134,13 +162,58 @@ xyhtml , body {
 	margin-top: 1%;
 	margin-right: auto;
 	margin-bottom: auto ;
-	left:0; right:0; top:20%; bottom: 0;
+	left:0; right:0; top:25%; bottom: 0;
 	position: absolute;
-	font-size: 1vh;
+	font-size: 2vh;
 	font-weight:lighter;
 }
 
-#submitbutton {
+#startbutton {
+    z-index: 20;
+    position: absolute;
+    margin: auto;
+    top: 78.5%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    background-color: white;
+    color: black;
+    font-size: 45px;
+    padding: 16px 30px;
+    border-style: solid;
+    border-width: 5px;
+    border-color: black;
+    cursor: pointer;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#startbutton:hover {
+    background-color: #2e2f30;
+    color: white;
+}
+  /* #startbutton:active {
+      z-index: 10;
+      height: 6vh;
+      width: 12vw;
+      float: left;
+      margin-left: 10%;
+      margin-top: 2%;
+      right: 2vh; top: 10vh;
+      position: absolute;
+      background: rgb(255,255,255);
+      border: none;
+      padding: .5vh;
+      font-size: 4vh;
+      font-weight: normal;
+      border-radius: 100%;
+      border: none;
+      box-shadow: 0 5px #666;
+      transform: translateY(1vh);
+  } */
+
+/* #submitbutton {
 	z-index: 10;
 	height: 6vh;
 	width: 12vw;
@@ -155,14 +228,13 @@ xyhtml , body {
 	font-size: 4vh;
 	font-weight: normal;
 	border-radius: 100%;
-	border: none;
+	border: none; */
 
 
 /*trying to change around attributes of click button reduces the clickable area
 ALOT...don't understand how to adjust that.*/
-}
 
-#submitbutton:active {
+/* #submitbutton:active {
     z-index: 10;
     height: 6vh;
     width: 12vw;
@@ -180,7 +252,7 @@ ALOT...don't understand how to adjust that.*/
     border: none;
     box-shadow: 0 5px #666;
     transform: translateY(1vh);
-}
+} */
 
 #main {
 	height: auto;
@@ -222,7 +294,7 @@ ALOT...don't understand how to adjust that.*/
     height: 300px;
     width: 300px;
     position: absolute;
-    top: 15vh;
+    top: 12vh;
     right:0;left:0;
     float: top;
     margin: auto;
