@@ -1,9 +1,7 @@
 /*  Copyright (c) 2012 Sven "FuzzYspo0N" Bergström,
                   2013 Robert XD Hawkins
-
  written by : http://underscorediscovery.com
     written for : http://buildnewgames.com/real-time-multiplayer/
-
     substantially modified for collective behavior experiments on the web
     MIT Licensed.
 */
@@ -97,6 +95,10 @@ var game_core = function(options){
   // This will be populated with the set of objects
   this.trialInfo = {};
 
+  // Progress bar timer
+  this.timer;
+
+
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
     // If we're initializing the server game copy, pre-create the list of trials
@@ -111,7 +113,8 @@ var game_core = function(options){
       catch_trials : [], system : {},
       subject_information : {
 	    gameID: this.id,
-	    score: 0
+	    score: 0,
+      bonus_score: 0
       }
     };
     this.players = [{
@@ -180,9 +183,27 @@ game_core.prototype.newRound = function() {
     this.roundNum += 1;
     this.trialInfo = {currStim: this.trialList[this.roundNum]};
     this.objects = this.trialList[this.roundNum];
+    this.objClicked = false;
+    active_players = this.get_active_players();
+    this.setupTimer(this.timeLimit,active_players);
     this.server_send_update();
   }
 };
+
+game_core.prototype.setupTimer = function(timeleft, active_players) {
+  this.timeleft = timeleft;
+  var that = this;
+  if (timeleft >= 0 && !(this.objClicked)) { // and object clicked
+    _.map(active_players, function(p){
+      p.player.instance.emit('updateTimer', timeleft);
+    });
+    this.timer = setTimeout(function(){
+      that.setupTimer(timeleft - 1,active_players);
+    }, 1000);
+  } else {
+    clearTimeout(this.timer);
+  }
+}
 
 game_core.prototype.getRandomizedConditions = function() {
 
