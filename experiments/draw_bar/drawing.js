@@ -17,7 +17,7 @@ var drawGrid = function(game){
     game.ctx.beginPath();
 
     // vertical lines
-  for (var x = 0; x <= bw; x += Math.floor((cw - 2*p) / game.numHorizontalCells)) {
+    for (var x = 0; x <= bw; x += Math.floor((cw - 2*p) / game.numHorizontalCells)) {
         game.ctx.moveTo(0.5 + x + p, p);
         game.ctx.lineTo(0.5 + x + p, bh + p);}
 
@@ -189,7 +189,8 @@ function endStroke(event) {
 		  globalGame.path.exportSVG({asString: true}).replace(/\./g,'~~~'),
 		  globalGame.path.exportJSON({asString: true}).replace(/\./g,'~~~'),
 		  globalGame.shiftKeyUsed,
-      globalGame.data.subject_information.score].join('.');
+      globalGame.data.subject_information.score,
+      globalGame.data.subject_information.bonus_score].join('.'); //
     globalGame.socket.send(packet);
   };
 
