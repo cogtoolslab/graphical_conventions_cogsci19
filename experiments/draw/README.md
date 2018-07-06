@@ -2,7 +2,11 @@
 
 June 3 2018
 
-Manipulate cost of drawing by imposing time limit for each trial. Do this by having animated countdown bar. Try this with 30s timeout, which should be more than enough for each trial, but makes the time cost of each trial more salient.  
+Implemented bonusmeter system. This manipulates cost of drawing by imposing time limit for each trial and therefore incentivizes efficient drawing (selectively sketching certain parts of an object to distinguish from other objects as early as possible in the drawing process). 
+
+The animated progress bar keeps track of the additional bonus the players can receive depending on the time taken for the Viewer to make a correct guess. The additional bonus is given to correct guesses made under 30s, which should be more than enough for a Viewer to select an object based on the Sketcher's current sketch, but makes the time cost more salient. 
+
+All correct guesses receive a minimum bonus of $0.01. In the first 30s, the additional bonus that players can receive decreases from $0.03 to $0.01 - in other words, the total bonus players can receive decrease from $0.04 to $0.01. Incorrect guesses receive a bonus of $0.00.
 
 Otherwise design is identical to pilot1
 
@@ -17,9 +21,12 @@ Implemented re-design of sketchpad_repeated.
 
 Each pair now only sees objects from one of the categories (birds, chairs, cars, dogs), each containing 8 objects.
 
-There are three phases to this experiment: pre: All 8 objects sketched repeating: A subset of 4 objects sketched 6 times each, mini-blocked. post: All 8 objects sketched again
+There are three phases to this experiment: 
+    - pre: All 8 objects sketched 
+    - repeating: A subset of 4 objects sketched 4 times each, mini-blocked. 
+    - post: All 8 objects sketched again
 
-For a total of 8 + 24 + 8 = 40 trials total.
+For a total of 8 + 16 + 8 = 32 trials total.
 
 We want to counterbalance the category assignment across pairs.
 
