@@ -197,7 +197,7 @@ game_core.prototype.setupTimer = function(timeleft, active_players) {
   this.timeleft = timeleft;
   var that = this;
   if (timeleft >= 0 && !(this.objClicked)) {
-    console.log("time left" + timeleft)
+    //console.log("time left" + timeleft)
     _.map(active_players, function(p){
       p.player.instance.emit('updateTimer', timeleft);
     });
