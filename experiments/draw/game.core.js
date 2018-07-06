@@ -26,8 +26,8 @@ var game_core = function(options){
   // Store a flag if we are the server instance
   this.server = options.server ;
   this.projectName = '3dObjects';
-  this.experimentName = 'sketchpad_repeated';
-  this.iterationName = 'testing2';
+  this.experimentName = 'graphical_conventions';
+  this.iterationName = 'testing';
   this.email = 'sketchloop@gmail.com';
 
   // save data to the following locations (allowed: 'csv', 'mongo')
