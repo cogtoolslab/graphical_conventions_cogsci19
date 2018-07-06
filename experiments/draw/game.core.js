@@ -27,7 +27,7 @@ var game_core = function(options){
   this.server = options.server ;
   this.projectName = '3dObjects';
   this.experimentName = 'sketchpad_repeated';
-  this.iterationName = 'testing';
+  this.iterationName = 'testing2';
   this.email = 'sketchloop@gmail.com';
 
   // save data to the following locations (allowed: 'csv', 'mongo')
@@ -197,7 +197,7 @@ game_core.prototype.setupTimer = function(timeleft, active_players) {
   this.timeleft = timeleft;
   var that = this;
   if (timeleft >= 0 && !(this.objClicked)) {
-    console.log("time left" + timeleft)
+    //console.log("time left" + timeleft)
     _.map(active_players, function(p){
       p.player.instance.emit('updateTimer', timeleft);
     });
