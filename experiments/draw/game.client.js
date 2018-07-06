@@ -81,6 +81,7 @@ var client_onserverupdate_received = function(data){
           alreadyLoaded += 1
           if (alreadyLoaded == 4) {
               setTimeout(function() {
+              //console.log("hiding occluder");
               $('#occluder').hide();
               globalGame.drawingAllowed = true;
             },750);
@@ -153,8 +154,8 @@ var client_onMessage = function(data) {
 	       return x.target_status == 'target';
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
-      console.log("scoreDiff " + scoreDiff);
-      console.log("time left: ") + timeleft;
+      //console.log("scoreDiff " + scoreDiff);
+      //console.log("time left: ") + timeleft;
       if (scoreDiff == 1) {
         globalGame.data.subject_information.score += scoreDiff;
         globalGame.data.subject_information.bonus_score += timeleft / 10 ; // somehow this is -0.1
@@ -261,11 +262,11 @@ var customSetup = function(game) {
 
     // Update display
     var score = game.data.subject_information.score;
-    console.log("SCORE: " + score);
+    //console.log("SCORE: " + score);
     var bonus_score = game.data.subject_information.bonus_score;
-    console.log("BONUS: " + bonus_score);
+    //console.log("BONUS: " + bonus_score);
     var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(3));
-    console.log("TOTAL: " + displaytotal); // added
+    //console.log("TOTAL: " + displaytotal); // added
     if(game.roundNum + 2 > game.numRounds) {
       $('#roundnumber').empty();
       $('#sketchpad').hide();
