@@ -26,8 +26,8 @@ var game_core = function(options){
   // Store a flag if we are the server instance
   this.server = options.server ;
   this.projectName = '3dObjects';
-  this.experimentName = 'sketchpad_repeated';
-  this.iterationName = 'testing2';
+  this.experimentName = 'graphical_conventions';
+  this.iterationName = 'pilot2_bonusmeter';
   this.email = 'sketchloop@gmail.com';
 
   // save data to the following locations (allowed: 'csv', 'mongo')
@@ -484,12 +484,14 @@ var getRemainingTargets = function(earlierTargets) {
 
 
 
-var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList,conditionList) {
+var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList) {
   theseCats = categoryList[roundNum];
   theseObjs = _objectList[roundNum];
   thisPose = poseList[roundNum];
   thisTarget = targetList[roundNum];
   thisCondition = conditionList[roundNum];
+  thisPhase = phaseList[roundNum];
+  thisRepetition = repetitionList[roundNum]
 
   var im0 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[0]) && (s['object']==theseObjs[0]) && (s['pose']==thisPose) ) })[0];
   var im1 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[1]) && (s['object']==theseObjs[1]) && (s['pose']==thisPose) ) })[0];
@@ -504,10 +506,10 @@ var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList
   var thirdDistractor = im_all[notTargs[2]];
   _target_status = ["distractor","distractor","distractor","distractor"];
   var target_status = _target_status[thisTarget] = "target";
-  _.extend(target,{target_status: "target", condition: thisCondition});
-  _.extend(firstDistractor,{target_status: "distr1", condition: thisCondition});
-  _.extend(secondDistractor,{target_status: "distr2", condition: thisCondition});
-  _.extend(thirdDistractor,{target_status: "distr3", condition: thisCondition});
+  _.extend(target,{target_status: "target", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
+  _.extend(firstDistractor,{target_status: "distr1", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
+  _.extend(secondDistractor,{target_status: "distr2", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
+  _.extend(thirdDistractor,{target_status: "distr3", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   return [target, firstDistractor, secondDistractor, thirdDistractor];
 
 };
