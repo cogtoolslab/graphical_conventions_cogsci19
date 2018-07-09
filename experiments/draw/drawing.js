@@ -90,7 +90,8 @@ var drawScreen = function(game, player) {
     drawObjects(globalGame, player);
     // if (globalGame.my_role === globalGame.playerRoleNames.role1) {
     //     highlightCell(globalGame, player, '#d15619',
-    //     function(x) {return x.target_status == 'target';});
+    //     function(x) {return
+     //x.target_status == 'target';});
     // }
   }
 };
@@ -158,7 +159,7 @@ Sketchpad.prototype.setupTool = function() {
 
 function startStroke(event) {
   if (globalGame.drawingAllowed) {
-
+    globalGame.startStrokeTime = Date.now();
     // If a path is ongoing, send it along before starting this new one
     if(!_.isEmpty(globalGame.path)) {
       endStroke(event);
@@ -177,6 +178,9 @@ function startStroke(event) {
 function endStroke(event) {
   // Only send stroke if actual line (single points don't get rendered)
   if (globalGame.drawingAllowed && globalGame.path.length > 1) {
+    globalGame.endStrokeTime = Date.now();
+    console.log("startStrokeTime in drawing: " + globalGame.startStrokeTime);
+    console.log("endStrokeTime in drawing: " + globalGame.endStrokeTime);
     // Increment stroke num
     globalGame.currStrokeNum += 1;
 
@@ -190,8 +194,21 @@ function endStroke(event) {
 		  globalGame.path.exportJSON({asString: true}).replace(/\./g,'~~~'),
 		  globalGame.shiftKeyUsed,
       globalGame.data.subject_information.score,
-      globalGame.data.subject_information.bonus_score].join('.'); //
+      (globalGame.data.subject_information.bonus_score.toString()).replace(/\./g,'~~~'),
+      globalGame.startStrokeTime,
+      globalGame.endStrokeTime].join('.'); //
     globalGame.socket.send(packet);
+
+    // var array = ['stroke',
+		//   globalGame.currStrokeNum,
+		//   globalGame.path.exportSVG({asString: true}).replace(/\./g,'~~~'),
+		//   globalGame.path.exportJSON({asString: true}).replace(/\./g,'~~~'),
+		//   globalGame.shiftKeyUsed,
+    //   globalGame.data.subject_information.score,
+    //   globalGame.data.subject_information.bonus_score,
+    //   globalGame.startStrokeTime,
+    //   globalGame.endStrokeTime]
+    // console.log("length of packet: " + array.length);
   };
 
   // reset variables
