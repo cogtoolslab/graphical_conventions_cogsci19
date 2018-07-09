@@ -101,6 +101,11 @@ var game_core = function(options){
   // Progress bar timer
   this.timer;
 
+  // Most recent start stroke time
+  this.startStrokeTime = Date.now();
+
+  // Most recent end stroke time
+  this.endStrokeTime = Date.now();
 
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
