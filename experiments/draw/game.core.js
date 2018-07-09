@@ -84,7 +84,7 @@ var game_core = function(options){
   this.numReps = 6;
 
   // How many rounds do we want people to complete?
-  this.numRounds = 32;
+  this.numRounds = 40;
 
   // should we fix the pose to 3/4 view across trials and games?
   this.poseFixed = 1;
@@ -329,6 +329,7 @@ game_core.prototype.getRandomizedConditions = function() {
 
   // concatenate pre, repeated, and post trials into full session sequence
   session = pre.concat(repeated).concat(post);
+  console.log("session: " + session);
   //[Array(4), Array(4), undefined, "repeated", 2, "repeated"]
   //(_object,_category,_pose,_condition,_target)
 
@@ -397,6 +398,7 @@ game_core.prototype.makeTrialList = function () {
   for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number
     // sample four object images that are unique and follow the condition constraints
     var objList = sampleTrial(i,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList);
+    console.log('objList',objList);
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
     // construct trial list (in sets of complete rounds)
