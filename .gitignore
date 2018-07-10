@@ -6,6 +6,7 @@ __pycache__/
 *.png
 chairs1k_triplets/
 
+*.csv
 auth.json
 auth.txt
 
