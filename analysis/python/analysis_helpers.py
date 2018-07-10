@@ -16,7 +16,7 @@ colors = sns.color_palette("cubehelix", 5)
 
 def get_complete_and_valid_games(games,
                                  coll,                                 
-                                 researchers=['A1MMCS8S8CTWKU'],
+                                 researchers,
                                  tolerate_undefined_worker=False):
     '''
     Input: 
@@ -35,7 +35,7 @@ def get_complete_and_valid_games(games,
         ## check to make sure there were two real mturk workers participating who were not researchers
         real_workers = False
         viewer = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'}]}).distinct('workerId')
-        sketcher = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'}]}).distinct('workerId')
+        sketcher = coll.find({'$and': [{'gameid':game},{'eventType':'stroke'}]}).distinct('workerId')
         viewer_is_researcher = viewer in researchers
         sketcher_is_researcher = sketcher in researchers  
         try:
