@@ -156,8 +156,9 @@ var client_onMessage = function(data) {
       console.log("scoreDiff " + scoreDiff);
       console.log("time left: ") + timeleft;
       if (scoreDiff == 1) {
-        globalGame.data.subject_information.score += scoreDiff;
-        globalGame.data.subject_information.bonus_score += timeleft / 10 ; // somehow this is -0.1
+        globalGame.data.subject_information.score += scoreDiff * 3;
+        globalGame.data.subject_information.bonus_score += parseFloat((timeleft / 25).toFixed(2)); // somehow this is -0.1
+        console.log("bonus score: " + globalGame.data.subject_information.bonus_score);
       }
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
@@ -264,7 +265,7 @@ var customSetup = function(game) {
     console.log("SCORE: " + score);
     var bonus_score = game.data.subject_information.bonus_score;
     console.log("BONUS: " + bonus_score);
-    var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(3));
+    var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(4));
     console.log("TOTAL: " + displaytotal); // added
     if(game.roundNum + 2 > game.numRounds) {
       $('#roundnumber').empty();
@@ -277,10 +278,8 @@ var customSetup = function(game) {
       $('#roundnumber').empty()
         .append("Round\n" + (game.roundNum + 2) + " of " + game.numRounds);
     }
-    $('#score').empty().append(score + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
+    $('#score').empty().append(score / 3 + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
 			       + displaytotal);
-
-    // reset and show progress bar
   });
 
   game.socket.on('stroke', function(jsonData) {
@@ -299,7 +298,7 @@ var customSetup = function(game) {
       $element = $('.progress');
       var progressBarWidth = timeleft * $element.width()/ timetotal;
       var totalBarWidth = $element.width();
-      var centsleft = timeleft / 10 + 1;
+      var centsleft = (timeleft / 25 + 3).toFixed(2);
       $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
       $element.find('.progress-bar').finish();
       $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
@@ -317,10 +316,6 @@ var customSetup = function(game) {
     } else if (globalGame.my_role === globalGame.playerRoleNames.role2 && !objClicked) {
       setTimeout(function(){$('#turnIndicator').html("Time's up! Make a selection!");},globalGame.feedbackDelay);
     }
-    // if (objClicked) {
-    //     globalGame.data.subject_information.score += scoreDiff;
-    //     globalGame.data.subject_information.bonus_score += timeleft / 10 ; // somehow this is -0.1
-    // }
   });
 };
 
@@ -408,9 +403,6 @@ function responseListener(evt) {
             		      globalGame.objects[0]['repetition'],
                       globalGame.data.subject_information.score,
                       globalGame.data.subject_information.bonus_score];
-
-        //console.log("score:" + globalGame.data.subject_information.score);
-        //console.log("bonus score:" + globalGame.data.subject_information.bonus_score);
         globalGame.socket.send(packet.join('.'));
       }
     });
