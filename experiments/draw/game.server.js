@@ -135,7 +135,7 @@ var dataOutput = function() {
       bonus_score: message_data[8]
       }
     );
-    console.log(JSON.stringify(_.pick(output, ['repetition', 'correct', 'responseTime']), null, 3));
+    //console.log(JSON.stringify(_.pick(output, ['repetition', 'correct', 'responseTime']), null, 3));
     return output;
   };
 
@@ -155,7 +155,7 @@ var dataOutput = function() {
       startStrokeTime: message_data[7],
       endStrokeTime: message_data[8]
     });
-    console.log(JSON.stringify(output, null, 3));
+    //console.log(JSON.stringify(output, null, 3));
     return output;
   };
 

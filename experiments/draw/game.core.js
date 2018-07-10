@@ -333,7 +333,7 @@ game_core.prototype.getRandomizedConditions = function() {
 
   // concatenate pre, repeated, and post trials into full session sequence
   session = pre.concat(repeated).concat(post);
-  console.log("session: " + session);
+  //console.log("session: " + session);
   //[Array(4), Array(4), undefined, "repeated", 2, "repeated"]
   //(_object,_category,_pose,_condition,_target)
 
