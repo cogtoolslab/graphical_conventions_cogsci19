@@ -72,7 +72,7 @@ var game_core = function(options){
   this.feedbackDelay = 300;
 
   // how long the sketcher has to finish their drawing
-  this.timeLimit = 30;
+  this.timeLimit = 25;
 
   // toggle whether an object has been clicked
   this.objClicked = false;
@@ -101,6 +101,11 @@ var game_core = function(options){
   // Progress bar timer
   this.timer;
 
+  // Most recent start stroke time
+  this.startStrokeTime = Date.now();
+
+  // Most recent end stroke time
+  this.endStrokeTime = Date.now();
 
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
@@ -197,7 +202,6 @@ game_core.prototype.setupTimer = function(timeleft, active_players) {
   this.timeleft = timeleft;
   var that = this;
   if (timeleft >= 0 && !(this.objClicked)) {
-    //console.log("time left" + timeleft)
     _.map(active_players, function(p){
       p.player.instance.emit('updateTimer', timeleft);
     });
