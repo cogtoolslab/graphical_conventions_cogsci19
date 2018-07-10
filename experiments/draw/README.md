@@ -1,4 +1,4 @@
-## pilot2
+### "pilot2" --> now known as "run0_bonusmeter"
 
 June 3 2018
 
@@ -11,7 +11,7 @@ All correct guesses receive a minimum bonus of $0.01. In the first 30s, the addi
 Otherwise design is identical to pilot1
 
 
-### pilot1
+### pilot1 [deprecated and part of different repo: hawkrobe/reference_games]
 
 Aug 30 2017 [aka "pilot1"]
 
@@ -33,7 +33,7 @@ We want to counterbalance the category assignment across pairs.
 Target pilot sample size: 4 * 5 = 20 pairs (matching sketchpad_basic size).
 
 
-### pilot0
+### pilot0 [deprecated and part of different repo: hawkrobe/reference_games]
 
 May 31 2017 [aka "pilot0"; not saved to mongo due to ransomware thing]
 
