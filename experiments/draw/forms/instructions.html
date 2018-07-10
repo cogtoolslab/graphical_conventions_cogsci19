@@ -88,23 +88,24 @@
 
   <p>
     For each correct guess the Viewer makes, both of you will receive
-    <b>an accuracy bonus of $0.01</b>. In addition, you will both receive <b>
+    <b>an accuracy bonus of $0.03</b>. In addition, you will both receive <b>
     a time bonus based on how fast the viewer makes the correct guess</b>.
     In other words, <b> the faster the Viewer can select the correct object,
     the larger the bonus both of you will receive</b>.
 </p>
-    <p>For example, if the Viewer makes a correct guess after 10 seconds,
-    both of you will receive: $0.01 (accuracy bonus) + $0.02 (time bonus) =
-    $0.03 (total bonus). If the guess was made at 20 seconds, the time bonus
-    will be reduced to $0.01, making the total $0.02. If the guess was made at
-    30 seconds or later, there is no time bonus, but you will still receive
-    $0.01 (accuracy bonus) if the Viewer makes a correct guess.
-    Finally, incorrect guesses do not receive any bonus.
+    <p>For example, if the Viewer makes a correct guess after 5 seconds,
+    both of you will receive: $0.03 (accuracy bonus) + $0.008 (time bonus) =
+    $0.038 (total bonus). If the guess was made at 10 seconds, the time bonus
+    will be reduced to $0.006, making the total $0.036. If the guess was made at
+    25 seconds or later, there is no time bonus, but you will still receive
+    $0.03 (accuracy bonus) if the Viewer makes a correct guess.
+    Finally, <b>incorrect guesses do not receive any bonus</b> regardless of their
+    accuracy.
 
   </p>
     <p>
     The bonus meter below displays the possible total bonus (accuracy bonus +
-    time bonus) and shrinks as the 30 second timer runs down.
+    time bonus) and shrinks as the 25 second timer runs down.
   </p>
     <p>
       <center><img src="images/bonusmeter.png" alt="initial matcher's board" style="width:700px;height:200px"></center>
@@ -212,11 +213,11 @@ final round you will fill out a quick 15 second survey and be on your way. A few
       </br>
 
     </br>
-    An incorrect guess made under 30 seconds receives a time bonus but not an accuracy bonus.
+    Even if a guess is made under 25 seconds, it won't receive any bonus if it is correct.
         </br>
-        <input type="radio" name="incorrect" value="no"> True
+        <input type="radio" name="incorrect" value="no"> False
         </br>
-        <input type="radio" name="incorrect" value="yes"> False
+        <input type="radio" name="incorrect" value="yes"> True
         </br>
 
   </br>

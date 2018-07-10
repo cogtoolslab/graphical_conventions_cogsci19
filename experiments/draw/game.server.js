@@ -151,10 +151,10 @@ var dataOutput = function() {
       currStrokeNum: message_data[1],
       shiftKeyUsed: message_data[4],
       score: message_data[5],
-      bonus_score: message_data[6]
-      }
-      //console.log(message_data);
-    );
+      bonus_score: message_data[6].replace(/~~~/g, '.'),
+      startStrokeTime: message_data[7],
+      endStrokeTime: message_data[8]
+    });
     console.log(JSON.stringify(output, null, 3));
     return output;
   };
