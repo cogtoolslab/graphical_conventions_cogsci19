@@ -70,7 +70,8 @@ def get_complete_and_valid_games(games,
 def plot_across_repeats(D, # the dataframe
                         var='drawDuration', # the variable you want to see plotted against numRepts 
                         limit=10,
-                        save_plot=False): # the y range for the plot 
+                        save_plot=False,
+                        plot_dir='./plots'): # the y range for the plot 
 
     '''
     purpose: get timeseries (with error band) for some behavioral measure of interest across repetitions
@@ -80,7 +81,9 @@ def plot_across_repeats(D, # the dataframe
     input:
             D: the group dataframe
             var: the variable you want to see plotted against numReps, e.g., 'drawDuration'
-            limit: the y range for the plot         
+            limit: the y range for the plot 
+            save_plot: do you want to save the plot?
+            plot_dir: path to where to save out the plot
     output: another dataframe?
             a timeseries plot    
     '''    
@@ -91,7 +94,7 @@ def plot_across_repeats(D, # the dataframe
     ## collapsing across objects within repetition (within pair) 
     ## and only aggregating repeated trials into this sub-dataframe
     _D0 = D[D['condition']=='repeated']
-    D0 = _D0.groupby(['gameID','repetition','condition'])['drawDuration'].mean()
+    D0 = _D0.groupby(['gameID','repetition','condition'])[var].mean()
     D0 = D0.reset_index()  
     
     ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
@@ -103,10 +106,44 @@ def plot_across_repeats(D, # the dataframe
     sns.tsplot(data=D0,
                time='repetition',
                unit='gameID',
-               value='drawDuration')
+               value=var)
     plt.ylim([0,limit])
     plt.xticks(np.arange(np.max(D0['repetition'])+1))
-    
-    
+    plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var)))
+
     return D0
     
+    
+def compare_conditions_prepost(D, # the dataframe
+                        var='drawDuration', # the variable you want to see plotted against numRepts 
+                        limit=10,
+                        save_plot=False,
+                        plot_dir='./plots'): # the y range for the plot 
+    
+    '''
+    purpose: compare repeated and control conditions in the PRE and POST phases with error bars
+    note: We are currently aggregating across objects within a repetition within subject, so the error bars
+          only reflect between-subject variability.
+    input:
+            D: the group dataframe
+            var: the variable you want to see plotted against numReps, e.g., 'drawDuration'
+            limit: the y range for the plot 
+            save_plot: do you want to save the plot?
+            plot_dir: path to where to save out the plot
+    output: another dataframe?
+            a point plot    
+    '''
+    
+    _D1 = D[D['phase']!='repeated'] ## exclude "repetition-phase" trials
+    D1 = _D1.groupby(['gameID','phase','condition'])[var].mean()
+    D1 = D1.reset_index()    
+    
+    plt.figure(figsize=(6,6))
+    sns.pointplot(data=D1,
+             x='phase',
+             y='drawDuration',
+             hue='condition',
+             order=['pre','post'])    
+    plt.ylim([0,limit])
+    plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var))) 
+    return D1    
