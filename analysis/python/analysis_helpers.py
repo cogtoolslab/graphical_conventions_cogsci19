@@ -14,6 +14,11 @@ colors = sns.color_palette("cubehelix", 5)
 ################### HELPERS FOR grpahical conventions analysis notebook ###########
 ###############################################################################################
 
+def convert_numeric(X,column_id):
+    ## make numeric types for aggregation
+    X[column_id] = pd.to_numeric(X[column_id])
+    return X
+
 def get_complete_and_valid_games(games,
                                  coll,                                 
                                  researchers,
@@ -60,3 +65,48 @@ def get_complete_and_valid_games(games,
             complete_games.append(game)
     print 'There are {} complete games in total.'.format(len(complete_games))
     return complete_games
+
+
+def plot_across_repeats(D, # the dataframe
+                        var='drawDuration', # the variable you want to see plotted against numRepts 
+                        limit=10,
+                        save_plot=False): # the y range for the plot 
+
+    '''
+    purpose: get timeseries (with error band) for some behavioral measure of interest across repetitions
+    note: This only applies to the "repeated" objects.
+          We are currently aggregating across objects within a repetition within subject, so the error bands
+          only reflect between-subject variability.
+    input:
+            D: the group dataframe
+            var: the variable you want to see plotted against numReps, e.g., 'drawDuration'
+            limit: the y range for the plot         
+    output: another dataframe?
+            a timeseries plot    
+    '''    
+    
+    ## first convert variable type so we are allowed to do arithmetic on it
+    D = convert_numeric(D,var)
+    
+    ## collapsing across objects within repetition (within pair) 
+    ## and only aggregating repeated trials into this sub-dataframe
+    _D0 = D[D['condition']=='repeated']
+    D0 = _D0.groupby(['gameID','repetition','condition'])['drawDuration'].mean()
+    D0 = D0.reset_index()  
+    
+    ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
+    num_reps = len(np.unique(D.repetition.values))
+    assert D0.groupby('gameID')['gameID'].count()[0]==num_reps    
+
+    fig = plt.figure(figsize=(6,6))
+    ## repeated condition
+    sns.tsplot(data=D0,
+               time='repetition',
+               unit='gameID',
+               value='drawDuration')
+    plt.ylim([0,limit])
+    plt.xticks(np.arange(np.max(D0['repetition'])+1))
+    
+    
+    return D0
+    
