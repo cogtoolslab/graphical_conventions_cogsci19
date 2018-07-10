@@ -155,10 +155,6 @@ var dataOutput = function() {
       startStrokeTime: message_data[7],
       endStrokeTime: message_data[8]
     });
-    console.log('message_data',message_data);
-    console.log("length of message data: " + message_data.length)
-    console.log("START STROKE TIME: "+ message_data[7]);
-    console.log("END STROKE TIME: "+ message_data[8]);
     console.log(JSON.stringify(output, null, 3));
     return output;
   };
