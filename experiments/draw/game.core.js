@@ -402,7 +402,7 @@ game_core.prototype.makeTrialList = function () {
   for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number
     // sample four object images that are unique and follow the condition constraints
     var objList = sampleTrial(i,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList);
-    console.log('objList',objList);
+    //console.log('objList',objList);
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
     // construct trial list (in sets of complete rounds)
