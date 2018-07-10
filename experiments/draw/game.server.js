@@ -135,7 +135,7 @@ var dataOutput = function() {
       bonus_score: message_data[8]
       }
     );
-    console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score'), null, 3));
+    console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
     return output;
   };
 
