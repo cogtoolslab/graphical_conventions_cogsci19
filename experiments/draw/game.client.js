@@ -139,6 +139,7 @@ var client_onMessage = function(data) {
 
     case 'feedback' :
       // Prevent them from sending messages b/w trials
+      globalGame.viewport.removeEventListener("click", responseListener, false); // added
       $('#chatbox').attr("disabled", "disabled");
       var clickedObjName = commanddata;
       var timeleft = commands[3]; // commands[3] is what we used for player role ???
@@ -153,12 +154,12 @@ var client_onMessage = function(data) {
 	       return x.target_status == 'target';
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
-      console.log("scoreDiff " + scoreDiff);
-      console.log("time left: ") + timeleft;
+      // console.log("scoreDiff " + scoreDiff);
+      // console.log("time left: ") + timeleft;
       if (scoreDiff == 1) {
         globalGame.data.subject_information.score += scoreDiff * 3;
         globalGame.data.subject_information.bonus_score += parseFloat((timeleft / 25).toFixed(2)); // somehow this is -0.1
-        console.log("bonus score: " + globalGame.data.subject_information.bonus_score);
+        // console.log("bonus score: " + globalGame.data.subject_information.bonus_score);
       }
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
@@ -237,6 +238,7 @@ var customSetup = function(game) {
 
     // reset clicked obj flag
     objClicked = false;
+    globalGame.viewport.addEventListener("click", responseListener, false); // added
 
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
@@ -262,11 +264,11 @@ var customSetup = function(game) {
 
     // Update display
     var score = game.data.subject_information.score;
-    console.log("SCORE: " + score);
+    // console.log("SCORE: " + score);
     var bonus_score = game.data.subject_information.bonus_score;
-    console.log("BONUS: " + bonus_score);
+    // console.log("BONUS: " + bonus_score);
     var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(4));
-    console.log("TOTAL: " + displaytotal); // added
+    // console.log("TOTAL: " + displaytotal); // added
     if(game.roundNum + 2 > game.numRounds) {
       $('#roundnumber').empty();
       $('#sketchpad').hide();
@@ -355,10 +357,12 @@ var client_onjoingame = function(num_players, role) {
       if(_.size(this.urlParams) == 4) {
   	this.submitted = true;
   	window.opener.turk.submit(this.data, true);
+    // console.log("submitted the following :");
+  	// console.log(this.data);
   	window.close();
       } else {
-  	//console.log("would have submitted the following :");
-  	//console.log(this.data);
+  	// console.log("would have submitted the following :");
+  	// console.log(this.data);
       }
     }, 1000 * 60 * 15);
     globalGame.get_player(globalGame.my_id).message = ('Waiting for another player...\nPlease do not refresh the page!\n If wait exceeds 5 minutes, we recommend returning the HIT and trying again later.');
