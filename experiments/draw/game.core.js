@@ -107,6 +107,9 @@ var game_core = function(options){
   // Most recent end stroke time
   this.endStrokeTime = Date.now();
 
+  // Whether only chairs are used or all four categories
+  this.chairsOnly = true;
+
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
     // If we're initializing the server game copy, pre-create the list of trials
@@ -263,6 +266,7 @@ game_core.prototype.getRandomizedConditions = function() {
   // copy 4 times to get full category matrix
   _category = arr.concat(arr).concat(arr).concat(arr);
   _category = _category.concat(_category);
+  //console.log("category: " + _category);
 
   // now make pose matrix (on each trial, all objects share same pose)
   // 9/11/17: we are fixing the pose to be 3/4 view for ALL objects ALL THE TIME.
@@ -289,7 +293,12 @@ game_core.prototype.getRandomizedConditions = function() {
   _zipped = _.zip(_object,_category,_pose,_condition,_target);
 
   // sample one of the categories to use for this game (or query db to make sure is the right one)
-  critical_category = _.shuffle(_.range(0,4))[0];
+  if (this.chairsOnly) {
+    critical_category = 2; // change to only chairs
+  } else {
+    critical_category = _.shuffle(_.range(0,4))[0];
+  }
+  console.log("critical category:" + critical_category)
 
   // filter zipped by the entries that pertain to the critical category
   zipped = new Array;
