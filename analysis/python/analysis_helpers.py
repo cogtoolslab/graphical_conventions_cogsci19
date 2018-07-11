@@ -14,6 +14,23 @@ colors = sns.color_palette("cubehelix", 5)
 ################### HELPERS FOR grpahical conventions analysis notebook ###########
 ###############################################################################################
 
+OBJECT_TO_CATEGORY = {
+    'basset': 'dog', 'beetle': 'car', 'bloodhound': 'dog', 'bluejay': 'bird',
+    'bluesedan': 'car', 'bluesport': 'car', 'brown': 'car', 'bullmastiff': 'dog',
+    'chihuahua': 'dog', 'crow': 'bird', 'cuckoo': 'bird', 'doberman': 'dog',
+    'goldenretriever': 'dog', 'hatchback': 'car', 'inlay': 'chair', 'knob': 'chair',
+    'leather': 'chair', 'nightingale': 'bird', 'pigeon': 'bird', 'pug': 'dog',
+    'redantique': 'car', 'redsport': 'car', 'robin': 'bird', 'sling': 'chair',
+    'sparrow': 'bird', 'squat': 'chair', 'straight': 'chair', 'tomtit': 'bird',
+    'waiting': 'chair', 'weimaraner': 'dog', 'white': 'car', 'woven': 'chair',
+}
+CATEGORY_TO_OBJECT = {
+    'dog': ['basset', 'bloodhound', 'bullmastiff', 'chihuahua', 'doberman', 'goldenretriever', 'pug', 'weimaraner'],
+    'car': ['beetle', 'bluesedan', 'bluesport', 'brown', 'hatchback', 'redantique', 'redsport', 'white'],
+    'bird': ['bluejay', 'crow', 'cuckoo', 'nightingale', 'pigeon', 'robin', 'sparrow', 'tomtit'],
+    'chair': ['inlay', 'knob', 'leather', 'sling', 'squat', 'straight', 'waiting', 'woven'],
+}
+
 def convert_numeric(X,column_id):
     ## make numeric types for aggregation
     X[column_id] = pd.to_numeric(X[column_id])
