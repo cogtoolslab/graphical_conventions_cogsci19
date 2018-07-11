@@ -5,7 +5,7 @@ __pycache__/
 *.DS_Store
 *.png
 chairs1k_triplets/
-
+*.pdf
 *.csv
 auth.json
 auth.txt
