@@ -27,7 +27,7 @@ var game_core = function(options){
   this.server = options.server ;
   this.projectName = '3dObjects';
   this.experimentName = 'graphical_conventions';
-  this.iterationName = 'run0_bonusmeter_debug'; // ['run0_bonusmeter']
+  this.iterationName = 'run1_chairsOnly'; // ['run0_bonusmeter']
   this.email = 'sketchloop@gmail.com';
 
   // save data to the following locations (allowed: 'csv', 'mongo')
