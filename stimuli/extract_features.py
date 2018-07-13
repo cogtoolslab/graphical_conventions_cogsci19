@@ -62,8 +62,8 @@ def save_features(Features, Y, layer_num, data_type,feat_path='/data2/jefan/chai
     if not os.path.exists('./features'):
         os.makedirs('./features')
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
-    np.save(os.path.join(feat_path,'/FEATURES_{}_{}.npy'.format(layers[int(layer_num)], data_type)), Features)
-    Y.to_csv(os.path.join(feat_path,'/METADATA_{}.csv'.format(data_type)))
+    np.save(os.path.join(feat_path,'FEATURES_{}_{}.npy'.format(layers[int(layer_num)], data_type)), Features)
+    Y.to_csv(os.path.join(feat_path,'METADATA_{}.csv'.format(data_type)))
     return layers[int(layer_num)]
 
 if __name__ == "__main__":
