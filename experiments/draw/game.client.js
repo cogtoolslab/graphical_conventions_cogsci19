@@ -82,6 +82,7 @@ var client_onserverupdate_received = function(data){
           if (alreadyLoaded == 4) {
               setTimeout(function() {
               $('#occluder').hide();
+              drawGrid(globalGame);
               globalGame.drawingAllowed = true;
             },750);
           }
