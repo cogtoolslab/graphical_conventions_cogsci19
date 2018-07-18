@@ -68,12 +68,18 @@ var highlightCell = function(game, color, condition) {
 };
 
 var colorBorder =function(globalGame){
+  repeatedColor = "#ce0a04"; // red
+  controlColor = "#4286f4"; // blue
+  if (!globalGame.repeatedIsRed) {
+    repeatedColor = "#4286f4"; // blue
+    controlColor = "#ce0a04"; // red
+  }
   if(globalGame.objects) {
     var condition = globalGame.objects[0]['condition']
     if (condition == 'repeated') {
-      globalGame.viewport.style.borderColor = "#ce0a04"; // red
+      globalGame.viewport.style.borderColor = repeatedColor;
     } else {
-      globalGame.viewport.style.borderColor = "#4286f4"; // blue
+      globalGame.viewport.style.borderColor = controlColor;
     }
   }
 }

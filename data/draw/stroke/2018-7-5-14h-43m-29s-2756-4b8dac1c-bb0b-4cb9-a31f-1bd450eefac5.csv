@@ -1,0 +1,4 @@
+iterationName	gameid	time	trialNum	intendedName	svgData	currStrokeNum	shiftKeyUsed	score	eventType
+testing	2756-4b8dac1c-bb0b-4cb9-a31f-1bd450eefac5	1530827009774	1	inlay	M156,232c-4.9484,0 -35.01228,-42.24983 -36,-44c-22.85467,-40.49687 -39,-71.43696 -39,-116	1	0	0	stroke
+testing	2756-4b8dac1c-bb0b-4cb9-a31f-1bd450eefac5	1530827055072	2	woven	M172,191c-11.34348,0 -23,-59.74307 -23,-76	1	0	1	stroke
+testing	2756-4b8dac1c-bb0b-4cb9-a31f-1bd450eefac5	1530827064441	3	sling	M214,144c-35.81708,0 -85.35696,-36.17848 -119,-53	1	0	2	stroke

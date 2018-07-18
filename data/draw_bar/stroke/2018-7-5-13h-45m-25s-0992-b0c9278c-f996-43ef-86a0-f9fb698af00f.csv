@@ -1,0 +1,3 @@
+iterationName	gameid	time	trialNum	intendedName	svgData	currStrokeNum	shiftKeyUsed	score	eventType
+testing	0992-b0c9278c-f996-43ef-86a0-f9fb698af00f	1530823525951	1	doberman	M255,194c-38.03817,0 -92.62575,-33.43533 -128,-49c-4.28183,-1.884 -14.33445,-10 -19,-10	1	0	0	stroke
+testing	0992-b0c9278c-f996-43ef-86a0-f9fb698af00f	1530823533754	2	pug	M161,194c-10.32898,-13.28012 -47,-61.19212 -47,-81	1	0	1	stroke
