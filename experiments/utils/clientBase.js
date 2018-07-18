@@ -153,6 +153,7 @@ window.onload = function(){
 
   //Fetch the viewport
   globalGame.viewport = document.getElementById('viewport');
+  globalGame.confirmbutton = document.getElementById('confirmbutton'); // added
 
   //Adjust its size
   globalGame.viewport.width = globalGame.world.width;

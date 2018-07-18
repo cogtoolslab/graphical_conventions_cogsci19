@@ -1,0 +1,3 @@
+iterationName	gameid	time	trialNum	intendedName	svgData	currStrokeNum	shiftKeyUsed	score	bonus_score	startStrokeTime	endStrokeTime	eventType
+pilot2_bonusmeter	4426-6e6050d6-405e-47eb-837b-665344479b6b	1531185525966	1	basset	M137,229c0,-12.66055 -57,-59.45404 -57,-94	1	0	0	0	1531185525525	1531185525938	stroke
+pilot2_bonusmeter	4426-6e6050d6-405e-47eb-837b-665344479b6b	1531185531517	2	doberman	M232,180c-49.32782,0 -94.48409,-7.59218 -135,-35c-5.67444,-3.83859 -31,-19.17429 -31,-28	1	0	3	00.88	1531185531262	1531185531510	stroke
