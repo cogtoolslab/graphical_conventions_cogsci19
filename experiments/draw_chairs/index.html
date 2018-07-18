@@ -92,6 +92,20 @@
         <option value="other">Other</option>
       </select>
       <br><br>
+
+      <p> What is your age? </p>
+      <textarea id='age' rows="1" cols="8"></textarea>
+      <br><br>
+
+      <p> Did you use a mouse or trackpad?</p>
+      <select onChange="dropdownTip('medium::' + this.value)">
+        <option value =""></option>
+        <option value="mouse">Mouse</option>
+        <option value="trackpad">Trackpad</option>
+        <option value="other">Other</option>
+      </select>
+      <br><br>
+
       <p> Did you read the instructions and do you think you did the
   HIT correctly? </p>
       <select onChange="dropdownTip('confused::' + this.value)">
