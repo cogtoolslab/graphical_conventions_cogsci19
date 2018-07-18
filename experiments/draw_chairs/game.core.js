@@ -43,9 +43,9 @@ var game_core = function(options){
 
 
   //Dimensions of world in pixels and number of cells to be divided into;
-  this.numHorizontalCells = 4;
+  this.numHorizontalCells = 6; // change from 4
   this.numVerticalCells = 1;
-  this.cellDimensions = {height : 200, width : 200}; // in pixels
+  this.cellDimensions = {height : 150, width : 150}; // in pixels // change from 200
   this.cellPadding = 0;
   this.world = {height : (this.cellDimensions.height * this.numVerticalCells
               + this.cellPadding),
@@ -56,11 +56,11 @@ var game_core = function(options){
   // track shift key drawing tool use
   this.shiftKeyUsed = 0; // "1" on trials where used, "0" otherwise
 
-  // Number of total poses per object
-  this.numPoses = 40;
-
   // Which stroke number are we on?
   this.currStrokeNum = 0;
+
+  // Has the sketcher drawn anything?
+  this.strokeMade = false;
 
   // Is the sketcher done with their drawing?
   this.doneDrawing = false;
@@ -81,10 +81,10 @@ var game_core = function(options){
   this.roundNum = -1;
 
   // How many repetitions do we want?
-  this.numReps = 6;
+  this.numReps = 4; // changed from 6
 
   // How many rounds do we want people to complete?
-  this.numRounds = 40;
+  this.numRounds = 48; // changed from 40
 
   // should we fix the pose to 3/4 view across trials and games?
   this.poseFixed = 1;
@@ -108,7 +108,7 @@ var game_core = function(options){
   this.endStrokeTime = Date.now();
 
   // Whether only chairs are used or all four categories
-  this.chairsOnly = true;
+  this.chairsOnly = true; // change later
 
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
@@ -118,6 +118,7 @@ var game_core = function(options){
     this.expName = options.expName;
     this.player_count = options.player_count;
     this.trialList = this.makeTrialList();
+    //console.log("trialList: " + this.trialList);
     this.data = {
       id : this.id,
       trials : [],
@@ -193,6 +194,7 @@ game_core.prototype.newRound = function() {
     // Otherwise, get the preset list of objects for the new round
     this.roundNum += 1;
     this.trialInfo = {currStim: this.trialList[this.roundNum]};
+    //console.log("this.trialList[this.roundNum]: " + this.trialList[this.roundNum]);
     this.objects = this.trialList[this.roundNum];
     this.objClicked = false;
     active_players = this.get_active_players();
@@ -205,10 +207,6 @@ game_core.prototype.setupTimer = function(timeleft, active_players) {
   this.timeleft = timeleft;
   var that = this;
   if (timeleft >= 0 && !(this.objClicked)) {
-<<<<<<< HEAD
-=======
-    //console.log("time left" + timeleft)
->>>>>>> 46228dc6040b5398c5e2237ef1acebe4304a1abc
     _.map(active_players, function(p){
       p.player.instance.emit('updateTimer', timeleft);
     });
@@ -235,159 +233,171 @@ game_core.prototype.getRandomizedConditions = function() {
   // but then just grab the subset we need for a given game: i.e., two quartets of objects from same category
 
   var numCats = 4;
-  var numObjs = 8;
-  var setSize = 4; // this is the number of objects that appear in a single menu
+  var numObjs = 12; // changed from 8
+  var setSize = 6; // this is the number of objects that appear in a single menu // changed from 4
 
-  // make randomization matrix: take 4x8 matrix with range(0,8) on the rows, and indpt shuffle within row
-  var tmp = new Array;
-  for (i=0;i<numCats;i++) {
-    tmp.push(_.shuffle(_.range(0,8)));
+  // make category array
+  var shuffledCat = _.shuffle(_.range(0,numCats));
+  var sampledCat = shuffledCat[0];
+  var _category = new Array;
+  for (i=0; i<setSize; i++) {
+    _category.push(sampledCat);
   }
 
-  // So now we generate the 8 unique menus:
-  var menuList = new Array;
+  // shuffle objects
+  var shuffledObjs = _.shuffle(_.range(0,numObjs));
+  // split these 12 chairs up into 2 sets of 6, one of them will be repeated, the other will be control
+  var repeatedObjs = shuffledObjs.slice(0,setSize);
+  var controlObjs = shuffledObjs.slice(setSize,setSize*2);
 
-  // first construct the first set of 4 close menus by grabbing lefthand 4x4 matrix and defining each row to be menu
-  for (i=0;i<numCats;i++) {
-    menuList.push(tmp[i].slice(0,setSize));
-  }
-  // first construct the second set of 4 close menus by grabbing righthand 4x4 matrix and defining each row to be menu
-  for (i=0;i<numCats;i++) {
-    menuList.push(tmp[i].slice(setSize,setSize*2));
-  }
-
-  // copy four times to get the object matrix
-  _object = menuList.concat(menuList).concat(menuList).concat(menuList);
-
-  // now let's make the category matrix
-  arr = new Array;
-  // _(4).times(function(n){arr.push(_.range(0,4))});
-  tmp = _.range(0,4);
-  for (i=0;i<tmp.length;i++) {
-    arr.push(_.times(4, function() { return tmp[i]; }));
-  }
-
-  // copy 4 times to get full category matrix
-  _category = arr.concat(arr).concat(arr).concat(arr);
-  _category = _category.concat(_category);
-  //console.log("category: " + _category);
-
-  // now make pose matrix (on each trial, all objects share same pose)
-  // 9/11/17: we are fixing the pose to be 3/4 view for ALL objects ALL THE TIME.
-  _pose = _.times(numCats*numObjs,_.constant(35));
-
-  // now make condition matrix
-  _r = _.times(numCats,function() {return "repeated"});
-  _c = _.times(numCats,function() {return "control"});
-  _tmp = _r.concat(_c);
-  _condition = new Array;
-  for (i=0;i<4;i++) {
-    _condition = _condition.concat(_tmp);
-  }
-
-  // now create target vector
-  _target = new Array;
-  for (i=0;i<4;i++) {
-    _target = _target.concat(_.times(8,function() {return i}));
-  }
-
-  // AUG 30 2017: NEW FOR REPEATED REFERENCE EXPERIMENT
-
-  // zip together the various trial metadata vectors
-  _zipped = _.zip(_object,_category,_pose,_condition,_target);
-
-  // sample one of the categories to use for this game (or query db to make sure is the right one)
-  if (this.chairsOnly) {
-    critical_category = 2; // change to only chairs
-  } else {
-    critical_category = _.shuffle(_.range(0,4))[0];
-  }
-  console.log("critical category:" + critical_category)
-
-  // filter zipped by the entries that pertain to the critical category
-  zipped = new Array;
-  for (i=0; i<_zipped.length;i++) {
-    if (_zipped[i][1][0]==critical_category) {
-      zipped.push(_zipped[i]);
-    }
-  }
+  console.log("repeatedObjs: " + repeatedObjs);
+  console.log("controlObjs: " + controlObjs);
 
   // Construct the full trial sequence
 
-  // pre (all 8 objects in random order)
-  _pre = _.shuffle(zipped);
+  // pre
   pre = new Array;
-  for (i=0;i<_pre.length;i++) {
-    pre.push(_pre[i].concat("pre").concat(0)); // add phase & repetition information
+  for (var i = 0; i < setSize; i++) {
+    target = repeatedObjs[i];
+    trial =
+    {
+      'object': repeatedObjs,
+      'category': _category,
+      'pose': 35,
+      'condition':'repeated',
+      'target': target,
+      'phase': 'pre',
+      'repetition': 0
+    }
+    // arr = new Array;
+    // target = repeatedObjs[i];
+    // arr.push(repeatedObjs);
+    // arr.push(_category);
+    // arr.push(35);
+    // arr.push('repeated');
+    // arr.push(target);
+    // arr.push('pre');
+    // arr.push(0);
+    pre.push(trial);
   }
+  for (var i = 0; i < setSize; i++) {
+    target = controlObjs[i];
+    trial =
+    {
+      'object': controlObjs,
+      'category': _category,
+      'pose': 35,
+      'condition':'control',
+      'target': target,
+      'phase': 'pre',
+      'repetition': 0
+    }
+    //
+    // arr = new Array;
+    // target = controlObjs[i];
+    // arr.push(controlObjs);
+    // arr.push(_category);
+    // arr.push(35);
+    // arr.push('control');
+    // arr.push(target);
+    // arr.push('pre');
+    // arr.push(0);
+    pre.push(trial);
+  }
+  pre = _.shuffle(pre);
 
-  // repeated (four trained objects in random order x 6 reps)
-  _repeated = new Array;
+  // repeated
+  repeated = new Array;
   numReps = this.numReps;
-  console.log('numReps',numReps);
-  for (j=0; j<numReps;j++) {
-    __repeated = new Array;
-    for (i=0; i<zipped.length;i++) {
-      if (zipped[i][3]=="repeated") {
-        __repeated.push(zipped[i].concat("repeated").concat(j+1));
+  for (var rep=1; rep<numReps+1; rep++) {
+    repeatedObjs = _.shuffle(repeatedObjs);
+    for (var i = 0; i < setSize; i++){
+      target = repeatedObjs[i];
+      trial =
+      {
+        'object': repeatedObjs,
+        'category': _category,
+        'pose': 35,
+        'condition':'repeated',
+        'target': target,
+        'phase': 'repeated',
+        'repetition': rep
       }
-    };
-    _repeated = _repeated.concat(_.shuffle(__repeated));
-  };
-  repeated = _repeated;
+      // arr = new Array;
+      // target = repeatedObjs[i];
+      // arr.push(repeatedObjs);
+      // arr.push(_category);
+      // arr.push(35);
+      // arr.push('repeated');
+      // arr.push(target);
+      // arr.push('repeated');
+      // arr.push(rep);
+      repeated.push(trial);
+    }
+  }
 
-  // post ( trained objects in random order)
-  _post = _.shuffle(zipped);
+  // post
+  repeatedObjs = _.shuffle(repeatedObjs);
+  controlObjs = _.shuffle(controlObjs);
   post = new Array;
-  for (i=0;i<_post.length;i++) {
-    if (_post[i][3]=="repeated") {rep=7;} else {rep=1;};
-    post.push(_post[i].concat("post").concat(rep)); // add phase information
+  for (var i = 0; i < setSize; i++) {
+    target = repeatedObjs[i];
+    trial =
+    {
+      'object': repeatedObjs,
+      'category': _category,
+      'pose': 35,
+      'condition':'repeated',
+      'target': target,
+      'phase': 'post',
+      'repetition': 5
+    }
+    // arr = new Array;
+    // target = repeatedObjs[i];
+    // arr.push(repeatedObjs);
+    // arr.push(_category);
+    // arr.push(35);
+    // arr.push('repeated');
+    // arr.push(target);
+    // arr.push('post');
+    // arr.push(5);
+    post.push(trial);
   }
+  for (var i = 0; i < setSize; i++) {
+    target = controlObjs[i];
+    trial =
+    {
+      'object': controlObjs,
+      'category': _category,
+      'pose': 35,
+      'condition':'control',
+      'target': target,
+      'phase': 'post',
+      'repetition': 1
+    }
+    // arr = new Array;
+    // target = controlObjs[i];
+    // arr.push(controlObjs);
+    // arr.push(_category);
+    // arr.push(35);
+    // arr.push('control');
+    // arr.push(target);
+    // arr.push('post');
+    // arr.push(1);
+    post.push(trial);
+  }
+  post = _.shuffle(post);
 
-  // concatenate pre, repeated, and post trials into full session sequence
   session = pre.concat(repeated).concat(post);
-  //console.log("session: " + session);
-  //[Array(4), Array(4), undefined, "repeated", 2, "repeated"]
-  //(_object,_category,_pose,_condition,_target)
 
-  var object = new Array;
-  var category = new Array;
-  var pose = new Array;
-  var condition = new Array;
-  var target = new Array; // target assignment
-  var phase = new Array;
-  var repetition = new Array;
-
-  for (j=0;j<session.length;j++) {
-    object.push(session[j][0]);
-    category.push(session[j][1]);
-    pose.push(session[j][2]);
-    condition.push(session[j][3]);
-    target.push(session[j][4]);
-    phase.push(session[j][5]);
-    repetition.push(session[j][6]);
-  }
-
-  // final output: design_dict contains category, object, pose matrices (each 56x4 [rounds by item])
-  // condition: 56x1
-  var design_dict;
-  design_dict = {object:object,
-                 category:category,
-                 pose:pose,
-                 condition:condition,
-                 target:target,
-                 phase:phase,
-                 repetition:repetition};
-
-
-  // console.log(design_dict);
-  return design_dict;
+  console.log(session);
+  return session; // design_dict
 
 };
 
 game_core.prototype.sampleStimulusLocs = function() {
-  var listenerLocs = _.shuffle([[1,1], [2,1], [3,1], [4,1]]);
-  var speakerLocs = _.shuffle([[1,1], [2,1], [3,1], [4,1]]);
+  var listenerLocs = _.shuffle([[1,1], [2,1], [3,1], [4,1], [5,1], [6,1]]); // added [5,1],[6,1]
+  var speakerLocs = _.shuffle([[1,1], [2,1], [3,1], [4,1], [5,1], [6,1]]); // added [5,1],[6,1]
 
   // // temporarily turn off shuffling to make sure that it has to do with this
   // var listenerLocs = [[1,1], [2,1], [3,1], [4,1]];
@@ -399,6 +409,7 @@ game_core.prototype.sampleStimulusLocs = function() {
 game_core.prototype.makeTrialList = function () {
 
   var local_this = this;
+  var session = this.getRandomizedConditions(); // added
   var design_dict = this.getRandomizedConditions();
   var categoryList = design_dict['category'];
   var _objectList = design_dict['object'];
@@ -412,10 +423,15 @@ game_core.prototype.makeTrialList = function () {
   var locs = new Array;
 
   var trialList = [];
-  for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number
+
+  for (var i = 0; i < session.length; i++) {
+    var trial = session[i]
+  //for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number ---- commented out
     // sample four object images that are unique and follow the condition constraints
-    var objList = sampleTrial(i,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList);
-    //console.log('objList',objList);
+    // roundNum,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList
+    var objList = sampleTrial(trial.category,trial.object,trial.pose,trial.target,trial.condition,trial.phase,trial.repetition);
+    // var objList = sampleTrial(i,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList);  ---- commented out
+    console.log('objList',objList);
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
     // construct trial list (in sets of complete rounds)
@@ -447,7 +463,7 @@ game_core.prototype.makeTrialList = function () {
 
 
   };
-
+  //console.log("trialList: " + trialList);
   return(trialList);
 
 };
@@ -502,33 +518,52 @@ var getRemainingTargets = function(earlierTargets) {
 
 
 
-var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList) {
-  theseCats = categoryList[roundNum];
-  theseObjs = _objectList[roundNum];
-  thisPose = poseList[roundNum];
-  thisTarget = targetList[roundNum];
-  thisCondition = conditionList[roundNum];
-  thisPhase = phaseList[roundNum];
-  thisRepetition = repetitionList[roundNum]
+var sampleTrial = function(category,object,pose,target,condition,phase,repetition) {
+  theseCats = category; // change / collapse later
+  theseObjs = object;
+  thisPose = pose;
+  thisTarget = target;
+  thisCondition = condition;
+  thisPhase = phase;
+  thisRepetition = repetition;
 
   var im0 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[0]) && (s['object']==theseObjs[0]) && (s['pose']==thisPose) ) })[0];
+  console.log("im0: " + "cluster: " + theseCats[0] + "object: " + theseObjs[0] + "pose: " + thisPose);
   var im1 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[1]) && (s['object']==theseObjs[1]) && (s['pose']==thisPose) ) })[0];
+  console.log("im1: " + "cluster: " + theseCats[1] + "object: " + theseObjs[1] + "pose: " + thisPose);
   var im2 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[2]) && (s['object']==theseObjs[2]) && (s['pose']==thisPose) ) })[0];
+  console.log("im2: " + "cluster: " + theseCats[2] + "object: " + theseObjs[2] + "pose: " + thisPose);
   var im3 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[3]) && (s['object']==theseObjs[3]) && (s['pose']==thisPose) ) })[0];
+  console.log("im3: " + "cluster: " + theseCats[3] + "object: " + theseObjs[3] + "pose: " + thisPose);
+  var im4 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[4]) && (s['object']==theseObjs[4]) && (s['pose']==thisPose) ) })[0];
+  console.log("im4: " + "cluster: " + theseCats[4] + "object: " + theseObjs[4] + "pose: " + thisPose);
+  var im5 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[5]) && (s['object']==theseObjs[5]) && (s['pose']==thisPose) ) })[0];
+  console.log("im5: " + "cluster: " + theseCats[5] + "object: " + theseObjs[5] + "pose: " + thisPose);
 
-  var im_all = [im0,im1,im2,im3];
-  var target = im_all[thisTarget]; // actual target on this trial
-  var notTargs = _.filter(_.range(4), function(x) { return x!=thisTarget});
+  var im_all = [im0,im1,im2,im3,im4,im5];
+  console.log("this target:" + thisTarget);
+
+  var index = theseObjs.indexOf(thisTarget);
+  console.log("index: " + index);
+  var target = im_all[index]; // actual target on this trial
+
+  var notTargs = _.filter(_.range(6), function(x) { return x!=index});
   var firstDistractor = im_all[notTargs[0]];
   var secondDistractor = im_all[notTargs[1]];
   var thirdDistractor = im_all[notTargs[2]];
-  _target_status = ["distractor","distractor","distractor","distractor"];
-  var target_status = _target_status[thisTarget] = "target";
+  var fourthDistractor = im_all[notTargs[3]];
+  var fifthDistractor = im_all[notTargs[4]];
+  _target_status = ["distractor","distractor","distractor","distractor","distractor","distractor"];
+  var target_status = _target_status[index] = "target"; // changed thisTarget to index
+  console.log("target_status: " + target_status);
   _.extend(target,{target_status: "target", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(firstDistractor,{target_status: "distr1", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(secondDistractor,{target_status: "distr2", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(thirdDistractor,{target_status: "distr3", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
-  return [target, firstDistractor, secondDistractor, thirdDistractor];
+  _.extend(fourthDistractor,{target_status: "distr4", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
+  _.extend(fifthDistractor,{target_status: "distr5", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
+  console.log("target's target status " + target.target_status);
+  return [target, firstDistractor, secondDistractor, thirdDistractor, fourthDistractor, fifthDistractor];
 
 };
 

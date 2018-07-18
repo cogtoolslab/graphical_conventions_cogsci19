@@ -59,6 +59,7 @@ var client_onserverupdate_received = function(data){
     var alreadyLoaded = 0;
     $('#occluder').show();
     globalGame.drawingAllowed = false;
+    console.log("data.objects:" + data.objects);
     globalGame.objects = _.map(data.objects, function(obj) {
       // Extract the coordinates matching your role
       var customCoords = globalGame.my_role == "sketcher" ? obj.speakerCoords : obj.listenerCoords;
@@ -72,17 +73,27 @@ var client_onserverupdate_received = function(data){
 
       var imgObj = new Image(); //initialize object as an image (from HTML5)
       imgObj.src = customObj.url; // tell client where to find it
+
       imgObj.onload = function(){ // Draw image as soon as it loads (this is a callback)
         globalGame.ctx.drawImage(imgObj, parseInt(customObj.trueX), parseInt(customObj.trueY),
 				  customObj.width, customObj.height);
           if (globalGame.my_role === globalGame.playerRoleNames.role1) {
-            highlightCell(globalGame, '#d15619', function(x) {return x.target_status == 'target';});
+            globalGame.ctx.clearRect(0, 0, globalGame.viewport.width, globalGame.viewport.height);
+            drawGrid(globalGame);
+            drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
+            highlightCell(globalGame, '#ffffff', function(x) {return x.target_status == 'target';});
+          } else {
+            globalGame.ctx.clearRect(0, 0, globalGame.viewport.width, globalGame.viewport.height);
+            drawGrid(globalGame);
+            drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
           }
           alreadyLoaded += 1
-          if (alreadyLoaded == 4) {
+
+          if (alreadyLoaded == 6) { // changed from 4
               setTimeout(function() {
-              //console.log("hiding occluder");
               $('#occluder').hide();
+              drawGrid(globalGame);
+              drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
               globalGame.drawingAllowed = true;
             },750);
           }
@@ -94,7 +105,9 @@ var client_onserverupdate_received = function(data){
   // Get rid of "waiting" screen and allow drawing if there are multiple players
   if(data.players.length > 1) {
     $('#messages').empty();
+    drawScreen(globalGame, globalGame.get_player(globalGame.my_id));
     $('#occluder').show();
+    colorBorder(globalGame);
   }
 
   globalGame.game_started = data.gs;
@@ -139,29 +152,30 @@ var client_onMessage = function(data) {
       break;
 
     case 'feedback' :
+      console.log("calling feedback");
       // Prevent them from sending messages b/w trials
-      globalGame.viewport.removeEventListener("click", responseListener, false); // added
       $('#chatbox').attr("disabled", "disabled");
       var clickedObjName = commanddata;
+      objClicked = true; // set clicked obj toggle variable to true
+      player = globalGame.get_player(globalGame.my_id) // change this
+      //$('#confirmbutton').hide();
+      globalGame.viewport.removeEventListener("click", responseListener, false); // added - moved
+
+      $element.find('.progress-bar').finish();
+      console.log("finishing progress bar");
+
       var timeleft = commands[3]; // commands[3] is what we used for player role ???
       if (timeleft < 0) { // bad style but works right now
         timeleft = 0;
       }
-      objClicked = true; // set clicked obj toggle variable to true
-      $element.find('.progress-bar').finish();
 
       // update local score
       var target = _.filter(globalGame.objects, function(x){
 	       return x.target_status == 'target';
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
-<<<<<<< HEAD
       // console.log("scoreDiff " + scoreDiff);
       // console.log("time left: ") + timeleft;
-=======
-      //console.log("scoreDiff " + scoreDiff);
-      //console.log("time left: ") + timeleft;
->>>>>>> 46228dc6040b5398c5e2237ef1acebe4304a1abc
       if (scoreDiff == 1) {
         globalGame.data.subject_information.score += scoreDiff * 3;
         globalGame.data.subject_information.bonus_score += parseFloat((timeleft / 25).toFixed(2)); // somehow this is -0.1
@@ -181,6 +195,7 @@ var client_onMessage = function(data) {
 
     case 'join' : //join a game requested
       $('#startbutton').hide();
+      $('#confirmbutton').hide();
       var num_players = commanddata;
       client_onjoingame(num_players, commands[3]); break;
 
@@ -193,10 +208,13 @@ var client_onMessage = function(data) {
       drawScreen(globalGame, globalGame.get_player(globalGame.my_id));
       $('#occluder').show();
       $('#startbutton').show();
+
       $('#startbutton').click(function start() {
         $('#startbutton').hide();
         globalGame.socket.send('startGame');
+        //drawGrid(globalGame);
       });
+
       globalGame.players.push({id: commanddata,
                  player: new game_player(globalGame)});
 
@@ -240,14 +258,18 @@ var customSetup = function(game) {
 
     // reset drawing stuff
     globalGame.doneDrawing = false;
+    game.strokeMade = false;
     globalGame.path = [];
 
     // reset clicked obj flag
     objClicked = false;
-    globalGame.viewport.addEventListener("click", responseListener, false); // added
-
+    if(globalGame.my_role === globalGame.playerRoleNames.role2) {
+      globalGame.viewport.addEventListener("click", responseListener, false); // added
+    }
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
+    drawGrid(globalGame);
+    drawObjects(globalGame, player);
 
     // occluder box animation now controlled within client_onserverupdate_received
     // // fade in occluder box, wait a beat, then fade it out (then allow drawing)
@@ -270,19 +292,11 @@ var customSetup = function(game) {
 
     // Update display
     var score = game.data.subject_information.score;
-<<<<<<< HEAD
     // console.log("SCORE: " + score);
     var bonus_score = game.data.subject_information.bonus_score;
     // console.log("BONUS: " + bonus_score);
     var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(4));
     // console.log("TOTAL: " + displaytotal); // added
-=======
-    //console.log("SCORE: " + score);
-    var bonus_score = game.data.subject_information.bonus_score;
-    //console.log("BONUS: " + bonus_score);
-    var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(3));
-    //console.log("TOTAL: " + displaytotal); // added
->>>>>>> 46228dc6040b5398c5e2237ef1acebe4304a1abc
     if(game.roundNum + 2 > game.numRounds) {
       $('#roundnumber').empty();
       $('#sketchpad').hide();
@@ -301,6 +315,7 @@ var customSetup = function(game) {
   game.socket.on('stroke', function(jsonData) {
     // first, allow listener to respond
     game.messageSent = true;
+    game.strokeMade = true;
     // draw it
     var path = new Path();
     path.importJSON(jsonData);
@@ -310,6 +325,7 @@ var customSetup = function(game) {
  // new progress bar function
   game.socket.on('updateTimer', function(timeleft) {
       //console.log('start monitoring');
+      // added so that viewport border color changes depending on condition
       timetotal = globalGame.timeLimit;
       $element = $('.progress');
       var progressBarWidth = timeleft * $element.width()/ timetotal;
@@ -339,6 +355,7 @@ var customSetup = function(game) {
 var client_onjoingame = function(num_players, role) {
   // set role locally
   globalGame.my_role = role;
+
   globalGame.get_player(globalGame.my_id).role = globalGame.my_role;
 
   // this.browser = BrowserDetect.browser;
@@ -353,7 +370,7 @@ var client_onjoingame = function(num_players, role) {
   $('#roleLabel').append(role + '.');
   if (role === globalGame.playerRoleNames.role1) {
     txt = "target";
-    $('#instructs').html("<p>You have 30 seconds to make a sketch of the target (orange) so that your partner can tell which it is. </p>" +
+    $('#instructs').html("<p>You have 30 seconds to make a sketch of the target (white) so that your partner can tell which it is. </p>" +
       "<p> The faster the Viewer selects the correct object, the larger the bonus both of you will receive. Draw the object as you see it, and DO </p>" +
       "<p> NOT include letters, arrows, or any surrounding context. Please do not resize browser window or change zoom during the game. </p>");
       // $("#submitbutton").show();
@@ -382,49 +399,62 @@ var client_onjoingame = function(num_players, role) {
     globalGame.get_player(globalGame.my_id).message = ('Waiting for another player...\nPlease do not refresh the page!\n If wait exceeds 5 minutes, we recommend returning the HIT and trying again later.');
   }
 
-
   // set mouse-tracking event handler
   if(role === globalGame.playerRoleNames.role2) {
+    // added and put the rest inside click function
+    // send packet to server on button click
+    $('#confirmbutton').click(function start() {
+      if(globalGame.packet) {
+        if (globalGame.strokeMade || globalGame.doneDrawing) { // change
+          $('#confirmbutton').hide();
+          globalGame.socket.send(globalGame.packet.join('.'));
+        }
+      }
+    });
     globalGame.viewport.addEventListener("click", responseListener, false);
     globalGame.get_player(globalGame.my_id).message = ('Waiting for the sketcher to click begin.\nPlease do not refresh the page!\n ');
     drawScreen(globalGame, globalGame.get_player(globalGame.my_id));
   } else {
     globalGame.sketchpad.setupTool();
   }
+
 };
 
 /*
  MOUSE EVENT LISTENERS
  */
-
-function responseListener(evt) {
+function responseListener(evt) { // problem is keeping track of what is clicked
+  //console.log("response listener called");
     var bRect = globalGame.viewport.getBoundingClientRect();
     var mouseX = (evt.clientX - bRect.left)*(globalGame.viewport.width/bRect.width);
     var mouseY = (evt.clientY - bRect.top)*(globalGame.viewport.height/bRect.height);
     // only allow to respond after message has been sent
-    if ((globalGame.messageSent) || (globalGame.doneDrawing)){
+    //if ((globalGame.messageSent) || (globalGame.doneDrawing)){
 	// find which shape was clicked
 	_.forEach(globalGame.objects, function(obj) {
 	    if (hitTest(obj, mouseX, mouseY)) {
-		globalGame.messageSent = false;
-
-        // Send packet about trial to server
-        var dataURL = document.getElementById('sketchpad').toDataURL();
-        dataURL = dataURL.replace('data:image/png;base64,','');
-
-        var packet = ["clickedObj",
-                      obj.subordinate,
-            		      dataURL,
-            		      globalGame.objects[0]['pose'],
-            		      globalGame.objects[0]['condition'],
-            		      globalGame.objects[0]['phase'],
-            		      globalGame.objects[0]['repetition'],
-                      globalGame.data.subject_information.score,
-                      (globalGame.data.subject_information.bonus_score.toString()).replace(/\./g,'~~~')];
-        globalGame.socket.send(packet.join('.'));
+          $('#confirmbutton').show();
+		      //globalGame.messageSent = false; // commented out, fix later
+          var player = globalGame.get_player(globalGame.my_id)
+          preFeedback(globalGame, obj.subordinate, player);
+          drawGrid(globalGame);
+          // Send packet about trial to server
+          var dataURL = document.getElementById('sketchpad').toDataURL();
+          dataURL = dataURL.replace('data:image/png;base64,','');
+          globalGame.packet = [
+            "clickedObj",
+            obj.subordinate,
+  		      dataURL,
+  		      globalGame.objects[0]['pose'],
+  		      globalGame.objects[0]['condition'],
+  		      globalGame.objects[0]['phase'],
+  		      globalGame.objects[0]['repetition'],
+            globalGame.data.subject_information.score,
+            (globalGame.data.subject_information.bonus_score.toString()).replace(/\./g,'~~~')
+          ];
       }
     });
-  }
+  // }
   return false;
 };
 
