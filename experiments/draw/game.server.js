@@ -132,7 +132,7 @@ var dataOutput = function() {
       phase : message_data[5],
       repetition : message_data[6],
       score : message_data[7],
-      bonus_score: message_data[8]
+      bonus_score: message_data[8].replace(/~~~/g, '.')
       }
     );
     console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));

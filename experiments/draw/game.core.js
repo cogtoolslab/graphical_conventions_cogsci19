@@ -43,7 +43,7 @@ var game_core = function(options){
 
 
   //Dimensions of world in pixels and number of cells to be divided into;
-  this.numHorizontalCells = 4;
+  this.numHorizontalCells = 4; // change to 6
   this.numVerticalCells = 1;
   this.cellDimensions = {height : 200, width : 200}; // in pixels
   this.cellPadding = 0;
@@ -81,10 +81,10 @@ var game_core = function(options){
   this.roundNum = -1;
 
   // How many repetitions do we want?
-  this.numReps = 6;
+  this.numReps = 6; // change to 4?
 
   // How many rounds do we want people to complete?
-  this.numRounds = 40;
+  this.numRounds = 40; // change to 48
 
   // should we fix the pose to 3/4 view across trials and games?
   this.poseFixed = 1;

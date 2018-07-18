@@ -83,6 +83,7 @@ var client_onserverupdate_received = function(data){
               setTimeout(function() {
               //console.log("hiding occluder");
               $('#occluder').hide();
+              drawGrid(globalGame);
               globalGame.drawingAllowed = true;
             },750);
           }
