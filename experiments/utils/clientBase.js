@@ -179,9 +179,15 @@ function dropdownTip(data){
     $('#humanResult').show();
     globalGame.data.subject_information = _.extend(globalGame.data.subject_information,
 					     {'thinksHuman' : commands[1]}); break;
-  case 'language' :
+  case 'gender' :
     globalGame.data.subject_information = _.extend(globalGame.data.subject_information,
-					     {'nativeEnglish' : commands[1]}); break;
+					     {'gender' : commands[1]}); break;
+  case 'age' :
+    globalGame.data.subject_information = _.extend(globalGame.data.subject_information,
+					     {'age' : commands[1]}); break;
+  case 'medium' :
+    globalGame.data.subject_information = _.extend(globalGame.data.subject_information,
+             	 {'medium' : commands[1]}); break;
   case 'partner' :
     globalGame.data.subject_information = _.extend(globalGame.data.subject_information,
 						   {'ratePartner' : commands[1]}); break;
