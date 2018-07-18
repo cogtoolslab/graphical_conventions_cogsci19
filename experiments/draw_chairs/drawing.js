@@ -59,7 +59,7 @@ var highlightCell = function(game, color, condition) {
     globalGame.ctx.globalCompositeOperation='source-over';
     if (upperLeftX != null && upperLeftY != null) {
       globalGame.ctx.beginPath();
-      globalGame.ctx.lineWidth="10";
+      globalGame.ctx.lineWidth="7";
       globalGame.ctx.strokeStyle=color;
       globalGame.ctx.rect(upperLeftX +5 , upperLeftY +5 ,globalGame.cellDimensions.width-10,globalGame.cellDimensions.height-10);
       globalGame.ctx.stroke();
@@ -67,7 +67,16 @@ var highlightCell = function(game, color, condition) {
   }
 };
 
-
+var colorBorder =function(globalGame){
+  if(globalGame.objects) {
+    var condition = globalGame.objects[0]['condition']
+    if (condition == 'repeated') {
+      globalGame.viewport.style.borderColor = "#ce0a04"; // red
+    } else {
+      globalGame.viewport.style.borderColor = "#4286f4"; // blue
+    }
+  }
+}
 
 var drawScreen = function(game, player) {
   // draw background
@@ -224,6 +233,9 @@ function getIntendedTargetName(objects) {
 
 function drawSketcherFeedback(globalGame, scoreDiff, clickedObjName) {
   // textual feedback
+  highlightCell(globalGame, 'black', function(x) {
+    return x.subordinate == clickedObjName;
+  });
   $('#turnIndicator').html(" ");
   if (scoreDiff==1) {
     setTimeout(function(){
@@ -236,16 +248,14 @@ function drawSketcherFeedback(globalGame, scoreDiff, clickedObjName) {
   }
 };
 
-function preSketcherFeedback(globalGame, confirmedObjName, player) {
+function preFeedback(globalGame, clickedObjName, player) {
   // visual feedback
   globalGame.ctx.clearRect(0, 0, globalGame.viewport.width, globalGame.viewport.height);
   drawGrid(globalGame);
   drawObjects(globalGame, player);
   highlightCell(globalGame, 'black', function(x) {
-    return x.subordinate == confirmedObjName;
+    return x.subordinate == clickedObjName;
   });
-  //unhighlightcell come back occluder!
-
 }
 
 function drawViewerFeedback(globalGame, scoreDiff, confirmedObjName) {
@@ -268,16 +278,6 @@ function drawViewerFeedback(globalGame, scoreDiff, confirmedObjName) {
       }, globalGame.feedbackDelay);
   }
 };
-
-function preViewerFeedback(globalGame, confirmedObjName, player) {
-  // visual feedback
-  globalGame.ctx.clearRect(0, 0, globalGame.viewport.width, globalGame.viewport.height);
-  drawGrid(globalGame);
-  drawObjects(globalGame, player);
-  highlightCell(globalGame, 'black', function(x) {
-    return x.subordinate == confirmedObjName;
-  });
-}
 
 
 

@@ -41,36 +41,17 @@ var onMessage = function(client,message) {
     });
 
     break;
+
   case 'clickedObj' :
-    //if (gc.confirmClicked == true) { // put everything inside this if statement
-      //    writeData(client, "clickedObj", message_parts);
           others[0].player.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
           target.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
-          //gc.confirmClicked = true;
-          // setTimeout(function() {
-          //   _.map(all, function(p){
-          //     p.player.instance.emit('newRoundUpdate', {user: client.userid} );
-          //   });
-          //   gc.newRound();
-          // }, 2000);
-    //}
-    break;
-
-  case 'confirmedObj' : // created another event confirmedObj that does the setTimeout
-    console.log("calling confirmedObj in game.server");
-    if (gc.confirmClicked == true) { // put everything inside this if statement
-      //    writeData(client, "clickedObj", message_parts);
-          others[0].player.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
-          target.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
-          //gc.confirmClicked = true;
-
+          gc.objClicked = true;
           setTimeout(function() {
             _.map(all, function(p){
               p.player.instance.emit('newRoundUpdate', {user: client.userid} );
             });
             gc.newRound();
           }, 2000);
-    }
     break;
 
   case 'h' : // Receive message when browser focus shifts
@@ -109,6 +90,8 @@ const flatten = arr => arr.reduce(
 */
 var dataOutput = function() {
   function getIntendedTargetName(objects) {
+    //console.log("objects: " + objects);
+    console.log("filtered: " + _.filter(objects, x => x.target_status == 'target'));
     return _.filter(objects, x => x.target_status == 'target')[0]['subordinate'];
   }
 
@@ -135,7 +118,7 @@ var dataOutput = function() {
     };
   };
 
-  var confirmedObjOutput = function(client, message_data) { // changed clickedObj to confirmedObj
+  var clickedObjOutput = function(client, message_data) {
     var objects = client.game.trialInfo.currStim;
     var intendedName = getIntendedTargetName(objects);
     var objLocations = _.zipObject(getObjectLocHeaderArray(), getObjectLocs(objects));
@@ -162,7 +145,9 @@ var dataOutput = function() {
     var xmlDoc = new parser().parseFromString(message_data[2].replace(/~~~/g, '.'));
     var svgData = xmlDoc.documentElement.getAttribute('d');
     var objects = client.game.trialInfo.currStim;
+    //console.log("client.game.trialInfo.currStim: " + client.game.trialInfo.currStim);
     var intendedName = getIntendedTargetName(objects);
+    //console.log("objects: " + objects)
     var output = _.extend(
       commonOutput(client, message_data), {
       intendedName,
@@ -180,7 +165,7 @@ var dataOutput = function() {
 
   return {
     'stroke' : strokeOutput,
-    'confirmedObj' : confirmedObjOutput
+    'clickedObj' : clickedObjOutput
   };
 }();
 

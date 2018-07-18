@@ -26,7 +26,6 @@ var selecting;
 
 // variable to store whether an object has just been clicked
 var objClicked = false;
-var confirmClicked = false;
 
 /*
  Note: If you add some new variable to your game that must be shared
@@ -60,6 +59,7 @@ var client_onserverupdate_received = function(data){
     var alreadyLoaded = 0;
     $('#occluder').show();
     globalGame.drawingAllowed = false;
+    console.log("data.objects:" + data.objects);
     globalGame.objects = _.map(data.objects, function(obj) {
       // Extract the coordinates matching your role
       var customCoords = globalGame.my_role == "sketcher" ? obj.speakerCoords : obj.listenerCoords;
@@ -73,17 +73,27 @@ var client_onserverupdate_received = function(data){
 
       var imgObj = new Image(); //initialize object as an image (from HTML5)
       imgObj.src = customObj.url; // tell client where to find it
+
       imgObj.onload = function(){ // Draw image as soon as it loads (this is a callback)
         globalGame.ctx.drawImage(imgObj, parseInt(customObj.trueX), parseInt(customObj.trueY),
 				  customObj.width, customObj.height);
           if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+            globalGame.ctx.clearRect(0, 0, globalGame.viewport.width, globalGame.viewport.height);
+            drawGrid(globalGame);
+            drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
             highlightCell(globalGame, '#ffffff', function(x) {return x.target_status == 'target';});
+          } else {
+            globalGame.ctx.clearRect(0, 0, globalGame.viewport.width, globalGame.viewport.height);
+            drawGrid(globalGame);
+            drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
           }
           alreadyLoaded += 1
-          if (alreadyLoaded == 4) { // changed 4 to 6
+
+          if (alreadyLoaded == 6) { // changed from 4
               setTimeout(function() {
               $('#occluder').hide();
               drawGrid(globalGame);
+              drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
               globalGame.drawingAllowed = true;
             },750);
           }
@@ -95,7 +105,9 @@ var client_onserverupdate_received = function(data){
   // Get rid of "waiting" screen and allow drawing if there are multiple players
   if(data.players.length > 1) {
     $('#messages').empty();
+    drawScreen(globalGame, globalGame.get_player(globalGame.my_id));
     $('#occluder').show();
+    colorBorder(globalGame);
   }
 
   globalGame.game_started = data.gs;
@@ -140,57 +152,41 @@ var client_onMessage = function(data) {
       break;
 
     case 'feedback' :
-    console.log("calling feedback");
+      console.log("calling feedback");
       // Prevent them from sending messages b/w trials
-      globalGame.viewport.addEventListener("click", responseListener, false);
       $('#chatbox').attr("disabled", "disabled");
       var clickedObjName = commanddata;
-
       objClicked = true; // set clicked obj toggle variable to true
       player = globalGame.get_player(globalGame.my_id) // change this
-      if (globalGame.my_role === globalGame.playerRoleNames.role2) { // also added
-         $('#confirmbutton').show(); // added
-         preViewerFeedback(globalGame, clickedObjName, player);
-      } else {
-         preSketcherFeedback(globalGame, clickedObjName, player);
+      //$('#confirmbutton').hide();
+      globalGame.viewport.removeEventListener("click", responseListener, false); // added - moved
+
+      $element.find('.progress-bar').finish();
+      console.log("finishing progress bar");
+
+      var timeleft = commands[3]; // commands[3] is what we used for player role ???
+      if (timeleft < 0) { // bad style but works right now
+        timeleft = 0;
       }
-      $('#confirmbutton').click(function start() { // added and put the rest inside click function
 
-        globalGame.confirmClicked = true;
-        console.log("")
-        confirmClicked = true;
-        confirmedObjName = clickedObjName;
-        $('#confirmbutton').hide();
-        globalGame.viewport.removeEventListener("click", responseListener, false); // added - moved
-        //globalGame.confirmbutton.removeEventListener("click", responseListener, false);
-
-        $element.find('.progress-bar').finish();
-        console.log("finishing progress bar");
-
-        var timeleft = commands[3]; // commands[3] is what we used for player role ???
-        if (timeleft < 0) { // bad style but works right now
-          timeleft = 0;
-        }
-
-        // update local score
-        var target = _.filter(globalGame.objects, function(x){
-  	       return x.target_status == 'target';
-        })[0];
-        var scoreDiff = target.subordinate == confirmedObjName ? 1 : 0;
-        // console.log("scoreDiff " + scoreDiff);
-        // console.log("time left: ") + timeleft;
-        if (scoreDiff == 1) {
-          globalGame.data.subject_information.score += scoreDiff * 3;
-          globalGame.data.subject_information.bonus_score += parseFloat((timeleft / 25).toFixed(2)); // somehow this is -0.1
-          // console.log("bonus score: " + globalGame.data.subject_information.bonus_score);
-        }
-        // draw feedback
-        if (globalGame.my_role === globalGame.playerRoleNames.role1) {
-  	       drawSketcherFeedback(globalGame, scoreDiff, confirmedObjName);
-        } else {
-  	       drawViewerFeedback(globalGame, scoreDiff, confirmedObjName);
-        }
-      });
+      // update local score
+      var target = _.filter(globalGame.objects, function(x){
+	       return x.target_status == 'target';
+      })[0];
+      var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
+      // console.log("scoreDiff " + scoreDiff);
+      // console.log("time left: ") + timeleft;
+      if (scoreDiff == 1) {
+        globalGame.data.subject_information.score += scoreDiff * 3;
+        globalGame.data.subject_information.bonus_score += parseFloat((timeleft / 25).toFixed(2)); // somehow this is -0.1
+        // console.log("bonus score: " + globalGame.data.subject_information.bonus_score);
+      }
+      // draw feedback
+      if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+	       drawSketcherFeedback(globalGame, scoreDiff, clickedObjName);
+      } else {
+	       drawViewerFeedback(globalGame, scoreDiff, clickedObjName);
+      }
       break;
 
     case 'alert' : // Not in database, so you can't play...
@@ -216,6 +212,7 @@ var client_onMessage = function(data) {
       $('#startbutton').click(function start() {
         $('#startbutton').hide();
         globalGame.socket.send('startGame');
+        //drawGrid(globalGame);
       });
 
       globalGame.players.push({id: commanddata,
@@ -261,22 +258,18 @@ var customSetup = function(game) {
 
     // reset drawing stuff
     globalGame.doneDrawing = false;
+    game.strokeMade = false;
     globalGame.path = [];
 
     // reset clicked obj flag
     objClicked = false;
-    confirmClicked = false;
-    condition = globalGame.objects[0]['condition'];
-    if (condition == 'repeated') {
-      globalGame.viewport.style.borderColor = "#ce0a04"; // red
-    } else {
-      globalGame.viewport.style.borderColor = "#4286f4"; // blue
+    if(globalGame.my_role === globalGame.playerRoleNames.role2) {
+      globalGame.viewport.addEventListener("click", responseListener, false); // added
     }
-    globalGame.viewport.addEventListener("click", responseListener, false); // added
-    globalGame.confirmbutton.addEventListener("click", responseListener, false); // added
-
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
+    drawGrid(globalGame);
+    drawObjects(globalGame, player);
 
     // occluder box animation now controlled within client_onserverupdate_received
     // // fade in occluder box, wait a beat, then fade it out (then allow drawing)
@@ -322,6 +315,7 @@ var customSetup = function(game) {
   game.socket.on('stroke', function(jsonData) {
     // first, allow listener to respond
     game.messageSent = true;
+    game.strokeMade = true;
     // draw it
     var path = new Path();
     path.importJSON(jsonData);
@@ -332,12 +326,6 @@ var customSetup = function(game) {
   game.socket.on('updateTimer', function(timeleft) {
       //console.log('start monitoring');
       // added so that viewport border color changes depending on condition
-      condition = globalGame.objects[0]['condition'];
-      if (condition == 'repeated') {
-        globalGame.viewport.style.borderColor = "#ce0a04"; // red
-      } else {
-        globalGame.viewport.style.borderColor = "#4286f4"; // blue
-      }
       timetotal = globalGame.timeLimit;
       $element = $('.progress');
       var progressBarWidth = timeleft * $element.width()/ timetotal;
@@ -354,10 +342,10 @@ var customSetup = function(game) {
   game.socket.on('timeOut', function(timeleft) {
     globalGame.doneDrawing = true;
     globalGame.drawingAllowed = false;
-    if (globalGame.my_role === globalGame.playerRoleNames.role1 && !confirmClicked) { // changed objClicked to confirmClicked
+    if (globalGame.my_role === globalGame.playerRoleNames.role1 && !objClicked) {
       $('#feedback').html(" ");
       setTimeout(function(){$('#turnIndicator').html("Time's up! Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
-    } else if (globalGame.my_role === globalGame.playerRoleNames.role2 && !confirmClicked) { // changed objClicked to confirmClicked
+    } else if (globalGame.my_role === globalGame.playerRoleNames.role2 && !objClicked) {
       setTimeout(function(){$('#turnIndicator').html("Time's up! Make a selection!");},globalGame.feedbackDelay);
     }
   });
@@ -367,6 +355,7 @@ var customSetup = function(game) {
 var client_onjoingame = function(num_players, role) {
   // set role locally
   globalGame.my_role = role;
+
   globalGame.get_player(globalGame.my_id).role = globalGame.my_role;
 
   // this.browser = BrowserDetect.browser;
@@ -396,7 +385,7 @@ var client_onjoingame = function(num_players, role) {
   if(num_players == 1) {
     // Set timeout only for first player...
     this.timeoutID = setTimeout(function() {
-      if(_.size(this.urlParams) == 4) { // what does this 4
+      if(_.size(this.urlParams) == 4) {
   	this.submitted = true;
   	window.opener.turk.submit(this.data, true);
     // console.log("submitted the following :");
@@ -412,8 +401,17 @@ var client_onjoingame = function(num_players, role) {
 
   // set mouse-tracking event handler
   if(role === globalGame.playerRoleNames.role2) {
+    // added and put the rest inside click function
+    // send packet to server on button click
+    $('#confirmbutton').click(function start() {
+      if(globalGame.packet) {
+        if (globalGame.strokeMade || globalGame.doneDrawing) { // change
+          $('#confirmbutton').hide();
+          globalGame.socket.send(globalGame.packet.join('.'));
+        }
+      }
+    });
     globalGame.viewport.addEventListener("click", responseListener, false);
-    globalGame.confirmbutton.addEventListener("click", responseListener, false);
     globalGame.get_player(globalGame.my_id).message = ('Waiting for the sketcher to click begin.\nPlease do not refresh the page!\n ');
     drawScreen(globalGame, globalGame.get_player(globalGame.my_id));
   } else {
@@ -426,41 +424,37 @@ var client_onjoingame = function(num_players, role) {
  MOUSE EVENT LISTENERS
  */
 function responseListener(evt) { // problem is keeping track of what is clicked
-  console.log("response listener called");
-  console.log("globalGame.confirmClicked: " + globalGame.confirmClicked);
+  //console.log("response listener called");
     var bRect = globalGame.viewport.getBoundingClientRect();
     var mouseX = (evt.clientX - bRect.left)*(globalGame.viewport.width/bRect.width);
     var mouseY = (evt.clientY - bRect.top)*(globalGame.viewport.height/bRect.height);
     // only allow to respond after message has been sent
-    if ((globalGame.messageSent) || (globalGame.doneDrawing)){
+    //if ((globalGame.messageSent) || (globalGame.doneDrawing)){
 	// find which shape was clicked
 	_.forEach(globalGame.objects, function(obj) {
 	    if (hitTest(obj, mouseX, mouseY)) {
-		      // globalGame.messageSent = false; // commented out, fix later
-
+          $('#confirmbutton').show();
+		      //globalGame.messageSent = false; // commented out, fix later
+          var player = globalGame.get_player(globalGame.my_id)
+          preFeedback(globalGame, obj.subordinate, player);
+          drawGrid(globalGame);
           // Send packet about trial to server
           var dataURL = document.getElementById('sketchpad').toDataURL();
           dataURL = dataURL.replace('data:image/png;base64,','');
-          if (globalGame.confirmClicked) {
-            objToSend = "confirmedObj";
-            console.log("confirmedObj should be called");
-          } else {
-            objToSend = "clickedObj";
-            console.log("clickedObj should be called");
-          } // added!
-          var packet = [objToSend,
-                        obj.subordinate,
-              		      dataURL,
-              		      globalGame.objects[0]['pose'],
-              		      globalGame.objects[0]['condition'],
-              		      globalGame.objects[0]['phase'],
-              		      globalGame.objects[0]['repetition'],
-                        globalGame.data.subject_information.score,
-                        (globalGame.data.subject_information.bonus_score.toString()).replace(/\./g,'~~~')];
-          globalGame.socket.send(packet.join('.'));
+          globalGame.packet = [
+            "clickedObj",
+            obj.subordinate,
+  		      dataURL,
+  		      globalGame.objects[0]['pose'],
+  		      globalGame.objects[0]['condition'],
+  		      globalGame.objects[0]['phase'],
+  		      globalGame.objects[0]['repetition'],
+            globalGame.data.subject_information.score,
+            (globalGame.data.subject_information.bonus_score.toString()).replace(/\./g,'~~~')
+          ];
       }
     });
-  }
+  // }
   return false;
 };
 
