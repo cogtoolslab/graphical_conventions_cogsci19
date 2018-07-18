@@ -366,6 +366,12 @@ var client_onjoingame = function(num_players, role) {
     globalGame.players.unshift({id: null, player: new game_player(globalGame)});
   });
 
+  // randomize color assignment to viewport border
+  var randomBoolean = _.sample([true, false]);
+  if (randomBoolean) {
+    globalGame.repeatedIsRed = false;
+  }
+
   // Update w/ role
   $('#roleLabel').append(role + '.');
   if (role === globalGame.playerRoleNames.role1) {

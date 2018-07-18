@@ -110,6 +110,9 @@ var game_core = function(options){
   // Whether only chairs are used or all four categories
   this.chairsOnly = true; // change later
 
+  // Whether repeated trials have red frame
+  this.repeatedIsRed = true;
+
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
     // If we're initializing the server game copy, pre-create the list of trials
