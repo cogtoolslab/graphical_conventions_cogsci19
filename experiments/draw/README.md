@@ -1,4 +1,4 @@
-## pilot2
+## pilot2 (aka run0_bonusmeter)
 
 June 3 2018
 
