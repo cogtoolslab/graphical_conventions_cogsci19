@@ -13,6 +13,12 @@ How do people agree on ways of communicating visual concepts?
 
 - models
   - coming soon ...
+  
+- results
+  - contains intermediate results (have been preprocessed into "tidy" format) saved as csv
+  
+- stimuli
+  - handles preprocessing of image data to be used as stimuli in this experiment
 
 - writing
   - coming soon
