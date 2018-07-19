@@ -1,10 +1,13 @@
-### run2_chairs1k_setsize6
+### run2_chairs1k
 
 We made a few substantial changes to the stimuli and design of this experiment:
 
-XX
-
-XX
+-shapenet chairs
+-context size manipulated
+-viewer has to confirm
+-context changes more perceptually salient w/ color cue
+-trial-by-trial reward feedback more salient
+- XX, etc.
 
 
 ### "pilot2" --> iterationName in the mongodb is "run0_bonusmeter." This experiment also used iterationName "run1_chairsOnly" when we ran this version with only the 3D chairs in the "basic" 3d object dataset.
