@@ -131,7 +131,8 @@ var dataOutput = function() {
       condition : message_data[4],
       phase : message_data[5],
       repetition : message_data[6],
-      score : message_data[7]
+      score : message_data[7],
+      bonus_score: message_data[8]
       }
     );
     console.log(JSON.stringify(_.pick(output, ['repetition', 'correct', 'responseTime']), null, 3));
@@ -149,7 +150,8 @@ var dataOutput = function() {
       svgData,
       currStrokeNum: message_data[1],
       shiftKeyUsed: message_data[4],
-      score: message_data[5]
+      score: message_data[5],
+      bonus_score: message_data[6]
       }
       //console.log(message_data);
     );

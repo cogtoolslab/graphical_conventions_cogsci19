@@ -86,7 +86,7 @@ function serve() {
 
       // hardcoded for now (TODO: get list of collections in db)
       var collectionList = ['sketchpad_basic','sketchpad_repeated',
-          'chatbox_basic', //'chairs_chatbox',
+          'chatbox_basic', 'graphical_conventions', //'chairs_chatbox',
           'artificialLanguage']; 
 
       function checkCollectionForHits(collectionName, query, projection, callback) {
@@ -120,7 +120,6 @@ function serve() {
       checkEach(collectionList, checkCollectionForHits, query, projection, evaluateTally);
 
     });
-
 
     app.post('/db/insert', (request, response) => {
       if (!request.body) {

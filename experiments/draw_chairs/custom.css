@@ -64,6 +64,19 @@ xyhtml , body {
 	font-weight:lighter;
 }
 
+#scoreupdate {
+	height: 5%;
+	width: 20%;
+	text-align: center;
+	margin-left: 0;
+	margin-right: auto;
+	margin-bottom: auto;
+	left:auto; right:1%; top:30%; bottom: 0;
+	position: absolute;
+	font-size: 3vh;
+	font-weight:bolder;
+}
+
 #turnIndicator {
 	height: 5%;
 	width: 20%;
@@ -298,7 +311,7 @@ ALOT...don't understand how to adjust that.*/
 /*height and width originally 80vh*/
 #viewport {
     float: middle;
-    border:solid 5px;
+    border:solid 10px;
     height: 20vh;
     width: 120vh;
     margin: auto;

@@ -176,16 +176,18 @@ var client_onMessage = function(data) {
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
       // console.log("scoreDiff " + scoreDiff);
       // console.log("time left: ") + timeleft;
+      var earnedCents = 0;
       if (scoreDiff == 1) {
-        globalGame.data.subject_information.score += scoreDiff * 3;
-        globalGame.data.subject_information.bonus_score += parseFloat((timeleft / 25).toFixed(2)); // somehow this is -0.1
+        globalGame.data.subject_information.score += 3.00;
+        globalGame.data.subject_information.bonus_score += parseFloat((timeleft / 30).toFixed(2));
+        earnedCents = (3.00 + parseFloat((timeleft / 30).toFixed(2))).toFixed(2);
         // console.log("bonus score: " + globalGame.data.subject_information.bonus_score);
       }
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
-	       drawSketcherFeedback(globalGame, scoreDiff, clickedObjName);
+	       drawSketcherFeedback(globalGame, scoreDiff, clickedObjName, earnedCents);
       } else {
-	       drawViewerFeedback(globalGame, scoreDiff, clickedObjName);
+	       drawViewerFeedback(globalGame, scoreDiff, clickedObjName, earnedCents);
       }
       break;
 
@@ -212,7 +214,13 @@ var client_onMessage = function(data) {
       $('#startbutton').click(function start() {
         $('#startbutton').hide();
         globalGame.socket.send('startGame');
-        //drawGrid(globalGame);
+        // randomize color assignment to viewport border
+        // var randomBoolean = _.sample([true, false]);
+        // if (randomBoolean) {
+        //   globalGame.repeatedIsRed = true;
+        // } else {
+        //   globalGame.repeatedIsRed = false;
+        // }
       });
 
       globalGame.players.push({id: commanddata,
@@ -285,6 +293,7 @@ var customSetup = function(game) {
 
     // clear feedback blurb
     $('#feedback').html(" ");
+    $('#scoreupdate').html(" ");
     $('#turnIndicator').html(" ");
     // set up progress bar
     $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
@@ -292,10 +301,10 @@ var customSetup = function(game) {
 
     // Update display
     var score = game.data.subject_information.score;
-    // console.log("SCORE: " + score);
+    console.log("SCORE: " + score);
     var bonus_score = game.data.subject_information.bonus_score;
-    // console.log("BONUS: " + bonus_score);
-    var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(4));
+    console.log("BONUS: " + bonus_score);
+    var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(2));
     // console.log("TOTAL: " + displaytotal); // added
     if(game.roundNum + 2 > game.numRounds) {
       $('#roundnumber').empty();
@@ -330,7 +339,7 @@ var customSetup = function(game) {
       $element = $('.progress');
       var progressBarWidth = timeleft * $element.width()/ timetotal;
       var totalBarWidth = $element.width();
-      var centsleft = (timeleft / 25 + 3).toFixed(2);
+      var centsleft = (timeleft / 30 + 3).toFixed(2); // changed from 25
       $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
       $element.find('.progress-bar').finish();
       $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
@@ -344,6 +353,7 @@ var customSetup = function(game) {
     globalGame.drawingAllowed = false;
     if (globalGame.my_role === globalGame.playerRoleNames.role1 && !objClicked) {
       $('#feedback').html(" ");
+      $('#scoreupdate').html(" ");
       setTimeout(function(){$('#turnIndicator').html("Time's up! Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
     } else if (globalGame.my_role === globalGame.playerRoleNames.role2 && !objClicked) {
       setTimeout(function(){$('#turnIndicator').html("Time's up! Make a selection!");},globalGame.feedbackDelay);
@@ -366,23 +376,17 @@ var client_onjoingame = function(num_players, role) {
     globalGame.players.unshift({id: null, player: new game_player(globalGame)});
   });
 
-  // randomize color assignment to viewport border
-  var randomBoolean = _.sample([true, false]);
-  if (randomBoolean) {
-    globalGame.repeatedIsRed = false;
-  }
-
   // Update w/ role
   $('#roleLabel').append(role + '.');
   if (role === globalGame.playerRoleNames.role1) {
     txt = "target";
-    $('#instructs').html("<p>You have 25 seconds to make a sketch of the target (white) so that your partner can tell which it is. </p>" +
+    $('#instructs').html("<p>You have 30 seconds to make a sketch of the target (white) so that your partner can tell which it is. </p>" +
       "<p> The faster the Viewer selects the correct object, the larger the bonus both of you will receive. Draw the object as you see it, and DO </p>" +
       "<p> NOT include letters, arrows, or any surrounding context. Please do not resize browser window or change zoom during the game. </p>");
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
 
-    $('#instructs').html("<p>Your partner has 25 seconds to draw one of these four objects. </p>" +
+    $('#instructs').html("<p>Your partner has 30 seconds to draw one of these four objects. </p>" +
       "<p> As soon as you can tell, click on the object you think they're drawing. The faster you can select the correct object,</p>" +
       "<p> the larger the bonus both of you will receive. Please do not resize browser window or change zoom during the game.</p>");
     // $("#loading").show();

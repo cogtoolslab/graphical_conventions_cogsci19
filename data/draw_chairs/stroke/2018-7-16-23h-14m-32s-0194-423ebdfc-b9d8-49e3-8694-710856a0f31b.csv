@@ -1,3 +1,0 @@
-iterationName	gameid	time	trialNum	intendedName	svgData	currStrokeNum	shiftKeyUsed	score	bonus_score	startStrokeTime	endStrokeTime	eventType
-run1_chairsOnly	0194-423ebdfc-b9d8-49e3-8694-710856a0f31b	1531808072135	1	waiting	M104,181c0,-21.88227 16.8331,-42.64569 35,-54c1.89356,-1.18348 9,-1.6886 9,-4	1	0	0	0	1531808071736	1531808072098	stroke
-run1_chairsOnly	0194-423ebdfc-b9d8-49e3-8694-710856a0f31b	1531808079527	2	sling	M107,85c0,11.14463 26.66295,70 40,70	1	0	0	0	1531808079210	1531808079521	stroke
