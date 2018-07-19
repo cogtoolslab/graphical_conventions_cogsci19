@@ -1,0 +1,3 @@
+iterationName	gameid	time	trialNum	intendedName	svgData	currStrokeNum	shiftKeyUsed	score	bonus_score	startStrokeTime	endStrokeTime	eventType
+run1_chairsOnly	3241-dd2bc79f-27ec-476f-821a-8d80683cdde3	1531843914671	1	knob	M95,103c30.68334,0 101.89163,76 127,76	1	0	0	0	1531843914348	1531843914660	stroke
+run1_chairsOnly	3241-dd2bc79f-27ec-476f-821a-8d80683cdde3	1531843921668	3	inlay	M49,162c46.19461,0 89.67448,21 136,21	1	0	0	0	1531843921364	1531843921665	stroke
