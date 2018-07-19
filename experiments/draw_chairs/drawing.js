@@ -68,8 +68,8 @@ var highlightCell = function(game, color, condition) {
 };
 
 var colorBorder =function(globalGame){
-  repeatedColor = "#ce0a04"; // red
-  controlColor = "#4286f4"; // blue
+  var repeatedColor = "#ce0a04"; // red
+  var controlColor = "#4286f4"; // blue
   if (!globalGame.repeatedIsRed) {
     repeatedColor = "#4286f4"; // blue
     controlColor = "#ce0a04"; // red
@@ -237,7 +237,7 @@ function getIntendedTargetName(objects) {
   })[0]['subordinate'];
 }
 
-function drawSketcherFeedback(globalGame, scoreDiff, clickedObjName) {
+function drawSketcherFeedback(globalGame, scoreDiff, clickedObjName, earnedCents) {
   // textual feedback
   highlightCell(globalGame, 'black', function(x) {
     return x.subordinate == clickedObjName;
@@ -246,10 +246,12 @@ function drawSketcherFeedback(globalGame, scoreDiff, clickedObjName) {
   if (scoreDiff==1) {
     setTimeout(function(){
       $('#feedback').html('Great job! Your partner correctly identified the target.');
+      $('#scoreupdate').html('+'.fontcolor("#1aff1a") + earnedCents.toString().fontcolor("#1aff1a") + ' ¢'.fontcolor("#1aff1a"));
     }, globalGame.feedbackDelay);
   } else {
     setTimeout(function(){
       $('#feedback').html('Too bad... Your partner thought the target was the object outlined in ' + 'black'.bold() + '.');
+      $('#scoreupdate').html('+0 ¢'.fontcolor("#ce0a04"));
     }, globalGame.feedbackDelay);
   }
 };
@@ -264,11 +266,8 @@ function preFeedback(globalGame, clickedObjName, player) {
   });
 }
 
-function drawViewerFeedback(globalGame, scoreDiff, confirmedObjName) {
-  // viewer feedback
-  // highlightCell(globalGame, 'black', function(x) {
-  //   return x.subordinate == clickedObjName;
-  // });
+function drawViewerFeedback(globalGame, scoreDiff, confirmedObjName, earnedCents) {
+  // visual feedback
   highlightCell(globalGame, 'green', function(x) {
     return x.target_status == 'target';
   });
@@ -277,10 +276,12 @@ function drawViewerFeedback(globalGame, scoreDiff, confirmedObjName) {
   if (scoreDiff==1) {
       setTimeout(function(){
         $('#feedback').html('Great job! You correctly identified the target!');
+        $('#scoreupdate').html('+'.fontcolor("#1aff1a") + earnedCents.toString().fontcolor("#1aff1a") + ' ¢'.fontcolor("#1aff1a"));
       }, globalGame.feedbackDelay);
   } else {
       setTimeout(function(){
         $('#feedback').html('Sorry... The target was the object outlined in ' + 'green'.fontcolor("#1aff1a").bold() + '.');
+        $('#scoreupdate').html('+0 ¢'.fontcolor("#ce0a04"));
       }, globalGame.feedbackDelay);
   }
 };
