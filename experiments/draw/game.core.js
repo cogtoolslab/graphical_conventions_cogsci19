@@ -26,8 +26,8 @@ var game_core = function(options){
   // Store a flag if we are the server instance
   this.server = options.server ;
   this.projectName = '3dObjects';
-  this.experimentName = 'sketchpad_repeated';
-  this.iterationName = 'testing2';
+  this.experimentName = 'graphical_conventions';
+  this.iterationName = 'pilot2_bonusmeter';
   this.email = 'sketchloop@gmail.com';
 
   // save data to the following locations (allowed: 'csv', 'mongo')
@@ -84,7 +84,7 @@ var game_core = function(options){
   this.numReps = 6;
 
   // How many rounds do we want people to complete?
-  this.numRounds = 32;
+  this.numRounds = 40;
 
   // should we fix the pose to 3/4 view across trials and games?
   this.poseFixed = 1;
@@ -329,6 +329,7 @@ game_core.prototype.getRandomizedConditions = function() {
 
   // concatenate pre, repeated, and post trials into full session sequence
   session = pre.concat(repeated).concat(post);
+  console.log("session: " + session);
   //[Array(4), Array(4), undefined, "repeated", 2, "repeated"]
   //(_object,_category,_pose,_condition,_target)
 
@@ -397,6 +398,7 @@ game_core.prototype.makeTrialList = function () {
   for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number
     // sample four object images that are unique and follow the condition constraints
     var objList = sampleTrial(i,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList);
+    console.log('objList',objList);
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
     // construct trial list (in sets of complete rounds)
@@ -483,12 +485,14 @@ var getRemainingTargets = function(earlierTargets) {
 
 
 
-var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList,conditionList) {
+var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList) {
   theseCats = categoryList[roundNum];
   theseObjs = _objectList[roundNum];
   thisPose = poseList[roundNum];
   thisTarget = targetList[roundNum];
   thisCondition = conditionList[roundNum];
+  thisPhase = phaseList[roundNum];
+  thisRepetition = repetitionList[roundNum]
 
   var im0 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[0]) && (s['object']==theseObjs[0]) && (s['pose']==thisPose) ) })[0];
   var im1 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[1]) && (s['object']==theseObjs[1]) && (s['pose']==thisPose) ) })[0];
@@ -503,10 +507,10 @@ var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList
   var thirdDistractor = im_all[notTargs[2]];
   _target_status = ["distractor","distractor","distractor","distractor"];
   var target_status = _target_status[thisTarget] = "target";
-  _.extend(target,{target_status: "target", condition: thisCondition});
-  _.extend(firstDistractor,{target_status: "distr1", condition: thisCondition});
-  _.extend(secondDistractor,{target_status: "distr2", condition: thisCondition});
-  _.extend(thirdDistractor,{target_status: "distr3", condition: thisCondition});
+  _.extend(target,{target_status: "target", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
+  _.extend(firstDistractor,{target_status: "distr1", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
+  _.extend(secondDistractor,{target_status: "distr2", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
+  _.extend(thirdDistractor,{target_status: "distr3", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   return [target, firstDistractor, secondDistractor, thirdDistractor];
 
 };
