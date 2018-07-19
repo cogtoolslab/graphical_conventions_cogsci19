@@ -4,10 +4,10 @@ We made a few substantial changes to the stimuli and design of this experiment:
 
     - Switched stimuli to chairs from ShapeNet to manipulate and increase similiarity between objects compared to previous stimuli
     - Manipulated context size: context size = 6 (6 reps, 48 rounds) and context size = 4 (8 reps, 40 rounds)
-    - Implemented a confirmation system - the Viewer must confirm their choice of object after clicking on one. This is to prevent the Viewer from hurriedly clicking on objects and achieving lower accuracy. 
-    - Made context shift more perceptually salient using color cues - This is to make sure that the players know which context they are   working in on each trial.
-    - Made trial-by-trial reward feedback more salient - in addition to the cumulative score display and bonus meter, we added a color-   cued feedback sign that shows how much bonus the players got after each trial 
-    - Increased time limit back to 30 seconds - Increased similarity (and context size) makes the task more challenging, so this is to    ensure that the Sketcher has enough time to draw 
+    - Implemented a confirmation system - the Viewer must confirm their choice of object after clicking on one. This is to prevent the Viewer from hurriedly clicking on objects and achieving lower accuracy.
+    - Made context shift more perceptually salient using color cues - This is to make sure that the players know which context they are working in on each trial
+    - Made trial-by-trial reward feedback more salient - in addition to the cumulative score display and bonus meter, we added a color-cued feedback sign that shows how much bonus the players got after each trial 
+    - Increased time limit back to 30 seconds - Increased similarity (and context size) makes the task more challenging, so this is to ensure that the Sketcher has enough time to draw 
 
 
 ### "pilot2" --> iterationName in the mongodb is "run0_bonusmeter." 
