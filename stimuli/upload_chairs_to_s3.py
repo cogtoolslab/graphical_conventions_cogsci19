@@ -7,7 +7,7 @@ if __name__ == "__main__":
 	parser.add_argument('--bucket_name', type=str, help='name of S3 bucket?', \
 		default='shapenet-graphical-conventions')
 	parser.add_argument('--path_to_imgs', type=str, help='path to images to upload?', \
-		default='./chairs1k_pilot_flattened')   
+		default='./chairs1k_pilot_flattened_cropped')   
 	args = parser.parse_args()
 
 	## tell user some useful information
