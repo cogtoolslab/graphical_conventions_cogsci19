@@ -1,0 +1,3 @@
+iterationName	gameid	time	trialNum	intendedName	svgData	currStrokeNum	shiftKeyUsed	score	bonus_score	startStrokeTime	endStrokeTime	eventType
+run1_chairsOnly	3827-95eca7ac-ce41-4bf1-9798-5e90d81966ae	1531800253811	1	woven	M197,151c10.60495,15.90742 80.51663,76 103,76	1	0	0	0	1531800253464	1531800253800	stroke
+run1_chairsOnly	3827-95eca7ac-ce41-4bf1-9798-5e90d81966ae	1531800260670	2	knob	M211,68c-7.23829,10.85743 -55.34577,89 -66,89	1	0	0	0	1531800260355	1531800260664	stroke

@@ -1,0 +1,3 @@
+iterationName	gameid	time	trialNum	intendedName	svgData	currStrokeNum	shiftKeyUsed	score	bonus_score	startStrokeTime	endStrokeTime	eventType
+run1_chairsOnly	1365-361e46c6-b215-4547-9630-f749dc9bf5d2	1531876745908	1	inlay	M93,111c21.04208,0 43.75143,5.09417 64,11c11.65606,3.39968 33.15054,16 47,16	1	0	0	0	1531876745622	1531876745884	stroke
+run1_chairsOnly	1365-361e46c6-b215-4547-9630-f749dc9bf5d2	1531876746416	1	inlay	M126,140c2.06591,-20.65914 19.69518,-33 40,-33	2	0	0	0	1531876746146	1531876746413	stroke
