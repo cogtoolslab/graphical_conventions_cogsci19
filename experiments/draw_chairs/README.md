@@ -10,7 +10,9 @@ We made a few substantial changes to the stimuli and design of this experiment:
 - XX, etc.
 
 
-### "pilot2" --> iterationName in the mongodb is "run0_bonusmeter." This experiment also used iterationName "run1_chairsOnly" when we ran this version with only the 3D chairs in the "basic" 3d object dataset.
+### "pilot2" --> iterationName in the mongodb is "run0_bonusmeter." 
+
+Note: This experiment also used iterationName "run1_chairsOnly" when we ran this version with only the 3D chairs in the "basic" 3d object dataset.
 
 June 3 2018
 
