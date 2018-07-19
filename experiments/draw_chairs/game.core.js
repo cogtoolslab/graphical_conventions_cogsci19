@@ -1,4 +1,3 @@
-
 /*  Copyright (c) 2012 Sven "FuzzYspo0N" Bergström,
                   2013 Robert XD Hawkins
  written by : http://underscorediscovery.com
@@ -28,7 +27,7 @@ var game_core = function(options){
   this.server = options.server ;
   this.projectName = '3dObjects';
   this.experimentName = 'graphical_conventions';
-  this.iterationName = 'testing'; // ['run0_bonusmeter']
+  this.iterationName = 'testing'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_setsize6']
   this.email = 'sketchloop@gmail.com';
 
   // save data to the following locations (allowed: 'csv', 'mongo')
@@ -255,8 +254,8 @@ game_core.prototype.getRandomizedConditions = function() {
   var repeatedObjs = shuffledObjs.slice(0,setSize);
   var controlObjs = shuffledObjs.slice(setSize,setSize*2);
 
-  console.log("repeatedObjs: " + repeatedObjs);
-  console.log("controlObjs: " + controlObjs);
+  //console.log("repeatedObjs: " + repeatedObjs);
+  //console.log("controlObjs: " + controlObjs);
 
   // Construct the full trial sequence
 
@@ -395,7 +394,7 @@ game_core.prototype.getRandomizedConditions = function() {
 
   session = pre.concat(repeated).concat(post);
 
-  console.log(session);
+  //console.log(session);
   return session; // design_dict
 
 };
@@ -436,7 +435,7 @@ game_core.prototype.makeTrialList = function () {
     // roundNum,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList
     var objList = sampleTrial(trial.category,trial.object,trial.pose,trial.target,trial.condition,trial.phase,trial.repetition);
     // var objList = sampleTrial(i,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList);  ---- commented out
-    console.log('objList',objList);
+    // console.log('objList',objList);
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
     // construct trial list (in sets of complete rounds)
@@ -533,23 +532,23 @@ var sampleTrial = function(category,object,pose,target,condition,phase,repetitio
   thisRepetition = repetition;
 
   var im0 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[0]) && (s['object']==theseObjs[0]) && (s['pose']==thisPose) ) })[0];
-  console.log("im0: " + "cluster: " + theseCats[0] + "object: " + theseObjs[0] + "pose: " + thisPose);
+  //console.log("im0: " + "cluster: " + theseCats[0] + "object: " + theseObjs[0] + "pose: " + thisPose);
   var im1 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[1]) && (s['object']==theseObjs[1]) && (s['pose']==thisPose) ) })[0];
-  console.log("im1: " + "cluster: " + theseCats[1] + "object: " + theseObjs[1] + "pose: " + thisPose);
+  //console.log("im1: " + "cluster: " + theseCats[1] + "object: " + theseObjs[1] + "pose: " + thisPose);
   var im2 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[2]) && (s['object']==theseObjs[2]) && (s['pose']==thisPose) ) })[0];
-  console.log("im2: " + "cluster: " + theseCats[2] + "object: " + theseObjs[2] + "pose: " + thisPose);
+  //console.log("im2: " + "cluster: " + theseCats[2] + "object: " + theseObjs[2] + "pose: " + thisPose);
   var im3 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[3]) && (s['object']==theseObjs[3]) && (s['pose']==thisPose) ) })[0];
-  console.log("im3: " + "cluster: " + theseCats[3] + "object: " + theseObjs[3] + "pose: " + thisPose);
+  //console.log("im3: " + "cluster: " + theseCats[3] + "object: " + theseObjs[3] + "pose: " + thisPose);
   var im4 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[4]) && (s['object']==theseObjs[4]) && (s['pose']==thisPose) ) })[0];
-  console.log("im4: " + "cluster: " + theseCats[4] + "object: " + theseObjs[4] + "pose: " + thisPose);
+  //console.log("im4: " + "cluster: " + theseCats[4] + "object: " + theseObjs[4] + "pose: " + thisPose);
   var im5 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[5]) && (s['object']==theseObjs[5]) && (s['pose']==thisPose) ) })[0];
-  console.log("im5: " + "cluster: " + theseCats[5] + "object: " + theseObjs[5] + "pose: " + thisPose);
+  //console.log("im5: " + "cluster: " + theseCats[5] + "object: " + theseObjs[5] + "pose: " + thisPose);
 
   var im_all = [im0,im1,im2,im3,im4,im5];
-  console.log("this target:" + thisTarget);
+  // console.log("this target:" + thisTarget);
 
   var index = theseObjs.indexOf(thisTarget);
-  console.log("index: " + index);
+  // console.log("index: " + index);
   var target = im_all[index]; // actual target on this trial
 
   var notTargs = _.filter(_.range(6), function(x) { return x!=index});
@@ -560,14 +559,14 @@ var sampleTrial = function(category,object,pose,target,condition,phase,repetitio
   var fifthDistractor = im_all[notTargs[4]];
   _target_status = ["distractor","distractor","distractor","distractor","distractor","distractor"];
   var target_status = _target_status[index] = "target"; // changed thisTarget to index
-  console.log("target_status: " + target_status);
+  // console.log("target_status: " + target_status);
   _.extend(target,{target_status: "target", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(firstDistractor,{target_status: "distr1", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(secondDistractor,{target_status: "distr2", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(thirdDistractor,{target_status: "distr3", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(fourthDistractor,{target_status: "distr4", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(fifthDistractor,{target_status: "distr5", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
-  console.log("target's target status " + target.target_status);
+  //console.log("target's target status " + target.target_status);
   return [target, firstDistractor, secondDistractor, thirdDistractor, fourthDistractor, fifthDistractor];
 
 };
