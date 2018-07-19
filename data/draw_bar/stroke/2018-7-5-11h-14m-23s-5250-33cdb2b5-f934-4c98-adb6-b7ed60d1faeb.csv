@@ -1,0 +1,4 @@
+iterationName	gameid	time	trialNum	intendedName	svgData	currStrokeNum	shiftKeyUsed	score	eventType
+testing	5250-33cdb2b5-f934-4c98-adb6-b7ed60d1faeb	1530814463216	1	knob	M139,198c-13.15031,-4.38344 -56.53746,-74.84691 -47,-82c12.15703,-9.11778 39.35886,19.71773 34,9	1	0	0	stroke
+testing	5250-33cdb2b5-f934-4c98-adb6-b7ed60d1faeb	1530814483380	1	knob	M228,179c-17.12738,0 -31.03918,-43.03918 -41,-53	2	0	0	stroke
+testing	5250-33cdb2b5-f934-4c98-adb6-b7ed60d1faeb	1530814484537	1	knob	M202,238c0,-30.81716 -17.89449,-62.41736 -20,-94c-0.42176,-6.32645 -1.00801,-7 1,-7	3	0	0	stroke
