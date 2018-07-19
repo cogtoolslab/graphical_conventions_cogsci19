@@ -7,6 +7,7 @@ __pycache__/
 chairs1k_triplets/
 *.pdf
 *.csv
+*.npy
 auth.json
 auth.txt
 
