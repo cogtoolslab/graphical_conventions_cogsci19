@@ -91,7 +91,7 @@ const flatten = arr => arr.reduce(
 var dataOutput = function() {
   function getIntendedTargetName(objects) {
     //console.log("objects: " + objects);
-    console.log("filtered: " + _.filter(objects, x => x.target_status == 'target'));
+    //console.log("filtered: " + _.filter(objects, x => x.target_status == 'target'));
     return _.filter(objects, x => x.target_status == 'target')[0]['subordinate'];
   }
 
