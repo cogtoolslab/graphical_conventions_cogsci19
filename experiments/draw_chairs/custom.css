@@ -207,11 +207,12 @@ xyhtml , body {
     color: white;
 }
 
+/* for set size 4, top should be 95% */
 #confirmbutton {
     z-index: 20;
     position: absolute;
     margin: auto;
-    top: 90%;
+    top: 95%;
     left: 50%;
     transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
@@ -309,11 +310,12 @@ ALOT...don't understand how to adjust that.*/
 }
 
 /*height and width originally 80vh*/
+/* for set size 6, height 20, width 120, for set size 4, height 25, width 100 */
 #viewport {
     float: middle;
     border:solid 10px;
-    height: 20vh;
-    width: 120vh;
+    height: 25vh;
+    width: 100vh;
     margin: auto;
 	  top: 56vh; bottom: auto; left:0; right: 0;
     background: #383838;
@@ -321,11 +323,12 @@ ALOT...don't understand how to adjust that.*/
 
 }
 
+/* for set size 6, height 20, width 120, for set size 4, height 25, width 100 */
 #occluder {
     float: middle;
     border:solid 1px #333;
-    height: 20vh;
-    width: 120vh;
+    height: 25vh;
+    width: 100vh;
     margin: auto;
     top: 56vh; bottom: auto; left:0; right: 0;
     background: #808080;

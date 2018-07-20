@@ -90,8 +90,7 @@ const flatten = arr => arr.reduce(
 */
 var dataOutput = function() {
   function getIntendedTargetName(objects) {
-    //console.log("objects: " + objects);
-    console.log("filtered: " + _.filter(objects, x => x.target_status == 'target'));
+    //console.log("filtered: " + _.filter(objects, x => x.target_status == 'target'));
     return _.filter(objects, x => x.target_status == 'target')[0]['subordinate'];
   }
 
@@ -137,7 +136,7 @@ var dataOutput = function() {
       bonus_score: message_data[8].replace(/~~~/g, '.')
       }
     );
-    console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
+    //console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
     return output;
   };
 
@@ -145,7 +144,6 @@ var dataOutput = function() {
     var xmlDoc = new parser().parseFromString(message_data[2].replace(/~~~/g, '.'));
     var svgData = xmlDoc.documentElement.getAttribute('d');
     var objects = client.game.trialInfo.currStim;
-    //console.log("client.game.trialInfo.currStim: " + client.game.trialInfo.currStim);
     var intendedName = getIntendedTargetName(objects);
     //console.log("objects: " + objects)
     var output = _.extend(
@@ -159,7 +157,7 @@ var dataOutput = function() {
       startStrokeTime: message_data[7],
       endStrokeTime: message_data[8]
     });
-    console.log(JSON.stringify(output, null, 3));
+    //console.log(JSON.stringify(output, null, 3));
     return output;
   };
 

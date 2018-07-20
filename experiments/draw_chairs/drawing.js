@@ -67,10 +67,15 @@ var highlightCell = function(game, color, condition) {
   }
 };
 
-var colorBorder =function(globalGame){
-  var repeatedColor = "#ce0a04"; // red
-  var controlColor = "#4286f4"; // blue
-  if (!globalGame.repeatedIsRed) {
+// Color the border around objects depending on which set is currently shown
+var colorBorder = function(globalGame) {
+  var repeatedColor;
+  var controlColor;
+  //console.log("repeatedIsRed: " + globalGame.objects[0]['repeatedIsRed']);
+  if (globalGame.objects[0]['repeatedIsRed'] == true) {
+    repeatedColor = "#ce0a04"; // red
+    controlColor = "#4286f4"; // blue
+  } else {
     repeatedColor = "#4286f4"; // blue
     controlColor = "#ce0a04"; // red
   }
@@ -103,11 +108,6 @@ var drawScreen = function(game, player) {
   else {
     drawGrid(globalGame);
     drawObjects(globalGame, player);
-    // if (globalGame.my_role === globalGame.playerRoleNames.role1) {
-    //     highlightCell(globalGame, player, '#d15619',
-    //     function(x) {return
-     //x.target_status == 'target';});
-    // }
   }
 };
 
@@ -194,8 +194,6 @@ function endStroke(event) {
   // Only send stroke if actual line (single points don't get rendered)
   if (globalGame.drawingAllowed && globalGame.path.length > 1) {
     globalGame.endStrokeTime = Date.now();
-    // console.log("startStrokeTime in drawing: " + globalGame.startStrokeTime);
-    // console.log("endStrokeTime in drawing: " + globalGame.endStrokeTime);
     // Increment stroke num
     globalGame.currStrokeNum += 1;
 

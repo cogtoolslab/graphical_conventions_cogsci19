@@ -27,6 +27,7 @@ var selecting;
 // variable to store whether an object has just been clicked
 var objClicked = false;
 
+
 /*
  Note: If you add some new variable to your game that must be shared
  across server and client, add it both here and the server_send_update
@@ -43,7 +44,6 @@ var objClicked = false;
  */
 
 var client_onserverupdate_received = function(data){
-
   // Update client versions of variables with data received from
   // server_send_update function in game.core.js
   //data refers to server information
@@ -87,9 +87,10 @@ var client_onserverupdate_received = function(data){
             drawGrid(globalGame);
             drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
           }
+
           alreadyLoaded += 1
 
-          if (alreadyLoaded == 6) { // changed from 4
+          if (alreadyLoaded == globalGame.setSize) {
               setTimeout(function() {
               $('#occluder').hide();
               drawGrid(globalGame);
@@ -139,7 +140,6 @@ var client_onMessage = function(data) {
   var command = commands[0];
   var subcommand = commands[1] || null;
   var commanddata = commands[2] || null;
-  //console.log("command3: " + command[3] + " command 4: " + command[4]);
 
   switch(command) {
   case 's': //server message
@@ -158,7 +158,6 @@ var client_onMessage = function(data) {
       var clickedObjName = commanddata;
       objClicked = true; // set clicked obj toggle variable to true
       player = globalGame.get_player(globalGame.my_id) // change this
-      //$('#confirmbutton').hide();
       globalGame.viewport.removeEventListener("click", responseListener, false); // added - moved
 
       $element.find('.progress-bar').finish();
@@ -174,14 +173,11 @@ var client_onMessage = function(data) {
 	       return x.target_status == 'target';
       })[0];
       var scoreDiff = target.subordinate == clickedObjName ? 1 : 0;
-      // console.log("scoreDiff " + scoreDiff);
-      // console.log("time left: ") + timeleft;
       var earnedCents = 0;
       if (scoreDiff == 1) {
         globalGame.data.subject_information.score += 3.00;
         globalGame.data.subject_information.bonus_score += parseFloat((timeleft / 30).toFixed(2));
         earnedCents = (3.00 + parseFloat((timeleft / 30).toFixed(2))).toFixed(2);
-        // console.log("bonus score: " + globalGame.data.subject_information.bonus_score);
       }
       // draw feedback
       if (globalGame.my_role === globalGame.playerRoleNames.role1) {
@@ -214,13 +210,6 @@ var client_onMessage = function(data) {
       $('#startbutton').click(function start() {
         $('#startbutton').hide();
         globalGame.socket.send('startGame');
-        // randomize color assignment to viewport border
-        // var randomBoolean = _.sample([true, false]);
-        // if (randomBoolean) {
-        //   globalGame.repeatedIsRed = true;
-        // } else {
-        //   globalGame.repeatedIsRed = false;
-        // }
       });
 
       globalGame.players.push({id: commanddata,
@@ -333,17 +322,14 @@ var customSetup = function(game) {
 
  // new progress bar function
   game.socket.on('updateTimer', function(timeleft) {
-      //console.log('start monitoring');
-      // added so that viewport border color changes depending on condition
       timetotal = globalGame.timeLimit;
       $element = $('.progress');
       var progressBarWidth = timeleft * $element.width()/ timetotal;
       var totalBarWidth = $element.width();
-      var centsleft = (timeleft / 30 + 3).toFixed(2); // changed from 25
+      var centsleft = (timeleft / 30 + 3).toFixed(2);
       $element.find('.progress-bar').attr("aria-valuenow", centsleft).text(centsleft)
       $element.find('.progress-bar').finish();
       $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
-      //console.log("animated progress bar with time left: " + timeleft);
       $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
       $('.progress').show();
   });
@@ -433,8 +419,7 @@ var client_onjoingame = function(num_players, role) {
 /*
  MOUSE EVENT LISTENERS
  */
-function responseListener(evt) { // problem is keeping track of what is clicked
-  //console.log("response listener called");
+function responseListener(evt) {
     var bRect = globalGame.viewport.getBoundingClientRect();
     var mouseX = (evt.clientX - bRect.left)*(globalGame.viewport.width/bRect.width);
     var mouseY = (evt.clientY - bRect.top)*(globalGame.viewport.height/bRect.height);
@@ -444,7 +429,7 @@ function responseListener(evt) { // problem is keeping track of what is clicked
 	_.forEach(globalGame.objects, function(obj) {
 	    if (hitTest(obj, mouseX, mouseY)) {
           $('#confirmbutton').show();
-		      //globalGame.messageSent = false; // commented out, fix later
+		      //globalGame.messageSent = false;
           var player = globalGame.get_player(globalGame.my_id)
           preFeedback(globalGame, obj.subordinate, player);
           drawGrid(globalGame);
