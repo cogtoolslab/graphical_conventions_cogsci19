@@ -45,6 +45,7 @@ var game_core = function(options){
   //Dimensions of world in pixels and number of cells to be divided into;
   this.numHorizontalCells = 4; // change to 6
   this.numVerticalCells = 1;
+
   this.cellDimensions = {height : 200, width : 200}; // in pixels
   this.cellPadding = 0;
   this.world = {height : (this.cellDimensions.height * this.numVerticalCells
@@ -508,11 +509,16 @@ var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList
   thisRepetition = repetitionList[roundNum]
 
   var im0 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[0]) && (s['object']==theseObjs[0]) && (s['pose']==thisPose) ) })[0];
+  console.log("im0: " + "cluster: " + theseCats[0] + "object: " + theseObjs[0] + "pose: " + thisPose);
   var im1 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[1]) && (s['object']==theseObjs[1]) && (s['pose']==thisPose) ) })[0];
+  console.log("im1: " + "cluster: " + theseCats[1] + "object: " + theseObjs[1] + "pose: " + thisPose);
   var im2 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[2]) && (s['object']==theseObjs[2]) && (s['pose']==thisPose) ) })[0];
+  console.log("im2: " + "cluster: " + theseCats[2] + "object: " + theseObjs[2] + "pose: " + thisPose);
   var im3 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[3]) && (s['object']==theseObjs[3]) && (s['pose']==thisPose) ) })[0];
+  console.log("im3: " + "cluster: " + theseCats[3] + "object: " + theseObjs[3] + "pose: " + thisPose);
 
   var im_all = [im0,im1,im2,im3];
+  //console.log("im_all: " + im_all);
   var target = im_all[thisTarget]; // actual target on this trial
   var notTargs = _.filter(_.range(4), function(x) { return x!=thisTarget});
   var firstDistractor = im_all[notTargs[0]];
@@ -520,6 +526,7 @@ var sampleTrial = function(roundNum,categoryList,_objectList,poseList,targetList
   var thirdDistractor = im_all[notTargs[2]];
   _target_status = ["distractor","distractor","distractor","distractor"];
   var target_status = _target_status[thisTarget] = "target";
+  //console.log("target_status: " + target_status);
   _.extend(target,{target_status: "target", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(firstDistractor,{target_status: "distr1", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
   _.extend(secondDistractor,{target_status: "distr2", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
