@@ -133,8 +133,8 @@ var dataOutput = function() {
       condition : message_data[4],
       phase : message_data[5],
       repetition : message_data[6],
-      score : message_data[7],
-      bonus_score: message_data[8].replace(/~~~/g, '.')
+      previous_score : message_data[7],
+      previous_bonus_score: message_data[8].replace(/~~~/g, '.')
       }
     );
     //console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
@@ -153,8 +153,8 @@ var dataOutput = function() {
       svgData,
       currStrokeNum: message_data[1],
       shiftKeyUsed: message_data[4],
-      score: message_data[5],
-      bonus_score: message_data[6].replace(/~~~/g, '.'),
+      previous_score: message_data[5],
+      previous_bonus_score: message_data[6].replace(/~~~/g, '.'),
       startStrokeTime: message_data[7],
       endStrokeTime: message_data[8]
     });
