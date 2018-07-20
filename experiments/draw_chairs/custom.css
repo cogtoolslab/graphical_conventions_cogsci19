@@ -212,7 +212,7 @@ xyhtml , body {
     z-index: 20;
     position: absolute;
     margin: auto;
-    top: 95%;
+    top: 90%;
     left: 50%;
     transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
@@ -314,8 +314,8 @@ ALOT...don't understand how to adjust that.*/
 #viewport {
     float: middle;
     border:solid 10px;
-    height: 25vh;
-    width: 100vh;
+    height: 20vh;
+    width: 120vh;
     margin: auto;
 	  top: 56vh; bottom: auto; left:0; right: 0;
     background: #383838;
@@ -327,8 +327,8 @@ ALOT...don't understand how to adjust that.*/
 #occluder {
     float: middle;
     border:solid 1px #333;
-    height: 25vh;
-    width: 100vh;
+    height: 20vh;
+    width: 120vh;
     margin: auto;
     top: 56vh; bottom: auto; left:0; right: 0;
     background: #808080;
