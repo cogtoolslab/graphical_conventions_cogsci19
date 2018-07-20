@@ -193,6 +193,37 @@ xyhtml , body {
     background-color: #2e2f30;
     color: white;
 }
+
+#confirmbutton {
+    z-index: 20;
+    position: absolute;
+    margin: auto;
+    top: 95%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    background-color: white;
+    color: black;
+    font-size: 15px;
+    padding: 10px 10px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    cursor: pointer;
+    border-radius: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#confirmbutton:hover {
+    background-color: #2e2f30;
+    color: white;
+}
+
+
+
+
+
   /* #startbutton:active {
       z-index: 10;
       height: 6vh;

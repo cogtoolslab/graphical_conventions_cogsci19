@@ -141,7 +141,13 @@ var client_onMessage = function(data) {
     case 'feedback' :
       // Prevent them from sending messages b/w trials
       globalGame.viewport.removeEventListener("click", responseListener, false); // added
+
       $('#chatbox').attr("disabled", "disabled");
+      // if (globalGame.my_role === globalGame.playerRoleNames.role2) { // also added
+      //    $('#confirmbutton').show(); // added
+      // }
+      // $('#confirmbutton').click(function start() { // added and put the rest inside click function
+      //   $('#confirmbutton').hide();
       var clickedObjName = commanddata;
       var timeleft = commands[3]; // commands[3] is what we used for player role ???
       if (timeleft < 0) { // bad style but works right now
@@ -168,6 +174,8 @@ var client_onMessage = function(data) {
       } else {
 	       drawViewerFeedback(globalGame, scoreDiff, clickedObjName);
       }
+      // });
+
       break;
 
     case 'alert' : // Not in database, so you can't play...
@@ -176,6 +184,7 @@ var client_onMessage = function(data) {
 
     case 'join' : //join a game requested
       $('#startbutton').hide();
+      //$('#confirmbutton').hide(); // added
       var num_players = commanddata;
       client_onjoingame(num_players, commands[3]); break;
 
