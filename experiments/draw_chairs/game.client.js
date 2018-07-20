@@ -322,7 +322,13 @@ var customSetup = function(game) {
 
  // new progress bar function
   game.socket.on('updateTimer', function(timeleft) {
+<<<<<<< HEAD
       timetotal = globalGame.timeLimit;
+=======
+      //console.log('start monitoring');
+      // added so that viewport border color changes depending on condition
+      timetotal = globalGame.timeLimit;    
+>>>>>>> 9ed971791a42b1a2c006d032c8aad6c0978a0355
       $element = $('.progress');
       var progressBarWidth = timeleft * $element.width()/ timetotal;
       var totalBarWidth = $element.width();

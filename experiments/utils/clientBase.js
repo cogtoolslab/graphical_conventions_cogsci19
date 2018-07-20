@@ -165,8 +165,6 @@ window.onload = function(){
   //Set the draw style for the font
   globalGame.ctx.font = '11px "Helvetica"';
 
-  document.getElementById('chatbox').focus();
-
 };
 
 // This gets called when someone selects something in the menu during the exit survey...
