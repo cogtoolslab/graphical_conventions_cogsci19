@@ -27,7 +27,7 @@ var game_core = function(options){
   this.server = options.server ;
   this.projectName = '3dObjects';
   this.experimentName = 'graphical_conventions';
-  this.iterationName = 'run2_chairs1k_size4'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_size4']
+  this.iterationName = 'testing'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_setsize6']
   this.email = 'sketchloop@gmail.com';
   console.log("color randomized");
 
@@ -43,7 +43,7 @@ var game_core = function(options){
   };
 
   // How many objects do we have in a context?
-  this.setSize = 4; // many things depend on this
+  this.setSize = 6; // many things depend on this
   console.log("actual setSize:" + this.setSize);
 
   //Dimensions of world in pixels and number of cells to be divided into;
