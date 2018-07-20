@@ -90,10 +90,7 @@ const flatten = arr => arr.reduce(
 */
 var dataOutput = function() {
   function getIntendedTargetName(objects) {
-<<<<<<< HEAD
-=======
     //console.log("objects: " + objects);
->>>>>>> 9ed971791a42b1a2c006d032c8aad6c0978a0355
     //console.log("filtered: " + _.filter(objects, x => x.target_status == 'target'));
     return _.filter(objects, x => x.target_status == 'target')[0]['subordinate'];
   }

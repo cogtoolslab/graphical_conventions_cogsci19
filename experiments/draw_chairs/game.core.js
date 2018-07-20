@@ -363,16 +363,14 @@ game_core.prototype.getRandomizedConditions = function() {
 
   session = pre.concat(repeated).concat(post);
 
-<<<<<<< HEAD
   for (var i = 0; i < session.length; i++) {
     trial = session[i];
     console.log("trial" + i + ": " + JSON.stringify(trial, null, 3));
   }
   return session;
-=======
+
   //console.log(session);
   return session; // design_dict
->>>>>>> 9ed971791a42b1a2c006d032c8aad6c0978a0355
 
 };
 
@@ -401,15 +399,10 @@ game_core.prototype.makeTrialList = function () {
     var trial = session[i]
   //for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number ---- commented out
     // sample four object images that are unique and follow the condition constraints
-<<<<<<< HEAD
+
     var objList = sampleTrial(currentSetSize, trial.category,trial.object,trial.pose,trial.target,trial.condition,trial.phase,trial.repetition, trial.repeatedIsRed);
     //console.log('objList',objList);
-=======
-    // roundNum,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList
-    var objList = sampleTrial(trial.category,trial.object,trial.pose,trial.target,trial.condition,trial.phase,trial.repetition);
-    // var objList = sampleTrial(i,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList);  ---- commented out
-    // console.log('objList',objList);
->>>>>>> 9ed971791a42b1a2c006d032c8aad6c0978a0355
+
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
     // construct trial list (in sets of complete rounds)
@@ -507,10 +500,8 @@ var filterStimList = function(stimList, numObjs) {
 
 var sampleTrial = function(currentSetSize,category,object,pose,target,condition,phase,repetition, repeatedIsRed) {
   stimList = filterStimList(stimList, currentSetSize*2);
-
   if (currentSetSize == 4) {
 
-<<<<<<< HEAD
     var im0 = _.filter(stimList, function(s){ return ( (s['cluster']==category[0]) && (s['object']==object[0]) && (s['pose']==pose) ) })[0];
     //console.log("im0: " + "cluster: " + category[0] + "object: " + object[0] + "pose: " + pose);
     var im1 = _.filter(stimList, function(s){ return ( (s['cluster']==category[1]) && (s['object']==object[1]) && (s['pose']==pose) ) })[0];
@@ -519,54 +510,6 @@ var sampleTrial = function(currentSetSize,category,object,pose,target,condition,
     //console.log("im2: " + "cluster: " + category[2] + "object: " + object[2] + "pose: " + pose);
     var im3 = _.filter(stimList, function(s){ return ( (s['cluster']==category[3]) && (s['object']==object[3]) && (s['pose']==pose) ) })[0];
     //console.log("im3: " + "cluster: " + category[3] + "object: " + object[3] + "pose: " + pose);
-=======
-var sampleTrial = function(category,object,pose,target,condition,phase,repetition) {
-  theseCats = category; // change / collapse later
-  theseObjs = object;
-  thisPose = pose;
-  thisTarget = target;
-  thisCondition = condition;
-  thisPhase = phase;
-  thisRepetition = repetition;
-
-  var im0 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[0]) && (s['object']==theseObjs[0]) && (s['pose']==thisPose) ) })[0];
-  //console.log("im0: " + "cluster: " + theseCats[0] + "object: " + theseObjs[0] + "pose: " + thisPose);
-  var im1 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[1]) && (s['object']==theseObjs[1]) && (s['pose']==thisPose) ) })[0];
-  //console.log("im1: " + "cluster: " + theseCats[1] + "object: " + theseObjs[1] + "pose: " + thisPose);
-  var im2 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[2]) && (s['object']==theseObjs[2]) && (s['pose']==thisPose) ) })[0];
-  //console.log("im2: " + "cluster: " + theseCats[2] + "object: " + theseObjs[2] + "pose: " + thisPose);
-  var im3 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[3]) && (s['object']==theseObjs[3]) && (s['pose']==thisPose) ) })[0];
-  //console.log("im3: " + "cluster: " + theseCats[3] + "object: " + theseObjs[3] + "pose: " + thisPose);
-  var im4 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[4]) && (s['object']==theseObjs[4]) && (s['pose']==thisPose) ) })[0];
-  //console.log("im4: " + "cluster: " + theseCats[4] + "object: " + theseObjs[4] + "pose: " + thisPose);
-  var im5 = _.filter(stimList, function(s){ return ( (s['cluster']==theseCats[5]) && (s['object']==theseObjs[5]) && (s['pose']==thisPose) ) })[0];
-  //console.log("im5: " + "cluster: " + theseCats[5] + "object: " + theseObjs[5] + "pose: " + thisPose);
-
-  var im_all = [im0,im1,im2,im3,im4,im5];
-  // console.log("this target:" + thisTarget);
-
-  var index = theseObjs.indexOf(thisTarget);
-  // console.log("index: " + index);
-  var target = im_all[index]; // actual target on this trial
-
-  var notTargs = _.filter(_.range(6), function(x) { return x!=index});
-  var firstDistractor = im_all[notTargs[0]];
-  var secondDistractor = im_all[notTargs[1]];
-  var thirdDistractor = im_all[notTargs[2]];
-  var fourthDistractor = im_all[notTargs[3]];
-  var fifthDistractor = im_all[notTargs[4]];
-  _target_status = ["distractor","distractor","distractor","distractor","distractor","distractor"];
-  var target_status = _target_status[index] = "target"; // changed thisTarget to index
-  // console.log("target_status: " + target_status);
-  _.extend(target,{target_status: "target", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
-  _.extend(firstDistractor,{target_status: "distr1", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
-  _.extend(secondDistractor,{target_status: "distr2", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
-  _.extend(thirdDistractor,{target_status: "distr3", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
-  _.extend(fourthDistractor,{target_status: "distr4", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
-  _.extend(fifthDistractor,{target_status: "distr5", condition: thisCondition, phase: thisPhase, repetition: thisRepetition});
-  //console.log("target's target status " + target.target_status);
-  return [target, firstDistractor, secondDistractor, thirdDistractor, fourthDistractor, fifthDistractor];
->>>>>>> 9ed971791a42b1a2c006d032c8aad6c0978a0355
 
     var im_all = [im0,im1,im2,im3];
     //console.log("this target:" + target);
