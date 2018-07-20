@@ -264,12 +264,9 @@ game_core.prototype.getRandomizedConditions = function() {
   var repeatedObjs = shuffledObjs.slice(0,setSize);
   var controlObjs = shuffledObjs.slice(setSize,setSize*2);
 
-<<<<<<< HEAD
-=======
   //console.log("repeatedObjs: " + repeatedObjs);
   //console.log("controlObjs: " + controlObjs);
 
->>>>>>> 9ed971791a42b1a2c006d032c8aad6c0978a0355
   // Construct the full trial sequence
 
   // pre
