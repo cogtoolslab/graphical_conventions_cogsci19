@@ -43,8 +43,9 @@ var game_core = function(options){
 
 
   //Dimensions of world in pixels and number of cells to be divided into;
-  this.numHorizontalCells = 4; // change to 3
-  this.numVerticalCells = 1; // change to 2
+  this.numHorizontalCells = 4; // change to 6
+  this.numVerticalCells = 1;
+
   this.cellDimensions = {height : 200, width : 200}; // in pixels
   this.cellPadding = 0;
   this.world = {height : (this.cellDimensions.height * this.numVerticalCells
@@ -342,7 +343,7 @@ game_core.prototype.getRandomizedConditions = function() {
 
   // concatenate pre, repeated, and post trials into full session sequence
   session = pre.concat(repeated).concat(post);
-  console.log("session: " + session);
+  //console.log("session: " + session);
   //[Array(4), Array(4), undefined, "repeated", 2, "repeated"]
   //(_object,_category,_pose,_condition,_target)
 
@@ -411,7 +412,7 @@ game_core.prototype.makeTrialList = function () {
   for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number
     // sample four object images that are unique and follow the condition constraints
     var objList = sampleTrial(i,categoryList,_objectList,poseList,targetList,conditionList,phaseList,repetitionList);
-    console.log('objList',objList);
+    //console.log('objList',objList);
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
     // construct trial list (in sets of complete rounds)

@@ -9,7 +9,8 @@ __pycache__/
 *.png
 *.csv
 chairs1k_triplets/
-
+*.pdf
+*.csv
 auth.json
 auth.txt
 

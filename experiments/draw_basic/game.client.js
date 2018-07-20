@@ -140,7 +140,8 @@ var client_onMessage = function(data) {
 
     case 'feedback' :
       // Prevent them from sending messages b/w trials
-      globalGame.viewport.removeEventListener("click", responseListener, false);
+      globalGame.viewport.removeEventListener("click", responseListener, false); // added
+
       $('#chatbox').attr("disabled", "disabled");
       // if (globalGame.my_role === globalGame.playerRoleNames.role2) { // also added
       //    $('#confirmbutton').show(); // added
