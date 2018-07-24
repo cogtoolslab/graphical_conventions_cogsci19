@@ -27,7 +27,7 @@ var game_core = function(options){
   this.server = options.server ;
   this.projectName = '3dObjects';
   this.experimentName = 'graphical_conventions';
-  this.iterationName = 'run3_size6_waiting'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_size4','run2_chairs1k_size6', 'run3_size6_waiting']
+  this.iterationName = 'run4_generalization'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_size4','run2_chairs1k_size6', 'run3_size6_waiting','run3_size4_waiting']
   this.email = 'sketchloop@gmail.com';
   console.log("color randomized");
 
@@ -125,7 +125,7 @@ var game_core = function(options){
   this.endStrokeTime = Date.now();
 
   // Using different categories for the conditions?
-  this.diffCats = false; // set to true for generalization
+  this.diffCats = true; // set to true for generalization
 
   // Is the sketcher ready to move on?
   this.sketcherReady = false;
@@ -282,11 +282,15 @@ game_core.prototype.getRandomizedConditions = function() {
       control_category.push(controlCat);
     }
   } else {
-    repeatedCat = 3;
+    repeatedCat = _.sample([3,1]); // sample from waiting and dining
     for (i=0; i<setSize; i++) {
       repeated_category.push(repeatedCat);
     }
-    controlCat = 1;
+    if (repeatedCat == 3) {
+      controlCat = 1;
+    } else {
+      controlCat = 3;
+    }
     for (i=0; i<setSize; i++) {
       control_category.push(controlCat);
     }
