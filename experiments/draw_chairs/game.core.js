@@ -904,7 +904,7 @@ game_core.prototype.get_active_players = function() {
 
 // Advance to the next round
 game_core.prototype.newRound = function() {
-  console.log("calling gc.newRound() in game core");
+  //console.log("calling gc.newRound() in game core");
   // If you've reached the planned number of rounds, end the game
   if(this.roundNum == this.numRounds - 1) {
     _.map(this.get_active_players(), function(p){
