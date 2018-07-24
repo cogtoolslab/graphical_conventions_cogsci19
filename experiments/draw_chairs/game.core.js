@@ -737,7 +737,7 @@ var game_core = function(options){
   };
 
   // How many objects do we have in a context?
-  this.setSize = 4; // many things depend on this
+  this.setSize = 6; // many things depend on this
   console.log("actual setSize:" + this.setSize);
 
   //Dimensions of world in pixels and number of cells to be divided into;
@@ -819,13 +819,16 @@ var game_core = function(options){
   this.endStrokeTime = Date.now();
 
   // Using different categories for the conditions?
-  this.diffCats = false;
+  this.diffCats = false; // set to true for generalization
 
   // Is the sketcher ready to move on?
   this.sketcherReady = false;
 
   // Is the viewer ready to move on?
   this.viewerReady = false;
+
+  // Are we just using waiting chairs?
+  this.waitingOnly = true; // set to false for generalization
 
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
@@ -957,18 +960,26 @@ game_core.prototype.getRandomizedConditions = function() {
   var repeatedColor = _.sample(["#ce0a04", "#4286f4"]); // randomly assign border color (red or blue) to repeated and control
   var shuffledCat = _.shuffle(_.range(0,numCats));
 
-  var repeatedCat = shuffledCat[0]; // choose repeated category
-  var controlCat = shuffledCat[1]; // choose control category
-
-  // each category appears half the number of setsize times in each trial
+  var repeatedCat;
+  var controlCat;
   var repeated_category = new Array;
-  for (i=0; i<setSize; i++) {
-    repeated_category.push(repeatedCat);
-  }
-
   var control_category = new Array;
-  for (i=0; i<setSize; i++) {
-    control_category.push(controlCat);
+
+  if (!this.waitingOnly) {
+    repeatedCat = shuffledCat[0];
+    controlCat = shuffledCat[1];
+    // each category appears half the number of setsize times in each trial
+    for (i=0; i<setSize; i++) {
+      repeated_category.push(repeatedCat);
+    }
+    for (i=0; i<setSize; i++) {
+      control_category.push(controlCat);
+    }
+  } else {
+    repeatedCat = 3;
+    for (i=0; i<setSize; i++) {
+      repeated_category.push(repeatedCat);
+    }
   }
 
   if (!this.diffCats) {

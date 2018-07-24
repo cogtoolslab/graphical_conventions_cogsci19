@@ -59,7 +59,7 @@ var client_onserverupdate_received = function(data){
     var alreadyLoaded = 0;
     $('#occluder').show();
     globalGame.drawingAllowed = false;
-    console.log("data.objects:" + data.objects);
+    //console.log("data.objects:" + data.objects);
     globalGame.objects = _.map(data.objects, function(obj) {
       // Extract the coordinates matching your role
       var customCoords = globalGame.my_role == "sketcher" ? obj.speakerCoords : obj.listenerCoords;
@@ -91,12 +91,12 @@ var client_onserverupdate_received = function(data){
           alreadyLoaded += 1
 
           if (alreadyLoaded == globalGame.setSize) {
-              console.log("all images loaded, now sketcher can draw");
               setTimeout(function() {
               $('#occluder').hide();
               drawGrid(globalGame);
               drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
               globalGame.drawingAllowed = true;
+              console.log("globalGame.drawingAllowed: " + globalGame.drawingAllowed);
             },750);
           }
       };
@@ -162,7 +162,7 @@ var client_onMessage = function(data) {
       globalGame.viewport.removeEventListener("click", responseListener, false); // added - moved
 
       $element.find('.progress-bar').finish();
-      console.log("finishing progress bar");
+      //console.log("finishing progress bar");
 
       var timeleft = commands[3]; // commands[3] is what we used for player role ???
       if (timeleft < 0) { // bad style but works right now
@@ -279,9 +279,9 @@ var customSetup = function(game) {
 
     // Update display
     var score = game.data.subject_information.score;
-    console.log("SCORE: " + score);
+    //console.log("SCORE: " + score);
     var bonus_score = game.data.subject_information.bonus_score;
-    console.log("BONUS: " + bonus_score);
+    //console.log("BONUS: " + bonus_score);
     var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(2));
     // console.log("TOTAL: " + displaytotal); // added
     if(game.roundNum + 2 > game.numRounds) {
@@ -438,7 +438,7 @@ var client_onjoingame = function(num_players, role) {
 var setupOverlay = function() { // added transition pop-up
   console.log("setupOverlay being called");
   if (globalGame.get_player(globalGame.my_id).role == globalGame.playerRoleNames.role1) {
-    console.log("i am the sketcher");
+    //console.log("i am the sketcher");
     $('#after_pre_button').click(function next() {
       globalGame.socket.send('sketcherReady');
       $('#after_pre_text').text("Waiting for Viewer to click 'next'...");
@@ -451,7 +451,7 @@ var setupOverlay = function() { // added transition pop-up
       //bothReady();
     });
   } else {
-    console.log("i am the viewer");
+    //console.log("i am the viewer");
     $('#after_pre_button').click(function next() {
       globalGame.socket.send('viewerReady');
       $('#after_pre_text').text("Waiting for Sketcher to click 'next'...");
