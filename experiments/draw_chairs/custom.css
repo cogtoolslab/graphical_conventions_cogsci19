@@ -132,6 +132,85 @@ xyhtml , body {
   font-weight:lighter;
 }
 
+#dimScreen
+{
+    position:fixed;
+    padding:0;
+    margin:0;
+
+    top:0;
+    left:0;
+
+    width: 100%;
+    height: 100%;
+    background:rgba(0,0,0,0.9);
+    z-index: 100
+}
+
+#after_pre_text {
+    font-size:100%;
+    width:50%;
+    top:10%;
+    left:25%;
+    text-align: left;
+    align: left;
+    position:absolute;
+    z-index:1000
+}
+
+#before_post_text {
+    font-size:100%;
+    width:50%;
+    top:10%;
+    left:25%;
+    text-align: left;
+    align: left;
+    position:absolute;
+    z-index:1000
+}
+
+#after_pre_instruction {
+    width:50%;
+    padding: 20px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: auto ;
+    left:0; right:0; top:3.5%; bottom: 0;
+}
+
+#before_post_instruction {
+    width:50%;
+    padding: 20px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: auto ;
+    left:0; right:0; top:3.5%; bottom: 0;
+}
+
+#after_pre {
+	height: auto;
+	width: auto;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: auto ;
+	left:0; right:0; top:0; bottom: 0;
+	position: absolute;
+}
+
+#before_post {
+	height: auto;
+	width: auto;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	margin-bottom: auto ;
+	left:0; right:0; top:0; bottom: 0;
+	position: absolute;
+}
+
 .progress{
     height: 1.6vw;
     position: absolute;

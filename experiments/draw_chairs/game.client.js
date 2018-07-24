@@ -26,6 +26,8 @@ var selecting;
 
 // variable to store whether an object has just been clicked
 var objClicked = false;
+var sketcherReady = false;
+var viewerReady = false;
 
 
 /*
@@ -253,61 +255,82 @@ var customSetup = function(game) {
     // Reset sketchpad each round
     project.activeLayer.removeChildren();
 
-    // reset drawing stuff
-    globalGame.doneDrawing = false;
-    game.strokeMade = false;
-    globalGame.path = [];
+    // pop-ups in between phases
+    var afterPreRound = globalGame.setSize * 2;
+    var beforePostRound = globalGame.numRounds - globalGame.setSize * 2;
 
-    // reset clicked obj flag
-    objClicked = false;
-    if(globalGame.my_role === globalGame.playerRoleNames.role2) {
-      globalGame.viewport.addEventListener("click", responseListener, false); // added
-    }
-    // Reset stroke counter
-    globalGame.currStrokeNum = 0;
-    drawGrid(globalGame);
-    drawObjects(globalGame, player);
+    if (game.roundNum == afterPreRound - 1) {
+      $("#main").hide();
+      $("#header").hide();
+      $("#dimScreen").show();
+      $("#after_pre").show(); //or $("#before_post").show();
+      setupOverlay(data);
 
-    // occluder box animation now controlled within client_onserverupdate_received
-    // // fade in occluder box, wait a beat, then fade it out (then allow drawing)
-    // $("#occluder").show(0)
-    //               .delay(3000)
-    //               .hide(0, function() {
-    //                 globalGame.drawingAllowed = true;
-    //               });
+    } else if (game.roundNum == beforePostRound - 1) {
+      $("#main").hide();
+      $("#header").hide();
+      $("#dimScreen").show();
+      $("#before_post").show(); //or $("#before_post").show();
+      setupOverlay(data);
 
-    // if (globalGame.my_role === globalGame.playerRoleNames.role2) {
-    //   $("#loading").fadeIn('fast');
-    // }
-
-    // clear feedback blurb
-    $('#feedback').html(" ");
-    $('#scoreupdate').html(" ");
-    $('#turnIndicator').html(" ");
-    // set up progress bar
-    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
-    $('.progress').show();
-
-    // Update display
-    var score = game.data.subject_information.score;
-    console.log("SCORE: " + score);
-    var bonus_score = game.data.subject_information.bonus_score;
-    console.log("BONUS: " + bonus_score);
-    var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(2));
-    // console.log("TOTAL: " + displaytotal); // added
-    if(game.roundNum + 2 > game.numRounds) {
-      $('#roundnumber').empty();
-      $('#sketchpad').hide();
-      $('#instructs').html('Thanks for participating in our experiment! ' +
-        "Before you submit your HIT, we'd like to ask you a few questions.");
-      $('#roundnumber').empty()
-        .append("Round\n" + (game.roundNum + 1) + " of " + game.numRounds);
     } else {
-      $('#roundnumber').empty()
-        .append("Round\n" + (game.roundNum + 2) + " of " + game.numRounds);
+      // reset drawing stuff
+      globalGame.doneDrawing = false;
+      game.strokeMade = false;
+      globalGame.path = [];
+
+      // reset clicked obj flag
+      objClicked = false;
+      if(globalGame.my_role === globalGame.playerRoleNames.role2) {
+        globalGame.viewport.addEventListener("click", responseListener, false); // added
+      }
+      // Reset stroke counter
+      globalGame.currStrokeNum = 0;
+      drawGrid(globalGame);
+      drawObjects(globalGame, player);
+
+      // occluder box animation now controlled within client_onserverupdate_received
+      // // fade in occluder box, wait a beat, then fade it out (then allow drawing)
+      // $("#occluder").show(0)
+      //               .delay(3000)
+      //               .hide(0, function() {
+      //                 globalGame.drawingAllowed = true;
+      //               });
+
+      // if (globalGame.my_role === globalGame.playerRoleNames.role2) {
+      //   $("#loading").fadeIn('fast');
+      // }
+
+      // clear feedback blurb
+      $('#feedback').html(" ");
+      $('#scoreupdate').html(" ");
+      $('#turnIndicator').html(" ");
+      // set up progress bar
+      $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
+      $('.progress').show();
+
+      // Update display
+      var score = game.data.subject_information.score;
+      console.log("SCORE: " + score);
+      var bonus_score = game.data.subject_information.bonus_score;
+      console.log("BONUS: " + bonus_score);
+      var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(2));
+      // console.log("TOTAL: " + displaytotal); // added
+      if(game.roundNum + 2 > game.numRounds) {
+        $('#roundnumber').empty();
+        $('#sketchpad').hide();
+        $('#instructs').html('Thanks for participating in our experiment! ' +
+          "Before you submit your HIT, we'd like to ask you a few questions.");
+        $('#roundnumber').empty()
+          .append("Round\n" + (game.roundNum + 1) + " of " + game.numRounds);
+      } else {
+        $('#roundnumber').empty()
+          .append("Round\n" + (game.roundNum + 2) + " of " + game.numRounds);
+      }
+      $('#score').empty().append(score / 3 + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
+  			       + displaytotal);
     }
-    $('#score').empty().append(score / 3 + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
-			       + displaytotal);
+
   });
 
   game.socket.on('stroke', function(jsonData) {
@@ -344,6 +367,59 @@ var customSetup = function(game) {
     } else if (globalGame.my_role === globalGame.playerRoleNames.role2 && !objClicked) {
       setTimeout(function(){$('#turnIndicator').html("Time's up! Make a selection!");},globalGame.feedbackDelay);
     }
+  });
+
+  game.socket.on('readyToContinue', function(data){
+    console.log("readyToContinue in game client called!");
+    $('#dimScreen').hide();
+    $('#after_pre_text').hide();
+    $('#before_post_text').hide();
+    $('#main').show();
+    $('#header').show();
+
+    // reset drawing stuff
+    globalGame.doneDrawing = false;
+    game.strokeMade = false;
+    globalGame.path = [];
+
+    // reset clicked obj flag
+    objClicked = false;
+    if(globalGame.my_role === globalGame.playerRoleNames.role2) {
+      globalGame.viewport.addEventListener("click", responseListener, false); // added
+    }
+    // Reset stroke counter
+    globalGame.currStrokeNum = 0;
+    drawGrid(globalGame);
+    drawObjects(globalGame, player);
+
+    // clear feedback blurb
+    $('#feedback').html(" ");
+    $('#scoreupdate').html(" ");
+    $('#turnIndicator').html(" ");
+    // set up progress bar
+    $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
+    $('.progress').show();
+
+    // Update display
+    var score = game.data.subject_information.score;
+    console.log("SCORE: " + score);
+    var bonus_score = game.data.subject_information.bonus_score;
+    console.log("BONUS: " + bonus_score);
+    var displaytotal = (((parseFloat(score) + parseFloat(bonus_score))/ 100.0).toFixed(2));
+    // console.log("TOTAL: " + displaytotal); // added
+    if(game.roundNum + 2 > game.numRounds) {
+      $('#roundnumber').empty();
+      $('#sketchpad').hide();
+      $('#instructs').html('Thanks for participating in our experiment! ' +
+        "Before you submit your HIT, we'd like to ask you a few questions.");
+      $('#roundnumber').empty()
+        .append("Round\n" + (game.roundNum + 1) + " of " + game.numRounds);
+    } else {
+      $('#roundnumber').empty()
+        .append("Round\n" + (game.roundNum + 2) + " of " + game.numRounds);
+    }
+    $('#score').empty().append(score / 3 + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
+			       + displaytotal);
   });
 };
 
@@ -415,6 +491,61 @@ var client_onjoingame = function(num_players, role) {
   }
 
 };
+
+// fix bonusmeter thing, only go away when both players click it
+
+var setupOverlay = function() { // added transition pop-up
+  console.log("setupOverlay being called");
+  if (globalGame.get_player(globalGame.my_id).role == globalGame.playerRoleNames.role1) {
+    console.log("i am the sketcher");
+    $('#after_pre_button').click(function next() {
+      globalGame.socket.send('sketcherReady');
+      $('#after_pre_text').text("Waiting for Viewer to click 'next'...");
+      //bothReady();
+      //console.log("globalGame.sketcherReady: " + globalGame.sketcherReady);
+    });
+    $('#before_post_button').click(function next() {
+      globalGame.socket.send('sketcherReady');
+      $('#before_post_text').text("Waiting for Viewer to click 'next'...");
+      //bothReady();
+    });
+  } else {
+    console.log("i am the viewer");
+    $('#after_pre_button').click(function next() {
+      globalGame.socket.send('viewerReady');
+      $('#after_pre_text').text("Waiting for Sketcher to click 'next'...");
+      //bothReady();
+      //console.log("globalGame.viewerReady: " + globalGame.viewerReady);
+    });
+    $('#before_post_button').click(function next() {
+      globalGame.socket.send('viewerReady');
+      $('#before_post_text').text("Waiting for Sketcher to click 'next'...");
+      //bothReady();
+    });
+  }
+  // $('#after_pre_button').click(function next() {
+  //   console.log("after_pre clicked");
+  //   $('#after_pre_text').hide();
+  //   $('#dimScreen').hide();
+  //   $("#main").show();
+  //   $("#header").show();
+  // });
+  // $('#before_post_button').click(function next() {
+  //   console.log("before_post clicked");
+  //   $('#before_post_text').hide();
+  //   $('#dimScreen').hide();
+  //   $("#main").show();
+  //   $("#header").show();
+  // });
+};
+
+// var bothReady = function() {
+//   console.log("viewerReady in client:" + globalGame.viewerReady);
+//   console.log("sketcherReady in client:" + globalGame.sketcherReady);
+//   console.log("sending bothReady to server");
+//   globalGame.socket.send('bothReady');
+// }
+
 
 /*
  MOUSE EVENT LISTENERS
