@@ -382,15 +382,14 @@ var client_onjoingame = function(num_players, role) {
   $('#roleLabel').append(role + '.');
   if (role === globalGame.playerRoleNames.role1) {
     txt = "target";
-    $('#instructs').html("<p>You have 30 seconds to make a sketch of the target (white) so that your partner can tell which it is. </p>" +
-      "<p> The faster the Viewer selects the correct object, the larger the bonus both of you will receive. Draw the object as you see it, and DO </p>" +
-      "<p> NOT include letters, arrows, or any surrounding context. Please do not resize browser window or change zoom during the game. </p>");
+    $('#instructs').html("<p>You have 30 seconds to make a sketch of the target (white) so that your partner can tell which it is. You will receive </p>" +
+      "<p> a bonus ONLY if the Viewer selects the correct object (plus small additional speed bonus). Draw the object as you see it, and DO NOT include letters, arrows, or surrounding context. Please do not resize browser window or change zoom during the game. </p>");
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
 
-    $('#instructs').html("<p>Your partner has 30 seconds to draw one of these four objects. </p>" +
-      "<p> As soon as you can tell, click on the object you think they're drawing. The faster you can select the correct object,</p>" +
-      "<p> the larger the bonus both of you will receive. Please do not resize browser window or change zoom during the game.</p>");
+    $('#instructs').html("<p>Your partner has 30 seconds to draw one of these four objects. When you are sure which it is, click on the object </p>" +
+      "<p> you think they're drawing. If you are correct, you will both receive a bonus (plus small additional speed bonus).</p>" +
+      "<p> Please do not resize browser window or change zoom during the game.</p>");
     // $("#loading").show();
   }
 
