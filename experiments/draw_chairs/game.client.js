@@ -96,7 +96,6 @@ var client_onserverupdate_received = function(data){
               drawGrid(globalGame);
               drawObjects(globalGame, globalGame.get_player(globalGame.my_id));
               globalGame.drawingAllowed = true;
-              console.log("globalGame.drawingAllowed: " + globalGame.drawingAllowed);
             },750);
           }
       };
@@ -251,7 +250,6 @@ var customSetup = function(game) {
   // Set up new round on client's browsers after submit round button is pressed.
   // This means clear the canvas, update round number, and update score on screen
   game.socket.on('newRoundUpdate', function(data){
-    console.log("newRoundUpdate in client called");
     // Reset sketchpad each round
     project.activeLayer.removeChildren();
     // reset drawing stuff
@@ -357,10 +355,9 @@ var customSetup = function(game) {
   });
 
   game.socket.on('readyToContinue', function(data){
-    console.log("readyToContinue in game client called!");
     $('#dimScreen').hide();
-    $('#after_pre_text').hide();
-    $('#before_post_text').hide();
+    $("#after_pre").hide();
+    $("#before_post").hide();
     $('#main').show();
     $('#header').show();
   });
@@ -385,15 +382,14 @@ var client_onjoingame = function(num_players, role) {
   $('#roleLabel').append(role + '.');
   if (role === globalGame.playerRoleNames.role1) {
     txt = "target";
-    $('#instructs').html("<p>You have 30 seconds to make a sketch of the target (white) so that your partner can tell which it is. </p>" +
-      "<p> The faster the Viewer selects the correct object, the larger the bonus both of you will receive. Draw the object as you see it, and DO </p>" +
-      "<p> NOT include letters, arrows, or any surrounding context. Please do not resize browser window or change zoom during the game. </p>");
+    $('#instructs').html("<p>You have 30 seconds to make a sketch of the target (white) so that your partner can tell which it is. You will receive </p>" +
+      "<p> a bonus ONLY if the Viewer selects the correct object (plus small additional speed bonus). Draw the object as you see it, and DO NOT include letters, arrows, or surrounding context. Please do not resize browser window or change zoom during the game. </p>");
       // $("#submitbutton").show();
   } else if (role === globalGame.playerRoleNames.role2) {
 
-    $('#instructs').html("<p>Your partner has 30 seconds to draw one of these four objects. </p>" +
-      "<p> As soon as you can tell, click on the object you think they're drawing. The faster you can select the correct object,</p>" +
-      "<p> the larger the bonus both of you will receive. Please do not resize browser window or change zoom during the game.</p>");
+    $('#instructs').html("<p>Your partner has 30 seconds to draw one of these four objects. When you are sure which it is, click on the object </p>" +
+      "<p> you think they're drawing. If you are correct, you will both receive a bonus (plus small additional speed bonus).</p>" +
+      "<p> Please do not resize browser window or change zoom during the game.</p>");
     // $("#loading").show();
   }
 
@@ -436,32 +432,25 @@ var client_onjoingame = function(num_players, role) {
 };
 
 var setupOverlay = function() { // added transition pop-up
-  console.log("setupOverlay being called");
+  //console.log("setupOverlay being called");
   if (globalGame.get_player(globalGame.my_id).role == globalGame.playerRoleNames.role1) {
     //console.log("i am the sketcher");
     $('#after_pre_button').click(function next() {
       globalGame.socket.send('sketcherReady');
       $('#after_pre_text').text("Waiting for Viewer to click 'next'...");
-      //bothReady();
-      //console.log("globalGame.sketcherReady: " + globalGame.sketcherReady);
     });
     $('#before_post_button').click(function next() {
       globalGame.socket.send('sketcherReady');
       $('#before_post_text').text("Waiting for Viewer to click 'next'...");
-      //bothReady();
     });
   } else {
-    //console.log("i am the viewer");
     $('#after_pre_button').click(function next() {
       globalGame.socket.send('viewerReady');
       $('#after_pre_text').text("Waiting for Sketcher to click 'next'...");
-      //bothReady();
-      //console.log("globalGame.viewerReady: " + globalGame.viewerReady);
     });
     $('#before_post_button').click(function next() {
       globalGame.socket.send('viewerReady');
       $('#before_post_text').text("Waiting for Sketcher to click 'next'...");
-      //bothReady();
     });
   }
 };
