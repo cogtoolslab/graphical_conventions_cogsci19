@@ -43,36 +43,35 @@ var onMessage = function(client,message) {
     break;
 
   case 'clickedObj' :
-          others[0].player.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
-          target.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
-          gc.objClicked = true;
-          var afterPreRound = gc.setSize * 2;
-          var beforePostRound = gc.numRounds - gc.setSize * 2;
-
-          setTimeout(function() {
-            if ((gc.roundNum == afterPreRound - 1) || (gc.roundNum == beforePostRound - 1)) {
-              _.map(all, function(p) {
-                p.player.instance.emit('phaseChange');
-              });
-            } else {
-              _.map(all, function(p) {
-                p.player.instance.emit('newRoundUpdate');
-              });
-              gc.newRound();
-            }
-          }, 2000);
-
+      others[0].player.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
+      target.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
+      gc.objClicked = true;
+      var afterPreRound = gc.setSize * 2;
+      var beforePostRound = gc.numRounds - gc.setSize * 2;
+      setTimeout(function() {
+        // if there should be a phase change, call phaseChange but not gc.newRound()
+        if ((gc.roundNum == afterPreRound - 1) || (gc.roundNum == beforePostRound - 1)) {
+          _.map(all, function(p) {
+            p.player.instance.emit('phaseChange');
+          });
+        } else {
+          _.map(all, function(p) {
+            p.player.instance.emit('newRoundUpdate');
+          });
+          gc.newRound();
+        }
+      }, 2000);
     break;
 
   case 'sketcherReady' :
-    console.log("sketcherReady in server called");
+    //console.log("sketcherReady in server called");
     gc.sketcherReady = true;
     if (gc.viewerReady) {
       gc.sketcherReady = false;
       gc.viewerReady = false;
       _.map(all, function(p) {
-        p.player.instance.emit('readyToContinue');
         p.player.instance.emit('newRoundUpdate');
+        p.player.instance.emit('readyToContinue');
       });
       gc.newRound();
     }
@@ -82,16 +81,16 @@ var onMessage = function(client,message) {
     // console.log("sketcherReady: " + gc.sketcherReady);
     // console.log("sketcherReady: " + gc.viewerReady);
   case 'viewerReady' :
-    console.log("viewerReady in server called");
+    //console.log("viewerReady in server called");
     gc.viewerReady = true;
-    console.log("sketcherReady: " + gc.sketcherReady);
-    console.log("sketcherReady: " + gc.viewerReady);
+    //console.log("sketcherReady: " + gc.sketcherReady);
+    //console.log("sketcherReady: " + gc.viewerReady);
     if (gc.sketcherReady) {
       gc.sketcherReady = false;
       gc.viewerReady = false;
       _.map(all, function(p) {
-        p.player.instance.emit('readyToContinue');
         p.player.instance.emit('newRoundUpdate');
+        p.player.instance.emit('readyToContinue');
       });
       gc.newRound();
     }
