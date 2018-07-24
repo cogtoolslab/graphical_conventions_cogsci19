@@ -365,6 +365,18 @@ var customSetup = function(game) {
 
 
 var client_onjoingame = function(num_players, role) {
+
+  if (globalGame.setSize == 4) {
+    $("#viewport").css({"height": "25vh","width": "100vh"});
+    $("#occluder").css({"height": "25vh","width": "100vh"});
+    $("#confirmbutton").css({"top": "95%"});
+    $('#roundnumber').html("Round 1 of 40");
+  } else {
+    $("#viewport").css({"height": "20vh","width": "120vh"});
+    $("#occluder").css({"height": "20vh","width": "120vh"});
+    $("#confirmbutton").css({"top": "90%"});
+    $('#roundnumber').html("Round 1 of 48");
+  }
   // set role locally
   globalGame.my_role = role;
 

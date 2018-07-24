@@ -150,7 +150,7 @@ def get_complete_and_valid_games(games,
         ## check to make sure there are the correct number of clicked Obj events, which should equal the number of trials in the game   
         finished_game = False
 
-        if (iterationName == 'run2_chairs1k_size6'):
+        if (iterationName == 'run2_chairs1k_size6' or iterationName == 'run3_size6_waiting'):
             if num_clicks == 48:
                 finished_game = True
         else:
