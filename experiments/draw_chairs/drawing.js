@@ -69,14 +69,11 @@ var highlightCell = function(game, color, condition) {
 
 // Color the border around objects depending on which set is currently shown
 var colorBorder = function(globalGame) {
-  var repeatedColor;
+  var repeatedColor = globalGame.objects[0]['repeatedColor'];
   var controlColor;
-  //console.log("repeatedIsRed: " + globalGame.objects[0]['repeatedIsRed']);
-  if (globalGame.objects[0]['repeatedIsRed'] == true) {
-    repeatedColor = "#ce0a04"; // red
+  if (repeatedColor == "#ce0a04") {
     controlColor = "#4286f4"; // blue
   } else {
-    repeatedColor = "#4286f4"; // blue
     controlColor = "#ce0a04"; // red
   }
   if(globalGame.objects) {

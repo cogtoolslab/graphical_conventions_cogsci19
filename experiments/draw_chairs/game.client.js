@@ -91,6 +91,7 @@ var client_onserverupdate_received = function(data){
           alreadyLoaded += 1
 
           if (alreadyLoaded == globalGame.setSize) {
+              console.log("all images loaded, now sketcher can draw");
               setTimeout(function() {
               $('#occluder').hide();
               drawGrid(globalGame);
@@ -157,7 +158,7 @@ var client_onMessage = function(data) {
       $('#chatbox').attr("disabled", "disabled");
       var clickedObjName = commanddata;
       objClicked = true; // set clicked obj toggle variable to true
-      player = globalGame.get_player(globalGame.my_id) // change this
+      player = globalGame.get_player(globalGame.my_id); // change this
       globalGame.viewport.removeEventListener("click", responseListener, false); // added - moved
 
       $element.find('.progress-bar').finish();
@@ -250,9 +251,9 @@ var customSetup = function(game) {
   // Set up new round on client's browsers after submit round button is pressed.
   // This means clear the canvas, update round number, and update score on screen
   game.socket.on('newRoundUpdate', function(data){
+    console.log("newRoundUpdate in client called");
     // Reset sketchpad each round
     project.activeLayer.removeChildren();
-
     // reset drawing stuff
     globalGame.doneDrawing = false;
     game.strokeMade = false;
@@ -267,18 +268,6 @@ var customSetup = function(game) {
     globalGame.currStrokeNum = 0;
     drawGrid(globalGame);
     drawObjects(globalGame, player);
-
-    // occluder box animation now controlled within client_onserverupdate_received
-    // // fade in occluder box, wait a beat, then fade it out (then allow drawing)
-    // $("#occluder").show(0)
-    //               .delay(3000)
-    //               .hide(0, function() {
-    //                 globalGame.drawingAllowed = true;
-    //               });
-
-    // if (globalGame.my_role === globalGame.playerRoleNames.role2) {
-    //   $("#loading").fadeIn('fast');
-    // }
 
     // clear feedback blurb
     $('#feedback').html(" ");
@@ -309,6 +298,27 @@ var customSetup = function(game) {
     $('#score').empty().append(score / 3 + ' of ' + (game.roundNum + 1) + ' correct for a bonus of $'
 			       + displaytotal);
   });
+
+
+  game.socket.on('phaseChange', function(data){
+    // pop-ups in between phases
+    var afterPreRound = globalGame.setSize * 2;
+    var beforePostRound = globalGame.numRounds - globalGame.setSize * 2;
+    $("#main").hide();
+    $("#header").hide();
+    $("#dimScreen").show();
+
+    if (game.roundNum == afterPreRound - 1) {
+      $("#after_pre").show(); //or $("#before_post").show();
+      setupOverlay();
+
+    } else {
+      $("#before_post").show(); //or $("#before_post").show();
+      setupOverlay();
+    }
+
+  });
+
 
   game.socket.on('stroke', function(jsonData) {
     // first, allow listener to respond
@@ -344,6 +354,15 @@ var customSetup = function(game) {
     } else if (globalGame.my_role === globalGame.playerRoleNames.role2 && !objClicked) {
       setTimeout(function(){$('#turnIndicator').html("Time's up! Make a selection!");},globalGame.feedbackDelay);
     }
+  });
+
+  game.socket.on('readyToContinue', function(data){
+    console.log("readyToContinue in game client called!");
+    $('#dimScreen').hide();
+    $('#after_pre_text').hide();
+    $('#before_post_text').hide();
+    $('#main').show();
+    $('#header').show();
   });
 };
 
@@ -415,6 +434,38 @@ var client_onjoingame = function(num_players, role) {
   }
 
 };
+
+var setupOverlay = function() { // added transition pop-up
+  console.log("setupOverlay being called");
+  if (globalGame.get_player(globalGame.my_id).role == globalGame.playerRoleNames.role1) {
+    console.log("i am the sketcher");
+    $('#after_pre_button').click(function next() {
+      globalGame.socket.send('sketcherReady');
+      $('#after_pre_text').text("Waiting for Viewer to click 'next'...");
+      //bothReady();
+      //console.log("globalGame.sketcherReady: " + globalGame.sketcherReady);
+    });
+    $('#before_post_button').click(function next() {
+      globalGame.socket.send('sketcherReady');
+      $('#before_post_text').text("Waiting for Viewer to click 'next'...");
+      //bothReady();
+    });
+  } else {
+    console.log("i am the viewer");
+    $('#after_pre_button').click(function next() {
+      globalGame.socket.send('viewerReady');
+      $('#after_pre_text').text("Waiting for Sketcher to click 'next'...");
+      //bothReady();
+      //console.log("globalGame.viewerReady: " + globalGame.viewerReady);
+    });
+    $('#before_post_button').click(function next() {
+      globalGame.socket.send('viewerReady');
+      $('#before_post_text').text("Waiting for Sketcher to click 'next'...");
+      //bothReady();
+    });
+  }
+};
+
 
 /*
  MOUSE EVENT LISTENERS

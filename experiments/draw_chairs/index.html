@@ -48,7 +48,7 @@
         <p style="color:white" id='scoreupdate'> </p>
         <p style="color:white" id='turnIndicator'> </p>
         <!-- <p style="color:white" id='roundnumber'> Round 1 of 40 </p> -->
-        <p style="color:white" id='roundnumber'> Round 1 of 40 </p>
+        <p style="color:white" id='roundnumber'> Round 1 of 48 </p>
         <p style="color:white" id='score'> </p>
         <p style="color:white" id='bonuslabel'>Possible bonus </p>
         <p style="color:white" id='cents'>if correct (¢): </p>
@@ -73,6 +73,36 @@
       <div id='occluder' style="display: none"> </div>
       <button id="confirmbutton" style="display:none">Confirm</button>
     </div>
+
+    <div id="dimScreen" style="display:none"></div>
+
+    <div id="after_pre" style="display:none">
+      <span>
+      	<div id="after_pre_text">
+      	  <p>Good job! You have seen both the red set and the blue set in the past trials.</p>
+      	  <br />
+      	  <p>But now you are only going to see one of the sets over and over again!</p>
+      	  <br />
+      	  <p>Ready to begin?</p>
+      	  <button id="after_pre_button" style="width:100px; height:50px;font-size:150%;margin: 20px"> Next </button>
+      	</div>
+      <!-- <p id="after_pre_instruction"></p> -->
+    </div>
+
+    <div id="before_post" style="display:none">
+      <span>
+        <div id="before_post_text">
+      	  <p>Good job! You have been seeing only one of the two sets over and over again.</p>
+      	  <br />
+      	  <p>Now you are going to see both of the two sets in the next few trials!</p>
+      	  <br />
+      	  <p>Ready to begin?</p>
+      	  <button id="before_post_button" style="width:100px; height:50px;font-size:100%;margin: 20px"> Next </button>
+      	</div>
+      <!-- <p id="before_post_instruction"></p> -->
+    </div>
+
+
 
     <div id="exit_survey" style="display:none">
       <br><br><br>

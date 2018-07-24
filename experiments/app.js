@@ -33,7 +33,7 @@ if(argv.expname) {
   var gameServer = new Server(exp);
 } else {
   console.log('no expname specified; using the default expname, "draw"')
-  var exp = 'draw';
+  var exp = 'draw_chairs';
   var gameServer = new Server(exp);
 }
 

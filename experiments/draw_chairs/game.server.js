@@ -46,12 +46,55 @@ var onMessage = function(client,message) {
           others[0].player.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
           target.instance.send("s.feedback." + message_parts[1] + "." + gc.timeleft);
           gc.objClicked = true;
+          var afterPreRound = gc.setSize * 2;
+          var beforePostRound = gc.numRounds - gc.setSize * 2;
+
           setTimeout(function() {
-            _.map(all, function(p){
-              p.player.instance.emit('newRoundUpdate', {user: client.userid} );
-            });
-            gc.newRound();
+            if ((gc.roundNum == afterPreRound - 1) || (gc.roundNum == beforePostRound - 1)) {
+              _.map(all, function(p) {
+                p.player.instance.emit('phaseChange');
+              });
+            } else {
+              _.map(all, function(p) {
+                p.player.instance.emit('newRoundUpdate');
+              });
+              gc.newRound();
+            }
           }, 2000);
+
+    break;
+
+  case 'sketcherReady' :
+    console.log("sketcherReady in server called");
+    gc.sketcherReady = true;
+    if (gc.viewerReady) {
+      gc.sketcherReady = false;
+      gc.viewerReady = false;
+      _.map(all, function(p) {
+        p.player.instance.emit('readyToContinue');
+        p.player.instance.emit('newRoundUpdate');
+      });
+      gc.newRound();
+    }
+    break;
+
+    // console.log("bothReady in server called");
+    // console.log("sketcherReady: " + gc.sketcherReady);
+    // console.log("sketcherReady: " + gc.viewerReady);
+  case 'viewerReady' :
+    console.log("viewerReady in server called");
+    gc.viewerReady = true;
+    console.log("sketcherReady: " + gc.sketcherReady);
+    console.log("sketcherReady: " + gc.viewerReady);
+    if (gc.sketcherReady) {
+      gc.sketcherReady = false;
+      gc.viewerReady = false;
+      _.map(all, function(p) {
+        p.player.instance.emit('readyToContinue');
+        p.player.instance.emit('newRoundUpdate');
+      });
+      gc.newRound();
+    }
     break;
 
   case 'h' : // Receive message when browser focus shifts
@@ -133,8 +176,8 @@ var dataOutput = function() {
       condition : message_data[4],
       phase : message_data[5],
       repetition : message_data[6],
-      score : message_data[7],
-      bonus_score: message_data[8].replace(/~~~/g, '.')
+      previous_score : message_data[7],
+      previous_bonus_score: message_data[8].replace(/~~~/g, '.')
       }
     );
     //console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
@@ -153,8 +196,8 @@ var dataOutput = function() {
       svgData,
       currStrokeNum: message_data[1],
       shiftKeyUsed: message_data[4],
-      score: message_data[5],
-      bonus_score: message_data[6].replace(/~~~/g, '.'),
+      previous_score: message_data[5],
+      previous_bonus_score: message_data[6].replace(/~~~/g, '.'),
       startStrokeTime: message_data[7],
       endStrokeTime: message_data[8]
     });
