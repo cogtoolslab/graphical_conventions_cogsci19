@@ -179,7 +179,7 @@ var dataOutput = function() {
       previous_bonus_score: message_data[8].replace(/~~~/g, '.')
       }
     );
-    //console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
+    console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
     return output;
   };
 
@@ -200,7 +200,7 @@ var dataOutput = function() {
       startStrokeTime: message_data[7],
       endStrokeTime: message_data[8]
     });
-    //console.log(JSON.stringify(output, null, 3));
+    console.log(JSON.stringify(output, null, 3));
     return output;
   };
 
