@@ -282,11 +282,15 @@ game_core.prototype.getRandomizedConditions = function() {
       control_category.push(controlCat);
     }
   } else {
-    repeatedCat = 3;
+    repeatedCat = _.sample([3,1]); // sample from waiting and dining
     for (i=0; i<setSize; i++) {
       repeated_category.push(repeatedCat);
     }
-    controlCat = 1;
+    if (repeatedCat == 3) {
+      controlCat = 1;
+    } else {
+      controlCat = 3;
+    }
     for (i=0; i<setSize; i++) {
       control_category.push(controlCat);
     }
