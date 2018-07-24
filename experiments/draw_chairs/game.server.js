@@ -54,25 +54,22 @@ var onMessage = function(client,message) {
               p.player.instance.emit('newRoundUpdate', {user: client.userid} );
             });
             if ((gc.roundNum != afterPreRound - 1) && (gc.roundNum != beforePostRound - 1)) {
-              console.log("current gc.roundNum: " + gc.roundNum);
               gc.newRound();
             }
           }, 2000);
-       
+
     break;
 
   case 'sketcherReady' :
     console.log("sketcherReady in server called");
     gc.sketcherReady = true;
-    console.log("sketcherReady: " + gc.sketcherReady);
-    console.log("sketcherReady: " + gc.viewerReady);
     if (gc.viewerReady) {
       gc.sketcherReady = false;
       gc.viewerReady = false;
-      gc.newRound();
       _.map(all, function(p) {
         p.player.instance.emit('readyToContinue');
       });
+      gc.newRound();
     }
     break;
 
@@ -87,10 +84,10 @@ var onMessage = function(client,message) {
     if (gc.sketcherReady) {
       gc.sketcherReady = false;
       gc.viewerReady = false;
-      gc.newRound();
       _.map(all, function(p) {
         p.player.instance.emit('readyToContinue');
       });
+      gc.newRound();
     }
     break;
 

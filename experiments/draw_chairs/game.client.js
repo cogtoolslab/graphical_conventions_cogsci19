@@ -26,8 +26,6 @@ var selecting;
 
 // variable to store whether an object has just been clicked
 var objClicked = false;
-var sketcherReady = false;
-var viewerReady = false;
 
 
 /*
@@ -93,6 +91,7 @@ var client_onserverupdate_received = function(data){
           alreadyLoaded += 1
 
           if (alreadyLoaded == globalGame.setSize) {
+              console.log("all images loaded, now sketcher can draw");
               setTimeout(function() {
               $('#occluder').hide();
               drawGrid(globalGame);
@@ -252,8 +251,6 @@ var customSetup = function(game) {
   // Set up new round on client's browsers after submit round button is pressed.
   // This means clear the canvas, update round number, and update score on screen
   game.socket.on('newRoundUpdate', function(data){
-    // Reset sketchpad each round
-    project.activeLayer.removeChildren();
 
     // pop-ups in between phases
     var afterPreRound = globalGame.setSize * 2;
@@ -264,16 +261,18 @@ var customSetup = function(game) {
       $("#header").hide();
       $("#dimScreen").show();
       $("#after_pre").show(); //or $("#before_post").show();
-      setupOverlay(data);
+      setupOverlay();
 
     } else if (game.roundNum == beforePostRound - 1) {
       $("#main").hide();
       $("#header").hide();
       $("#dimScreen").show();
       $("#before_post").show(); //or $("#before_post").show();
-      setupOverlay(data);
+      setupOverlay();
 
     } else {
+      // Reset sketchpad each round
+      project.activeLayer.removeChildren();
       // reset drawing stuff
       globalGame.doneDrawing = false;
       game.strokeMade = false;
@@ -377,6 +376,8 @@ var customSetup = function(game) {
     $('#main').show();
     $('#header').show();
 
+    // Reset sketchpad each round
+    project.activeLayer.removeChildren();
     // reset drawing stuff
     globalGame.doneDrawing = false;
     game.strokeMade = false;
@@ -386,6 +387,8 @@ var customSetup = function(game) {
     objClicked = false;
     if(globalGame.my_role === globalGame.playerRoleNames.role2) {
       globalGame.viewport.addEventListener("click", responseListener, false); // added
+    } else {
+        globalGame.sketchpad.setupTool();
     }
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
