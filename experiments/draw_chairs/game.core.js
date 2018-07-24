@@ -737,7 +737,7 @@ var game_core = function(options){
   };
 
   // How many objects do we have in a context?
-  this.setSize = 6; // many things depend on this
+  this.setSize = 4; // many things depend on this
   console.log("actual setSize:" + this.setSize);
 
   //Dimensions of world in pixels and number of cells to be divided into;
@@ -828,7 +828,7 @@ var game_core = function(options){
   this.viewerReady = false;
 
   // Are we just using waiting chairs?
-  this.waitingOnly = true; // set to false for generalization
+  this.waitingOnly = true;
 
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
@@ -979,6 +979,10 @@ game_core.prototype.getRandomizedConditions = function() {
     repeatedCat = 3;
     for (i=0; i<setSize; i++) {
       repeated_category.push(repeatedCat);
+    }
+    controlCat = 1;
+    for (i=0; i<setSize; i++) {
+      control_category.push(controlCat);
     }
   }
 
