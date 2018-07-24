@@ -737,7 +737,7 @@ var game_core = function(options){
   };
 
   // How many objects do we have in a context?
-  this.setSize = 6; // many things depend on this
+  this.setSize = 4; // many things depend on this
   console.log("actual setSize:" + this.setSize);
 
   //Dimensions of world in pixels and number of cells to be divided into;

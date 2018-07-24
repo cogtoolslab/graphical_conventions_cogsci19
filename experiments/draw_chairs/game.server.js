@@ -50,10 +50,14 @@ var onMessage = function(client,message) {
           var beforePostRound = gc.numRounds - gc.setSize * 2;
 
           setTimeout(function() {
-            _.map(all, function(p){
-              p.player.instance.emit('newRoundUpdate', {user: client.userid} );
-            });
-            if ((gc.roundNum != afterPreRound - 1) && (gc.roundNum != beforePostRound - 1)) {
+            if ((gc.roundNum == afterPreRound - 1) || (gc.roundNum == beforePostRound - 1)) {
+              _.map(all, function(p) {
+                p.player.instance.emit('phaseChange');
+              });
+            } else {
+              _.map(all, function(p) {
+                p.player.instance.emit('newRoundUpdate');
+              });
               gc.newRound();
             }
           }, 2000);
@@ -68,6 +72,7 @@ var onMessage = function(client,message) {
       gc.viewerReady = false;
       _.map(all, function(p) {
         p.player.instance.emit('readyToContinue');
+        p.player.instance.emit('newRoundUpdate');
       });
       gc.newRound();
     }
@@ -86,6 +91,7 @@ var onMessage = function(client,message) {
       gc.viewerReady = false;
       _.map(all, function(p) {
         p.player.instance.emit('readyToContinue');
+        p.player.instance.emit('newRoundUpdate');
       });
       gc.newRound();
     }
