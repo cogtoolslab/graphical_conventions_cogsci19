@@ -18,7 +18,7 @@ colors = sns.color_palette("cubehelix", 5)
 
 #Dictionaries to convert between objects and categories 
 
-OBJECT_TO_CATEGORY = {
+OBJECT_TO_CATEGORY_run1 = {
     'basset': 'dog', 'beetle': 'car', 'bloodhound': 'dog', 'bluejay': 'bird',
     'bluesedan': 'car', 'bluesport': 'car', 'brown': 'car', 'bullmastiff': 'dog',
     'chihuahua': 'dog', 'crow': 'bird', 'cuckoo': 'bird', 'doberman': 'dog',
@@ -28,12 +28,31 @@ OBJECT_TO_CATEGORY = {
     'sparrow': 'bird', 'squat': 'chair', 'straight': 'chair', 'tomtit': 'bird',
     'waiting': 'chair', 'weimaraner': 'dog', 'white': 'car', 'woven': 'chair',
 }
-CATEGORY_TO_OBJECT = {
+CATEGORY_TO_OBJECT_run1 = {
     'dog': ['basset', 'bloodhound', 'bullmastiff', 'chihuahua', 'doberman', 'goldenretriever', 'pug', 'weimaraner'],
     'car': ['beetle', 'bluesedan', 'bluesport', 'brown', 'hatchback', 'redantique', 'redsport', 'white'],
     'bird': ['bluejay', 'crow', 'cuckoo', 'nightingale', 'pigeon', 'robin', 'sparrow', 'tomtit'],
     'chair': ['inlay', 'knob', 'leather', 'sling', 'squat', 'straight', 'waiting', 'woven'],
 }
+
+OBJECT_TO_CATEGORY_run2 = {
+    'deck_00':'deck', 'deck_01':'deck', 'deck_02':'deck', 'deck_03':'deck', 'deck_04':'deck', 'deck_05':'deck',
+     'deck_06':'deck', 'deck_07':'deck', 'deck_08':'deck', 'deck_09':'deck', 'deck_10':'deck', 'deck_11':'deck',
+     'dining_00':'dining','dining_01':'dining','dining_02':'dining','dining_03':'dining','dining_04':'dining','dining_05':'dining',
+    'dining_06':'dining','dining_07':'dining','dining_08':'dining','dining_09':'dining','dining_10':'dining','dining_11':'dining',
+    'armchair_00':'armchair','armchair_01':'armchair','armchair_02':'armchair','armchair_03':'armchair','armchair_04':'armchair','armchair_05':'armchair',
+    'armchair_06':'armchair','armchair_07':'armchair','armchair_08':'armchair','armchair_09':'armchair','armchair_10':'armchair','armchair_11':'armchair',
+    'waiting_00':'waiting', 'waiting_01':'waiting', 'waiting_02':'waiting', 'waiting_03':'waiting', 'waiting_04':'waiting', 'waiting_05':'waiting',
+     'waiting_06':'waiting', 'waiting_07':'waiting', 'waiting_08':'waiting', 'waiting_09':'waiting', 'waiting_10':'waiting', 'waiting_11':'waiting'
+}
+
+CATEGORY_TO_OBJECT_run2 = {
+    'deck': ['deck_00', 'deck_01', 'deck_02', 'deck_03', 'deck_04', 'deck_05', 'deck_06', 'deck_07', 'deck_08', 'deck_09', 'deck_10', 'deck_11'],
+    'dining': ['dining_00', 'dining_01','dining_02','dining_03','dining_04','dining_05','dining_06','dining_07','dining_08','dining_09','dining_10','dining_11'],
+    'armchair': ['armchair_00','armchair_01','armchair_02','armchair_03','armchair_04','armchair_05','armchair_06','armchair_07','armchair_08','armchair_09','armchair_10','armchair_11'],
+    'waiting': ['waiting_00','waiting_01','waiting_02','waiting_03','waiting_04','waiting_05','waiting_06','waiting_07','waiting_08','waiting_09','waiting_10','waiting_11']
+}
+
 
 ################################################################################################
 
@@ -46,16 +65,16 @@ def convert_numeric(X,column_id):
 
 ###  Subhelper 1
 
-def collapse_within_repetition(D, var, condition):
+def collapse_within_repetition(D, var, condition, numReps):
     _D = D[D['condition']==condition]
     if condition == 'repeated':
         return (_D.groupby(['gameID','repetition','condition'])[var].mean()).reset_index()
     else: 
-        return ((_D.groupby(['gameID','repetition','condition'])[var].mean()).reset_index()).replace(1,7)
+        return ((_D.groupby(['gameID','repetition','condition'])[var].mean()).reset_index()).replace(1,numReps-1)
     
 ###  Subhelper 2
     
-def plot_repeated_control(D_repeated, D_control, var, ax):
+def plot_repeated_control(D_repeated, D_control, var, ax, numReps, D):
     sns.tsplot(data=D_repeated,
            time='repetition',
            unit='gameID',
@@ -71,12 +90,29 @@ def plot_repeated_control(D_repeated, D_control, var, ax):
                ax=ax,
                color='r')
     
-    ax.set(xlim=(-0.5, 7.5), xticks=range(0,8))
+    #mean_accuracy_list = []
+    #for i in range(0,6):
+    #    outcome_list = (D.loc[D['repetition'] == i])['outcome']
+    #    mean_accuracy = (sum(outcome_list) / float(len(outcome_list)))*5
+    #    mean_accuracy_list.append(mean_accuracy)
+    #D_mean = pd.DataFrame()
+    #D_mean['meanAccuracy'] = mean_accuracy_list
+    #D_mean['repetition'] = range(0,6)
+    #plt.figure(figsize=(6,6))
+    
+    #sns.tsplot(data=D_mean,
+     #        time='repetition',
+      #       value='meanAccuracy',
+       #      ax=ax)    
+    # plt.ylim([0,limit])
+    
+    ax.set(xlim=(-0.5, numReps - 0.5), xticks=range(0,8))
 
 ###############################################################################################
 
 def get_complete_and_valid_games(games,
-                                 coll,                                 
+                                 coll,       
+                                 iterationName,
                                  researchers,
                                  tolerate_undefined_worker=False):
     '''
@@ -92,11 +128,11 @@ def get_complete_and_valid_games(games,
     '''
     complete_games = []
     for i, game in enumerate(games):
-        num_clicks = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'}]}).count()
+        num_clicks = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'},{'iterationName':iterationName}]}).count()
         ## check to make sure there were two real mturk workers participating who were not researchers
         real_workers = False
-        viewer = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'}]}).distinct('workerId')
-        sketcher = coll.find({'$and': [{'gameid':game},{'eventType':'stroke'}]}).distinct('workerId')
+        viewer = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'},{'iterationName':iterationName}]}).distinct('workerId')
+        sketcher = coll.find({'$and': [{'gameid':game},{'eventType':'stroke'},{'iterationName':iterationName}]}).distinct('workerId')
         viewer_is_researcher = viewer in researchers
         sketcher_is_researcher = sketcher in researchers  
         try:
@@ -111,8 +147,14 @@ def get_complete_and_valid_games(games,
 
         ## check to make sure there are the correct number of clicked Obj events, which should equal the number of trials in the game   
         finished_game = False
-        if num_clicks == 40:
-            finished_game = True
+
+        if (iterationName == 'run2_chairs1k_size6'):
+            if num_clicks == 48:
+                finished_game = True
+        else:
+            if num_clicks == 40:
+                finished_game = True
+       
 
         ##print game, viewer_check, sketcher_check, viewer_is_researcher, sketcher_is_researcher, num_clicks
             
@@ -176,6 +218,7 @@ def ts_repeated(D, # the dataframe
 
 def ts_repeated_control(D, # the dataframe
                         var='drawDuration', # the variable you want to see plotted against numRepts 
+                        numReps = 8,
                         limit=10,
                         save_plot=False,
                         plot_dir='./plots'): # the y range for the plot 
@@ -208,7 +251,7 @@ def ts_repeated_control(D, # the dataframe
     _D1 = D[D['condition']=='control']
     D1 = _D1.groupby(['gameID','repetition','condition'])[var].mean()
     D1 = D1.reset_index()  
-    D1 = D1.replace(1, 7) # rescale control repetitions 
+    D1 = D1.replace(1, numReps-1) # rescale control repetitions 
 
     ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
     num_reps = len(np.unique(D.repetition.values))
@@ -235,15 +278,32 @@ def ts_repeated_control(D, # the dataframe
                ax=ax,
                color='r')
     
-    plt.xlim([-0.5,7.5])
+##    mean_accuracy_list = []
+##    for i in range(0,6):
+##        outcome_list = (D.loc[D['repetition'] == i])['outcome']
+##       mean_accuracy = (sum(outcome_list) / float(len(outcome_list)))*10
+ #       mean_accuracy_list.append(mean_accuracy)
+    #D_mean = pd.DataFrame()
+   # D_mean['meanAccuracy'] = mean_accuracy_list
+    #D_mean['repetition'] = range(0,6)
+    #plt.figure(figsize=(6,6))
+    
+    #sns.tsplot(data=D_mean,
+    #         time='repetition',
+     #        value='meanAccuracy',
+       #      ax=ax)    
+    # plt.ylim([0,limit])
+    
+    plt.xlim([-0.5, numReps - 0.5])
     plt.ylim([0, limit])
-    plt.xticks(np.arange(0, 8, step=1))
+    plt.xticks(np.arange(0, numReps, step=1))
     plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var)))
     
 ###############################################################################################
 
 def ts_grid_repeated_control(D, 
                                       var0, var1, var2, var3,
+                                       numReps=8,
                                       save_plot=False,
                                       plot_dir='./plots'):
     
@@ -266,26 +326,31 @@ def ts_grid_repeated_control(D,
     
     D = convert_numeric(convert_numeric(convert_numeric(convert_numeric(D,var0),var1),var2),var3) 
     
-    D0_repeated = collapse_within_repetition(D, var0, 'repeated')
-    D1_repeated = collapse_within_repetition(D, var1, 'repeated')
-    D2_repeated = collapse_within_repetition(D, var2, 'repeated')
-    D3_repeated = collapse_within_repetition(D, var3, 'repeated')
-    D0_control = collapse_within_repetition(D, var0, 'control')
-    D1_control = collapse_within_repetition(D, var1, 'control')
-    D2_control = collapse_within_repetition(D, var2, 'control')
-    D3_control = collapse_within_repetition(D, var3, 'control')
+    D0_repeated = collapse_within_repetition(D, var0, 'repeated', numReps)
+    D1_repeated = collapse_within_repetition(D, var1, 'repeated', numReps)
+    D2_repeated = collapse_within_repetition(D, var2, 'repeated', numReps)
+    D3_repeated = collapse_within_repetition(D, var3, 'repeated', numReps)
+    D0_control = collapse_within_repetition(D, var0, 'control', numReps)
+    D1_control = collapse_within_repetition(D, var1, 'control', numReps)
+    D2_control = collapse_within_repetition(D, var2, 'control', numReps)
+    D3_control = collapse_within_repetition(D, var3, 'control', numReps)
 
     ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
     num_reps = len(np.unique(D.repetition.values))
     assert D0_repeated.groupby('gameID')['gameID'].count()[0]==num_reps    
 
     #fig = plt.figure(figsize=(12,12))
-    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(nrows=2, ncols=2, figsize=(12,5))
+    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(nrows=2, ncols=2, figsize=(12,8))
 
-    plot_repeated_control(D0_repeated, D0_control, var0, ax0)
-    plot_repeated_control(D1_repeated, D1_control, var1, ax1)
-    plot_repeated_control(D2_repeated, D2_control, var2, ax2)
-    plot_repeated_control(D3_repeated, D3_control, var3, ax3)
+    plot_repeated_control(D0_repeated, D0_control, var0, ax0, numReps, D)
+    plot_repeated_control(D1_repeated, D1_control, var1, ax1, numReps, D)
+    plot_repeated_control(D2_repeated, D2_control, var2, ax2, numReps, D)
+    plot_repeated_control(D3_repeated, D3_control, var3, ax3, numReps, D)
+
+    ax0.set_ylim([2, 8])
+    ax1.set_ylim([3, 16])
+    ax2.set_ylim([8, 32])
+    ax3.set_ylim([2.5, 9])
     
     plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 
@@ -323,34 +388,38 @@ def ts_grid_repeated(D, # the dataframe
     D3 = collapse_within_repetition(D, var3, 'repeated')
     
     #fig = plt.figure(figsize=(12,12))
-    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(nrows=2, ncols=2, figsize=(12,5))
+    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(nrows=2, ncols=2, figsize=(10,5))
 
     ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
     num_reps = len(np.unique(D.repetition.values))
     assert D0.groupby('gameID')['gameID'].count()[0]==num_reps    
 
-    sns.tsplot(data=D0,
-               time='repetition',
+    sns.lineplot(data=D0,
+               x='repetition',
+               hue='gameID',
                unit='gameID',
-               value=var0,
+               y=var0,
                ax=ax0)
 
-    sns.tsplot(data=D1,
-               time='repetition',
+    sns.lineplot(data=D1,
+               x='repetition',
+               hue='gameID',
                unit='gameID',
-               value=var1,
+               y=var1,
                ax=ax1)
 
-    sns.tsplot(data=D2,
-               time='repetition',
+    sns.lineplot(data=D2,
+               x='repetition',
+               hue='gameID',
                unit='gameID',
-               value=var2,
+               y=var2,
                ax=ax2)
 
-    sns.tsplot(data=D3,
-               time='repetition',
+    sns.lineplot(data=D3,
+               x='repetition',
+               hue='gameID',
                unit='gameID',
-               value=var3,
+               y=var3,
                ax=ax3)
 
     plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
@@ -359,7 +428,7 @@ def ts_grid_repeated(D, # the dataframe
 ###############################################################################################
 
 def compare_conditions_prepost(D, # the dataframe
-                        var='drawDuration', # the variable you want to see plotted against numRepts 
+                        var='outcome', # the variable you want to see plotted against numRepts 
                         limit=10,
                         save_plot=False,
                         plot_dir='./plots'): # the y range for the plot 
@@ -389,7 +458,7 @@ def compare_conditions_prepost(D, # the dataframe
              hue='condition',
              order=['pre','post'])    
     plt.ylim([0,limit])
-    plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var))) 
+    #plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var))) 
     return D1    
 
 ###############################################################################################
@@ -449,8 +518,8 @@ def print_repeated_sketches(D,
             if not os.path.exists(os.path.join(sketch_dir,'repeated')):
                 os.makedirs(os.path.join(sketch_dir,'repeated'))
             plt.tight_layout()
-            plt.savefig(os.path.join(sketch_dir,'repeated',filepath))
-            plt.close(fig)
+            #plt.savefig(os.path.join(sketch_dir,'repeated',filepath))
+            #plt.close(fig)
         
 ###############################################################################################
 
@@ -508,5 +577,40 @@ def print_control_sketches(D,
             filepath = os.path.join(sketch_dir,'control','{}_{}.pdf'.format(g,category))     
             if not os.path.exists(os.path.join(sketch_dir,'control')):
                 os.makedirs(os.path.join(sketch_dir,'control'))
-            plt.savefig(os.path.join(sketch_dir,'control',filepath))
-            plt.close(fig)
+            #plt.savefig(os.path.join(sketch_dir,'control',filepath))
+            #plt.close(fig)
+            
+###############################################################################################       
+            
+def get_confusion_matrix(D, category, set_size):
+    obj_list = []
+    objlist = CATEGORY_TO_OBJECT_run2[category]
+    for obj in objlist[:set_size*2]:
+        obj_list.append(obj)
+
+    ## initialize confusion matrix 
+    confusion = np.zeros((len(obj_list), len(obj_list)))
+
+    ## generate confusion matrix by incrementing each cell 
+    for i, d in D.iterrows():
+        if d['category'] == category:
+            targ_ind = obj_list.index(d['target'])
+            chosen_ind = obj_list.index(d['response'])
+            confusion[targ_ind, chosen_ind] += 1
+    
+    ## normalize confusion matrix 
+    normed = np.zeros((len(obj_list), len(obj_list)))
+    for i in np.arange(len(confusion)):
+        normed[i,:] = confusion[i,:]/np.sum(confusion[i,:])
+            
+    ## plot confusion matrix 
+    from matplotlib import cm
+    fig = plt.figure(figsize=(8,8))
+    ax = plt.subplot(111)
+    cax = ax.matshow(normed,vmin=0,vmax=1,cmap=cm.viridis)
+    plt.xticks(range(len(normed)), obj_list, fontsize=12,rotation='vertical')
+    plt.yticks(range(len(normed)), obj_list, fontsize=12)
+    plt.colorbar(cax,shrink=0.8)
+    plt.tight_layout()
+    #plt.savefig('./plots/confusion_matrix_all.pdf')
+    #plt.close(fig)
