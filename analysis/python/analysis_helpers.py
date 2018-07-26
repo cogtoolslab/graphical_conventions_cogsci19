@@ -114,7 +114,8 @@ def get_complete_and_valid_games(games,
                                  coll,       
                                  iterationName,
                                  researchers,
-                                 tolerate_undefined_worker=False):
+                                 tolerate_undefined_worker=False,
+                                 verbose=False):
     '''
     Input: 
         -- games: a list of gameIDs that are in the database, and a list of the researcher worker ID's
@@ -147,7 +148,8 @@ def get_complete_and_valid_games(games,
             if tolerate_undefined_worker:
                 real_workers = True
         except:
-            print 'There was something wrong with this game {}'.format(game)
+            if verbose==True:
+                print 'There was something wrong with this game {}'.format(game)
 
         ## check to make sure there are the correct number of clicked Obj events, which should equal the number of trials in the game   
         finished_game = False
