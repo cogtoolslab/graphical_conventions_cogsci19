@@ -133,6 +133,10 @@ def get_complete_and_valid_games(games,
         real_workers = False
         viewer = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'},{'iterationName':iterationName}]}).distinct('workerId')
         sketcher = coll.find({'$and': [{'gameid':game},{'eventType':'stroke'},{'iterationName':iterationName}]}).distinct('workerId')
+        if viewer == 'A1V2P0JYPD7GM6' or sketcher == 'A1V2P0JYPD7GM6':
+            print "A1V2P0JYPD7GM6 did complete HIT"
+        if viewer == 'A6FE2ZQNFW12V' or sketcher == 'A6FE2ZQNFW12V':
+            print "A6FE2ZQNFW12V did complete HIT"
         viewer_is_researcher = viewer in researchers
         sketcher_is_researcher = sketcher in researchers  
         try:
