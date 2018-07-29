@@ -70,7 +70,9 @@ def collapse_within_repetition(D, var, condition, numReps):
     if condition == 'repeated':
         return (_D.groupby(['gameID','repetition','condition'])[var].mean()).reset_index()
     else: 
-        return ((_D.groupby(['gameID','repetition','condition'])[var].mean()).reset_index()).replace(1,numReps-1)
+        newD = (_D.groupby(['gameID','repetition','condition'])[var].mean()).reset_index()
+        newD.repetition = newD.repetition.replace(1, numReps-1)
+        return newD
     
 ###  Subhelper 2
     
@@ -114,8 +116,7 @@ def get_complete_and_valid_games(games,
                                  coll,       
                                  iterationName,
                                  researchers,
-                                 tolerate_undefined_worker=False,
-                                 verbose=False):
+                                 tolerate_undefined_worker=False):
     '''
     Input: 
         -- games: a list of gameIDs that are in the database, and a list of the researcher worker ID's
@@ -148,7 +149,7 @@ def get_complete_and_valid_games(games,
             if tolerate_undefined_worker:
                 real_workers = True
         except:
-            if verbose==True:
+            if (len(game) < 1):
                 print 'There was something wrong with this game {}'.format(game)
 
         ## check to make sure there are the correct number of clicked Obj events, which should equal the number of trials in the game   
@@ -257,7 +258,7 @@ def ts_repeated_control(D, # the dataframe
     _D1 = D[D['condition']=='control']
     D1 = _D1.groupby(['gameID','repetition','condition'])[var].mean()
     D1 = D1.reset_index()  
-    D1 = D1.replace(1, numReps-1) # rescale control repetitions 
+    D1.repetition = D1.repetition.replace(1, numReps-1) # rescale control repetitions 
 
     ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
     num_reps = len(np.unique(D.repetition.values))
@@ -356,9 +357,90 @@ def ts_grid_repeated_control(D,
     ax0.set_ylim([2, 8])
     ax1.set_ylim([3, 16])
     ax2.set_ylim([8, 32])
-    ax3.set_ylim([2.5, 9])
+    ax3.set_ylim([0, 0.05])
     
     plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+    
+    
+###############################################################################################
+    
+def line_grid_individual(D, 
+                                      var0, var1, var2, var3,
+                                       numReps=8,
+                                      save_plot=False,
+                                      plot_dir='./plots'):
+    
+    if numReps == 8:
+        set_size = 4
+    if numReps == 6:
+        set_size = 6
+
+    D = convert_numeric(convert_numeric(convert_numeric(convert_numeric(D,var0),var1),var2),var3) 
+
+    ## collapsing across objects within repetition (within pair) 
+    ## and only aggregating repeated trials into this sub-dataframe
+    D0 = collapse_within_repetition(D, var0, 'repeated', set_size)
+    D1 = collapse_within_repetition(D, var1, 'repeated', set_size)
+    D2 = collapse_within_repetition(D, var2, 'repeated', set_size)
+    D3 = collapse_within_repetition(D, var3, 'repeated', set_size)
+
+    #fig = plt.figure(figsize=(12,12))
+    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(nrows=2, ncols=2, figsize=(10,10))
+
+    ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
+    num_reps = len(np.unique(D.repetition.values))
+    assert D0.groupby('gameID')['gameID'].count()[0]==num_reps    
+
+    sns.lineplot(data=D0,
+               x='repetition',
+               hue='gameID',
+               units='gameID',
+               y=var0,
+               estimator = None,
+               ax=ax0,
+               legend = False)
+
+    sns.lineplot(data=D1,
+               x='repetition',
+               hue='gameID',
+               units='gameID',
+               y=var1,
+               estimator = None,
+               ax=ax1,
+               legend = False)
+
+    sns.lineplot(data=D2,
+               x='repetition',
+               hue='gameID',
+               units='gameID',
+               y=var2,
+               estimator = None,
+               ax=ax2,
+               legend = False)
+
+    sns.lineplot(data=D3,
+               x='repetition',
+               hue='gameID',
+               units='gameID',
+               y=var3,
+               estimator = None,
+               ax=ax3)
+
+    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+    #plt.xticks(np.arange(0, numReps, step=1))
+    ax0.set_xticks(np.arange(numReps))
+    ax1.set_xticks(np.arange(numReps))
+    ax2.set_xticks(np.arange(numReps))
+    ax3.set_xticks(np.arange(numReps))
+    ax0.set_xticklabels(np.arange(numReps))
+    ax1.set_xticklabels(np.arange(numReps))
+    ax2.set_xticklabels(np.arange(numReps))
+    ax3.set_xticklabels(np.arange(numReps))
+    ax0.set_ylim([1, 14])
+    ax1.set_ylim([3, 20])
+    ax2.set_ylim([8, 50])
+    ax3.set_ylim([0.01, 0.07])
+    ax3.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
 ###############################################################################################
 
@@ -526,16 +608,15 @@ def print_repeated_sketches(D,
             plt.tight_layout()
             #plt.savefig(os.path.join(sketch_dir,'repeated',filepath))
             #plt.close(fig)
+           
         
 ###############################################################################################
 
 def print_control_sketches(D,
                                    complete_games,
                                    sketch_dir): 
-    
-    _valid_gameids = complete_games
 
-    for g in _valid_gameids:
+    for g in complete_games:
         print 'Printing out sketches from game: ' + g
         trial_types = ['control']
         for tt in trial_types:
@@ -586,6 +667,196 @@ def print_control_sketches(D,
             #plt.savefig(os.path.join(sketch_dir,'control',filepath))
             #plt.close(fig)
             
+###############################################################################################
+
+def print_repeated_actual(D,
+                                   complete_games,
+                                   set_size): 
+    
+    if (set_size == 4):
+        index = list(range(1, 37))
+        new_index = filter(lambda x: x%9!=0, index)
+        numReps = 8
+    if (set_size == 6):
+        index = list(range(1, 43))
+        new_index = filter(lambda x: x%7!=0, index)
+        numReps = 6
+    
+    for g in complete_games:
+        print 'Printing out sketches from game: ' + g
+        trial_types = ['repeated']
+        for tt in trial_types:
+            _D = D[(D.condition=='repeated') & (D.gameID==g)]
+            all_targs = np.unique(_D.target.values) ## use this later to name the file
+            _D = _D.sort_values(by=['target','repetition'])
+            _i = 0
+            textsize=12
+            if set_size == 4:
+                fig = plt.figure(figsize=(20,9))
+            if set_size == 6:
+                fig = plt.figure(figsize=(10,10))
+            for i,_d in _D.iterrows():
+                true_index = new_index[_i]
+                if _i % numReps == 0:
+                    target = _d['target']
+                    dir_path = 'chairs1k_pilot'
+                    png_name = target + '.png'
+                    path = os.path.join(dir_path, png_name)
+                    im = Image.open(path)
+                    cropped_im = im.crop((350, 150, 600, 400))
+                    p = plt.subplot(set_size,numReps+1,true_index+numReps)
+                    plt.imshow(cropped_im)
+                    sns.set_style('white')
+                    k = p.get_xaxis().set_ticklabels([])
+                    k = p.get_yaxis().set_ticklabels([])
+                    k = p.get_xaxis().set_ticks([])
+                    k = p.get_yaxis().set_ticks([]) 
+                imgData = _d['png']
+                filestr = base64.b64decode(imgData)
+                fname = 'sketch.png'
+                with open(fname, "wb") as fh:
+                    fh.write(imgData.decode('base64'))
+                textsize = 16
+                # first plot the target
+                im = Image.open(fname)
+                p = plt.subplot(set_size,numReps+1,true_index)
+                plt.imshow(im)
+                sns.set_style('white')
+                k = p.get_xaxis().set_ticklabels([])
+                k = p.get_yaxis().set_ticklabels([])
+                k = p.get_xaxis().set_ticks([])
+                k = p.get_yaxis().set_ticks([]) 
+                outcome = _d['outcome']
+                category = _d['category']
+                if outcome == 1:
+                    sides = ['bottom','top','right','left']
+                    for s in sides:
+                        p.spines[s].set_color((0.4,0.8,0.4))
+                        p.spines[s].set_linewidth(4)                               
+                else:
+                    sides = ['bottom','top','right','left']
+                    for s in sides:
+                        p.spines[s].set_color((0.9,0.2,0.2))
+                        p.spines[s].set_linewidth(4)    
+                if (_i < numReps) & (tt in 'repeated'): 
+                    plt.title('rep ' + str(_d['repetition']) ,fontsize=textsize)
+                if _i%numReps==0:
+                    plt.ylabel(_d['target'] ,fontsize=textsize)
+                _i  = _i + 1
+
+        #filepath = os.path.join(sketch_dir,'repeated','{}_{}.pdf'.format(g,category))                                                                
+        #if not os.path.exists(os.path.join(sketch_dir,'repeated')):
+       #     os.makedirs(os.path.join(sketch_dir,'repeated'))
+        plt.tight_layout()
+        #plt.savefig(os.path.join(sketch_dir,'control',filepath))
+            #plt.close(fig)
+
+###############################################################################################       
+
+def print_repeated_control(D,
+                                   complete_games,
+                                   set_size): 
+    
+    if (set_size == 4):
+        index = list(range(1, 37))
+        new_index = filter(lambda x: x%9!=0, index)
+        numReps = 8
+    if (set_size == 6):
+        index = list(range(1, 43))
+        new_index = filter(lambda x: x%7!=0, index)
+        numReps = 6
+    
+    for g in complete_games:
+        print 'Printing out sketches from game: ' + g
+        trial_types = ['repeated']
+        for tt in trial_types:
+            _D = D[(D.condition=='repeated') & (D.gameID==g)]
+            D_ = D[(D.condition=='control') & (D.gameID==g)]
+            all_targs = np.unique(_D.target.values) ## use this later to name the file
+            _D = _D.sort_values(by=['target','repetition'])
+            _i = 0
+            control_index = 0
+            textsize=12
+            
+            if set_size == 4:
+                fig = plt.figure(figsize=(16,6))
+            if set_size == 6:
+                fig = plt.figure(figsize=(10,10))
+                
+            for i,_d in _D.iterrows():
+                true_index = new_index[_i]
+                if _i % numReps == 0:
+                    # plot last of control sketch 
+                    target = _d['target']
+                    D__ = D_[D_.phase == 'post']
+                    imgData = D__['png'].iloc[control_index]
+                    filestr = base64.b64decode(imgData)
+                    fname = 'sketch.png'
+                    with open(fname, "wb") as fh:
+                        fh.write(imgData.decode('base64'))
+                    textsize = 12
+                    # first plot the target
+                    im = Image.open(fname)
+                    p = plt.subplot(set_size,numReps+1,true_index+numReps)
+                    plt.imshow(im)
+                    if (_i < numReps):
+                        plt.title('control' ,fontsize=textsize)
+                    sns.set_style('white')
+                    k = p.get_xaxis().set_ticklabels([])
+                    k = p.get_yaxis().set_ticklabels([])
+                    k = p.get_xaxis().set_ticks([])
+                    k = p.get_yaxis().set_ticks([]) 
+                    outcome = D__['outcome'].iloc[control_index]
+                    if outcome == 1:
+                        sides = ['bottom','top','right','left']
+                        for s in sides:
+                            p.spines[s].set_color((0.4,0.8,0.4))
+                            p.spines[s].set_linewidth(4)                               
+                    else:
+                        sides = ['bottom','top','right','left']
+                        for s in sides:
+                            p.spines[s].set_color((0.9,0.2,0.2))
+                            p.spines[s].set_linewidth(4)    
+                imgData = _d['png']
+                filestr = base64.b64decode(imgData)
+                fname = 'sketch.png'
+                with open(fname, "wb") as fh:
+                    fh.write(imgData.decode('base64'))
+                textsize = 16
+                # first plot the target
+                im = Image.open(fname)
+                p = plt.subplot(set_size,numReps+1,true_index)
+                plt.imshow(im)
+                sns.set_style('white')
+                k = p.get_xaxis().set_ticklabels([])
+                k = p.get_yaxis().set_ticklabels([])
+                k = p.get_xaxis().set_ticks([])
+                k = p.get_yaxis().set_ticks([]) 
+                outcome = _d['outcome']
+                category = _d['category']
+                if outcome == 1:
+                    sides = ['bottom','top','right','left']
+                    for s in sides:
+                        p.spines[s].set_color((0.4,0.8,0.4))
+                        p.spines[s].set_linewidth(4)                               
+                else:
+                    sides = ['bottom','top','right','left']
+                    for s in sides:
+                        p.spines[s].set_color((0.9,0.2,0.2))
+                        p.spines[s].set_linewidth(4)    
+                if (_i < numReps) & (tt in 'repeated'): 
+                    plt.title('rep ' + str(_d['repetition']) ,fontsize=textsize)
+                if _i%numReps==0:
+                    plt.ylabel(_d['target'] ,fontsize=textsize)
+                    control_index = control_index + 1
+
+                _i  = _i + 1
+
+        #filepath = os.path.join(sketch_dir,'repeated','{}_{}.pdf'.format(g,category))                                                                
+        #if not os.path.exists(os.path.join(sketch_dir,'repeated')):
+        #    os.makedirs(os.path.join(sketch_dir,'repeated'))
+        plt.tight_layout()
+
 ###############################################################################################       
             
 def get_confusion_matrix(D, category, set_size):
@@ -609,6 +880,90 @@ def get_confusion_matrix(D, category, set_size):
     for i in np.arange(len(confusion)):
         normed[i,:] = confusion[i,:]/np.sum(confusion[i,:])
             
+    ## plot confusion matrix 
+    from matplotlib import cm
+    fig = plt.figure(figsize=(8,8))
+    ax = plt.subplot(111)
+    cax = ax.matshow(normed,vmin=0,vmax=1,cmap=cm.viridis)
+    plt.xticks(range(len(normed)), obj_list, fontsize=12,rotation='vertical')
+    plt.yticks(range(len(normed)), obj_list, fontsize=12)
+    plt.colorbar(cax,shrink=0.8)
+    plt.tight_layout()
+    #plt.savefig('./plots/confusion_matrix_all.pdf')
+    #plt.close(fig)
+   
+    
+    
+###############################################################################################
+            
+def get_confusion_matrix(D, category, set_size):
+    obj_list = []
+    objlist = CATEGORY_TO_OBJECT_run2[category]
+    for obj in objlist[:set_size*2]:
+        obj_list.append(obj)
+
+    ## initialize confusion matrix 
+    confusion = np.zeros((len(obj_list), len(obj_list)))
+
+    ## generate confusion matrix by incrementing each cell 
+    for i, d in D.iterrows():
+        if d['category'] == category:
+            targ_ind = obj_list.index(d['target'])
+            chosen_ind = obj_list.index(d['response'])
+            confusion[targ_ind, chosen_ind] += 1
+    
+    ## normalize confusion matrix 
+    normed = np.zeros((len(obj_list), len(obj_list)))
+    for i in np.arange(len(confusion)):
+        normed[i,:] = confusion[i,:]/np.sum(confusion[i,:])
+            
+    ## plot confusion matrix 
+    from matplotlib import cm
+    fig = plt.figure(figsize=(8,8))
+    ax = plt.subplot(111)
+    cax = ax.matshow(normed,vmin=0,vmax=1,cmap=cm.viridis)
+    plt.xticks(range(len(normed)), obj_list, fontsize=12,rotation='vertical')
+    plt.yticks(range(len(normed)), obj_list, fontsize=12)
+    plt.colorbar(cax,shrink=0.8)
+    plt.tight_layout()
+    #plt.savefig('./plots/confusion_matrix_all.pdf')
+    #plt.close(fig)
+   
+    
+    
+###############################################################################################   
+
+
+
+def get_confusion_matrix_on_rep(D, category, set_size, repetition):
+
+    _D = D[D['condition'] == 'repeated']
+    _D = _D[_D['repetition'] == repetition]
+    target_list = _D['target'].tolist()
+    obj_list_ = []
+    obj_list = []
+    objlist = CATEGORY_TO_OBJECT_run2[category]
+    for obj in objlist[:set_size*2]:
+        obj_list_.append(obj)
+    for i in obj_list_:
+        if i in target_list:
+            obj_list.append(i)
+
+    ## initialize confusion matrix 
+    confusion = np.zeros((len(obj_list), len(obj_list)))
+
+    ## generate confusion matrix by incrementing each cell 
+    for i, d in _D.iterrows():
+        if d['category'] == category:
+            targ_ind = obj_list.index(d['target'])
+            chosen_ind = obj_list.index(d['response'])
+            confusion[targ_ind, chosen_ind] += 1
+
+    ## normalize confusion matrix 
+    normed = np.zeros((len(obj_list), len(obj_list)))
+    for i in np.arange(len(confusion)):
+        normed[i,:] = confusion[i,:]/np.sum(confusion[i,:])
+
     ## plot confusion matrix 
     from matplotlib import cm
     fig = plt.figure(figsize=(8,8))
