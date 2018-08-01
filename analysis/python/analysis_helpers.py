@@ -171,6 +171,23 @@ def get_complete_and_valid_games(games,
     print 'There are {} complete games in total.'.format(len(complete_games))
     return complete_games
 
+
+
+###############################################################################################
+
+### normalizing dataframe in terms of numstrokes
+def grand_mean_normalize(D_normalized, dv, _complete_games):
+
+    grand_mean = float(sum(list(D_normalized[dv])) / float(len(list(D_normalized[dv]))))
+    for g in _complete_games:
+        D_subject = D_normalized[D_normalized['gameID'] == g]
+        subject_mean = float(sum(list(D_subject[dv])) / float(len(list(D_subject[dv]))))
+        for i, d in D_normalized.iterrows():
+            if d['gameID'] == g:
+                D_normalized.ix[i, dv] = float(d[dv]  - subject_mean + grand_mean)
+                
+    return D_normalized
+
 ###############################################################################################
 
 def ts_repeated(D, # the dataframe
@@ -226,7 +243,8 @@ def ts_repeated(D, # the dataframe
 def ts_repeated_control(D, # the dataframe
                         var='drawDuration', # the variable you want to see plotted against numRepts 
                         numReps = 8,
-                        limit=10,
+                        upper_limit=10,
+                        lower_limit = 2,
                         save_plot=False,
                         plot_dir='./plots'): # the y range for the plot 
     
@@ -302,7 +320,7 @@ def ts_repeated_control(D, # the dataframe
     # plt.ylim([0,limit])
     
     plt.xlim([-0.5, numReps - 0.5])
-    plt.ylim([0, limit])
+    plt.ylim([lower_limit, upper_limit])
     plt.xticks(np.arange(0, numReps, step=1))
     plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var)))
     
@@ -517,7 +535,8 @@ def ts_grid_repeated(D, # the dataframe
 
 def compare_conditions_prepost(D, # the dataframe
                         var='outcome', # the variable you want to see plotted against numRepts 
-                        limit=10,
+                        lower_limit = 2,
+                        upper_limit=10,
                         save_plot=False,
                         plot_dir='./plots'): # the y range for the plot 
     
@@ -542,10 +561,10 @@ def compare_conditions_prepost(D, # the dataframe
     plt.figure(figsize=(6,6))
     sns.pointplot(data=D1,
              x='phase',
-             y='drawDuration',
+             y=var,
              hue='condition',
              order=['pre','post'])    
-    plt.ylim([0,limit])
+    plt.ylim([lower_limit,upper_limit])
     #plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var))) 
     return D1    
 
