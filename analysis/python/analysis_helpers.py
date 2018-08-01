@@ -116,13 +116,15 @@ def get_complete_and_valid_games(games,
                                  coll,       
                                  iterationName,
                                  researchers,
-                                 tolerate_undefined_worker=False):
+                                 tolerate_undefined_worker=False,
+                                 verbose=False):
     '''
     Input: 
         -- games: a list of gameIDs that are in the database, and a list of the researcher worker ID's
         -- coll: the mongodb collection, e.g., db['3dObjects']['graphical_conventions']
         -- researchers: the list of researchers, which we exclude from our analysis 
         -- tolerate_undefined_worker: *only in debug mode*, we can allow games through that have undefined worker ID's
+        -- verbose: print out stuff vs. don't
     Output: Returns list of complete and valid gameID, defined as: 
         -- a complete game (correct number of trials==40)
         -- there were two real MTurk workers participating (i.e., not a researcher or undefined worker)
@@ -150,7 +152,8 @@ def get_complete_and_valid_games(games,
                 real_workers = True
         except:
             if (len(game) < 1):
-                print 'There was something wrong with this game {}'.format(game)
+                if verbose==True:
+                    print 'There was something wrong with this game {}'.format(game)
 
         ## check to make sure there are the correct number of clicked Obj events, which should equal the number of trials in the game   
         finished_game = False
