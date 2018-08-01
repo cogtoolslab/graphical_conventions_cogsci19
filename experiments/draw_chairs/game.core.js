@@ -133,8 +133,11 @@ var game_core = function(options){
   // Is the viewer ready to move on?
   this.viewerReady = false;
 
-  // Are we just using waiting chairs?
-  this.waitingOnly = true;
+  // Are we just using waiting and dining chairs?
+  this.waitingDining = true;
+
+  // Just using waiting chairs? - set TRUE for just waiting, set FALSE for just dining
+  this.waiting = false;
 
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
@@ -271,7 +274,7 @@ game_core.prototype.getRandomizedConditions = function() {
   var repeated_category = new Array;
   var control_category = new Array;
 
-  if (!this.waitingOnly) {
+  if (!this.waitingDining) {
     repeatedCat = shuffledCat[0];
     controlCat = shuffledCat[1];
     // each category appears half the number of setsize times in each trial
@@ -282,15 +285,22 @@ game_core.prototype.getRandomizedConditions = function() {
       control_category.push(controlCat);
     }
   } else {
-    repeatedCat = _.sample([3,1]); // sample from waiting and dining
+    if (this.waiting) {
+      repeatedCat = 3;
+      controlCat = 1;
+    } else {
+      repeatedCat = 1;
+      controlCat = 3;
+    }
+    //repeatedCat = _.sample([3,1]); // sample from waiting and dining
     for (i=0; i<setSize; i++) {
       repeated_category.push(repeatedCat);
     }
-    if (repeatedCat == 3) {
-      controlCat = 1;
-    } else {
-      controlCat = 3;
-    }
+    // if (repeatedCat == 3) {
+    //   controlCat = 1;
+    // } else {
+    //   controlCat = 3;
+    // }
     for (i=0; i<setSize; i++) {
       control_category.push(controlCat);
     }
