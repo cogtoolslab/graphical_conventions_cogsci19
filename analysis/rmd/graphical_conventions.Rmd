@@ -152,7 +152,7 @@ summary(bmm)
 
 ```{r}
 ### simplest form of interaction 
-interaction_simple_lmm <- lmer(numStrokes ~ phase * condition, data = d.run3.raw %>%   
+interaction_simple_lmm <- lmer(numStrokes ~ phase * condition+ (1 + phase | target) + (1 + condition | gameID), data = d.run3.raw %>%   
   #filter(!(gameID %in% crazies.run3)) %>%
   filter(phase != 'repeated'))
 summary(interaction_simple_lmm)
@@ -170,6 +170,14 @@ interaction_bmm <- brm(numStrokes ~ phase * condition + (1 + phase:condition | g
   #filter(!(gameID %in% crazies.run3)) %>%
   filter(phase != 'repeated'), family = poisson())
 summary(interaction_bmm)
+```
+
+```{r}
+### treating everything as fixed effects 
+interaction_lm <- lm(numStrokes ~ phase * condition, data = d.run3.raw %>%   
+  #filter(!(gameID %in% crazies.run3)) %>%
+  filter(phase != 'repeated'))
+summary(interaction_lm)
 ```
 
 ```{r}
