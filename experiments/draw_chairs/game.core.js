@@ -125,7 +125,7 @@ var game_core = function(options){
   this.endStrokeTime = Date.now();
 
   // Using different categories for the conditions?
-  this.diffCats = false; // set to true for generalization
+  this.diffCats = true; // set to true for generalization
 
   // Is the sketcher ready to move on?
   this.sketcherReady = false;
