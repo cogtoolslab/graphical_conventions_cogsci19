@@ -372,9 +372,9 @@ def ts_grid_repeated_control(D,
     plot_repeated_control(D2_repeated, D2_control, var2, ax2, numReps, D)
     plot_repeated_control(D3_repeated, D3_control, var3, ax3, numReps, D)
 
-    ax0.set_ylim([5, 8.5])
+    ax0.set_ylim([4, 8])
     ax1.set_ylim([5, 15])
-    ax2.set_ylim([16, 27])
+    ax2.set_ylim([16, 25])
     ax3.set_ylim([0.025, 0.04])
     
     plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)

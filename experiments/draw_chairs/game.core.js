@@ -137,7 +137,7 @@ var game_core = function(options){
   this.waitingDining = true;
 
   // Just using waiting chairs? - set TRUE for just waiting, set FALSE for just dining
-  this.waiting = true;
+  this.waiting = false;
 
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
