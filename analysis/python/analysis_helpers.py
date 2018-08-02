@@ -116,15 +116,13 @@ def get_complete_and_valid_games(games,
                                  coll,       
                                  iterationName,
                                  researchers,
-                                 tolerate_undefined_worker=False,
-                                 verbose=False):
+                                 tolerate_undefined_worker=False):
     '''
     Input: 
         -- games: a list of gameIDs that are in the database, and a list of the researcher worker ID's
         -- coll: the mongodb collection, e.g., db['3dObjects']['graphical_conventions']
         -- researchers: the list of researchers, which we exclude from our analysis 
         -- tolerate_undefined_worker: *only in debug mode*, we can allow games through that have undefined worker ID's
-        -- verbose: print out stuff vs. don't
     Output: Returns list of complete and valid gameID, defined as: 
         -- a complete game (correct number of trials==40)
         -- there were two real MTurk workers participating (i.e., not a researcher or undefined worker)
@@ -152,8 +150,7 @@ def get_complete_and_valid_games(games,
                 real_workers = True
         except:
             if (len(game) < 1):
-                if verbose==True:
-                    print 'There was something wrong with this game {}'.format(game)
+                print 'There was something wrong with this game {}'.format(game)
 
         ## check to make sure there are the correct number of clicked Obj events, which should equal the number of trials in the game   
         finished_game = False
@@ -375,10 +372,10 @@ def ts_grid_repeated_control(D,
     plot_repeated_control(D2_repeated, D2_control, var2, ax2, numReps, D)
     plot_repeated_control(D3_repeated, D3_control, var3, ax3, numReps, D)
 
-    ax0.set_ylim([2, 8])
-    ax1.set_ylim([3, 16])
-    ax2.set_ylim([8, 32])
-    ax3.set_ylim([0, 0.05])
+    ax0.set_ylim([5, 8.5])
+    ax1.set_ylim([5, 15])
+    ax2.set_ylim([16, 27])
+    ax3.set_ylim([0.025, 0.04])
     
     plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
     
