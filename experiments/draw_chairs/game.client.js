@@ -325,7 +325,8 @@ var customSetup = function(game) {
     // draw it
     var path = new Path();
     path.importJSON(jsonData);
-
+    //var sketchShowsUpTime = Date.now();
+    //console.log("sketchshowsuptime: " + sketchShowsUpTime);
   });
 
  // new progress bar function
