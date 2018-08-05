@@ -53,7 +53,7 @@ def path_renderer(verts, codes):
     ax = fig.add_subplot(111)
     if len(verts)>0:
         path = Path(verts, codes)
-        patch = patches.PathPatch(path, facecolor='none', lw=2)
+        patch = patches.PathPatch(path, facecolor='none', edgecolor='black',lw=2)
         ax.add_patch(patch)
         ax.set_xlim(0,500)
         ax.set_ylim(0,500) 
