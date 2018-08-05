@@ -20,21 +20,33 @@ library(Rmisc)
 
 ```{r}
 d.run3.raw <- read_csv('../../results/graphical_conventions_group_data_run3_size4_waiting.csv')  %>% select(-png)
+d.run4.raw <- read_csv('../../results/graphical_conventions_group_data_run4_generalization.csv')  %>% select(-png)
 ```
 
 ## Stroke histogram
 
 ```{r}
-d.run3.raw %>% group_by(numStrokes) %>% ggplot(aes(x = numStrokes)) + geom_histogram()
-```
-```{r}
-strokeLimit = median(d.run3.raw$numStrokes) + 3 * sd(d.run3.raw$numStrokes)
-numCurvesLimit = median(d.run3.raw$numCurvesPerStroke) + 3 * sd(d.run3.raw$numCurvesPerStroke)
+d.run3.raw %>% 
+  #filter(condition == "repeated")%>%
+  group_by(numCurvesPerSketch) %>% ggplot(aes(x = numCurvesPerSketch)) + geom_histogram()
 ```
 
-## Find people who used crazy numbers of strokes
- 
-Also exclude if they clearly cheated (wrote word) 
+```{r}
+d.run3.raw %>% 
+  #filter(condition == "repeated")%>%
+  group_by(numStrokes) %>% ggplot(aes(x = numStrokes)) + geom_histogram()
+```
+
+```{r}
+strokeLimit = median(d.run3.raw$numStrokes) + 3 * sd(d.run3.raw$numStrokes)
+numCurvesLimit = median(d.run3.raw$numCurvesPerSketch) + 3 * sd(d.run3.raw$numCurvesPerSketch)
+```
+```{r}
+
+```
+
+## Find people who used crazy numbers of strokes and number of curves per sketch, also just get correct trials
+
 ```{r}
 #crazies.run3 <- unique((d.run3.raw %>% filter(condition == 'repeated' & (numStrokes > strokeLimit | #numCurvesPerStroke > numCurvesLimit)) %>% select(gameID))$gameID)
 
@@ -42,7 +54,8 @@ Also exclude if they clearly cheated (wrote word)
 #crazies.pilot1 = c(crazies.pilot1, 
 #            '0766-fcb90e7e-bf4a-4a46-b6d6-3165b6c12b88', 
 #            '7024-8ac78089-539a-428b-9d0e-b52c71a0a1b4')
-d.run3 <- d.run3.raw
+d.run3 <- d.run3.raw%>% 
+  filter(outcome == "True")
 #%>% filter(!(gameID %in% crazies.run3 & trialNum %in% crazies.run3.trialNum))
 
 length(unique(d.run3$gameID))
@@ -110,38 +123,21 @@ d.run3 %>%
 ```{r}
 ```
 
-## Mixed-effects model?
+## Mixed-effects model
 
 ```{r}
+#lmer model for effect of repetition on numstrokes 
 lmm <- (lmer(numStrokes ~ repetition + (1 + repetition| gameID) + (1 + repetition| target), data = d.run3 %>%   
   filter(condition == 'repeated') %>%
   filter(!(gameID %in% crazies.run3))))
 summary(lmm)
 ```
 ```{r}
-numStrokes <- as.data.frame(t(apply(ranef(lmm)$gameID,
-  1,function(x) fixef(lmm) + x)))
-pred_numStrokes <- melt(apply(numStrokes,1,function(x) x[1] + x[2]*0:9),
-  value.name = "numStrokes")
-names(pred_numStrokes)[1:2] <- c("repetition","gameID")
-pred_numStrokes$gameID <- as.factor(pred_numStrokes$gameID)
-
-ggplot(pred_numStrokes,aes(x=repetition,y=numStrokes,color=gameID))+
-  geom_line()+
-  geom_point(data=d.run3,aes(x=repetition,y=numStrokes))+
-  facet_wrap(~gameID,nrow=3, scales = "free_x")+ 
-  scale_x_continuous(breaks = c(0, 1, 2, 3, 4, 5, 6, 7), limits = c(0, 7)) +
-  theme(
-    strip.background = element_blank(),
-    strip.text.x = element_blank()
-  )+ scale_color_discrete(guide=guide_legend(nrow=10,keywidth = 0.5))
 ```
 
 
-
-
-
 ```{r}
+#brms model for effect of repetition on numstrokes 
 bmm <- brm(numStrokes ~ repetition + (1 + repetition| gameID) + (1 + repetition| target), 
             data = d.run3 %>%   
   filter(condition == 'repeated') %>%
@@ -151,7 +147,7 @@ summary(bmm)
 ```
 
 ```{r}
-### simplest form of interaction 
+### lmer model for simplest form of interaction 
 interaction_simple_lmm <- lmer(numStrokes ~ phase * condition+ (1 + phase | target) + (1 + condition | gameID), data = d.run3.raw %>%   
   #filter(!(gameID %in% crazies.run3)) %>%
   filter(phase != 'repeated'))
@@ -159,6 +155,7 @@ summary(interaction_simple_lmm)
 ```
 
 ```{r}
+#lmer model for interaction between phase and condition (right syntax but doesn't converge)
 interaction_lmm <- lmer(numStrokes ~ phase * condition + (1 + phase:condition | gameID) + (1 + phase | target), data = d.run3.raw %>%   
   #filter(!(gameID %in% crazies.run3)) %>%
   filter(phase != 'repeated'))
@@ -166,6 +163,7 @@ summary(interaction_lmm)
 ```
 
 ```{r}
+#brms model for interaction between phase and condition 
 interaction_bmm <- brm(numStrokes ~ phase * condition + (1 + phase:condition | gameID) + (1 + phase | target), data = d.run3.raw %>%   
   #filter(!(gameID %in% crazies.run3)) %>%
   filter(phase != 'repeated'), family = poisson())
@@ -173,7 +171,7 @@ summary(interaction_bmm)
 ```
 
 ```{r}
-### treating everything as fixed effects 
+### lm treating everything as fixed effects 
 interaction_lm <- lm(numStrokes ~ phase * condition, data = d.run3.raw %>%   
   #filter(!(gameID %in% crazies.run3)) %>%
   filter(phase != 'repeated'))
@@ -181,40 +179,12 @@ summary(interaction_lm)
 ```
 
 ```{r}
-phase_condition_lmm <- lmer(numStrokes ~phase + condition + (1 + condition| gameID) + (1 + phase| target), data = d.run3 %>%   
-  filter(!(gameID %in% crazies.run3)) %>%
-  filter(phase != 'repeated'))
-  
-summary(phase_condition_lmm)
+
+
 ```
 
 ```{r}
-#qplot(phase, numStrokes, facets = . ~ gameID, 
-#     colour = condition, geom = "boxplot", data = d.run3%>%   
-#  filter(phase != 'repeated')
-#      )
-
-#d.run3$gameID <- factor(d.run3$gameID)
-
-#d.run3.long <- melt(d.run3%>%
-#                      filter(phase != 'repeated')%>%
-#                      filter(condition == 'repeated'),
-#                    id.vars = "gameID",
-#                    measure.vars = c("phase", "numStrokes"),
- #                   variable.name = "phase")
-
-#phase_df <- slice(d.run3.long, 1:80)
-#numStrokes_df <- slice(d.run3.long, 81:160)
-#concat_df <- left_join(phase_df, numStrokes_df, by = "gameID")
-#concat_df <- select(concat_df, one_of(c("gameID", "value.x", "value.y")))
-#colnames(concat_df)[colnames(concat_df)=="value.x"] <- "phase"
-#colnames(concat_df)[colnames(concat_df)=="value.y"] <- "numStrokes"
-
-#"d.run3.sum <- summarySEwithin(concat_df, measurevar = "numStrokes", withinvar = "phase", idvar="gameID", na.rm = "FALSE, conf.interval = 0.95)
-
-#ggplot(df.run3.sum, aes(x = factor(phase, level = c("pre", "post"), y = value, group=1))+
-#  geom_bar() + 
-#  geom_errorbar(width=0.1, aes(ymin = numStrokes - ci, ymax = numStrokes + ci))
+### plotting stuff
 
 pre_repeated_mean <- d.run3.sum_repeated[1, "numStrokes"]
 post_repeated_mean <- d.run3.sum_repeated[2, "numStrokes"]
@@ -226,21 +196,17 @@ pre_control_ci <- d.run3.sum_control[1, "ci"]
 post_control_ci <- d.run3.sum_control[2, "ci"]
 
 ggplot()+
-  #d.run3%>% filter(phase != "repeated")
-  #     ,aes(x=factor(phase, level = c("pre", "post")),y=numStrokes,color=condition))+
-  #geom_point()+
   geom_bar(data = d.run3%>% filter(phase!="repeated")%>%filter(condition == "repeated"), 
           aes(x=factor(phase, level = c("pre", "post")),y=numStrokes,color=condition),
           stat = "summary", fun.y = "mean", position = "dodge")+
-  geom_errorbar(aes(ymin=, ymax=numStrokes+0.5),
+  #geom_errorbar(aes(ymin=, ymax=numStrokes+0.5),
   #                width=.2,                    # Width of the error bars
   #                position=position_dodge(.9))+
   facet_wrap(~condition,nrow=1, scale = "free_x")
-  #scale_x_discrete(breaks = c("pre","post")) +
-  #theme(
-  #  strip.background = element_blank(),
-  #  strip.text.x = element_blank()
-  #)  #+ scale_color_discrete(guide=guide_legend(nrow=10,keywidth = 0.5))
+```
+
+```{r}
+
 ```
 
 ```{r}
@@ -248,25 +214,7 @@ d.run3$repetition[d.run3$condition == "control" & d.run3$phase == "post"] <- "7"
 # change control and post phase repetition to 7 instead of 1 
 ggplot()+
   geom_line(aes(x = repetition, y = numStrokes, color = condition, group = 1), data = d.run3%>%filter(condition == "repeated"), stat = "summary", fun.y="mean")+
-  geom_errorbar(aes())
   geom_point(aes(x = repetition, y = numStrokes, color = condition, group = 1), data = d.run3%>%filter(condition == "control"), stat = "summary", fun.y="mean")
-  #geom_errorbar(aes(ymin=numStrokes-0.5, ymax=numStrokes+0.5),
-  #                width=.2,                    # Width of the error bars
-  #                position=position_dodge(.9))+
-  #facet_wrap(~condition,nrow=1, scale = "free_x")
-```
-
-```{r}
-d.run3$repetition[d.run3$condition == "control" & d.run3$phase == "post"] <- "7" 
-# change control and post phase repetition to 7 instead of 1 
-ggplot()+
-  geom_line(aes(x = repetition, y = numStrokes, color = condition, group = 1), data = d.run3%>%filter(condition == "repeated"), stat = "summary", fun.y="mean")+
-  geom_errorbar(aes())
-  geom_point(aes(x = repetition, y = numStrokes, color = condition, group = 1), data = d.run3%>%filter(condition == "control"), stat = "summary", fun.y="mean")
-  #geom_errorbar(aes(ymin=numStrokes-0.5, ymax=numStrokes+0.5),
-  #                width=.2,                    # Width of the error bars
-  #                position=position_dodge(.9))+
-  #facet_wrap(~condition,nrow=1, scale = "free_x")
 ```
 
 ```{r}
@@ -280,10 +228,7 @@ d.run3.sum_control <- summarySEwithin(data=d.run3%>%filter(phase != "repeated" &
 ```
 
 ```{r}
-duration_lmm <- (lmer(drawDuration ~ repetition + (1 + repetition| gameID) + (1 + repetition| target), data = d.run3 %>%   
-  filter(condition == 'repeated') %>%
-  filter(!(gameID %in% crazies.run3))))
-summary(lmm)
+
 ```
 
 ```{r}
