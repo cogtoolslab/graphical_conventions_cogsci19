@@ -112,12 +112,11 @@ class FeatureExtractor():
 
         def load_image(path, imsize=224, padding=self.padding, volatile=True, use_cuda=False):
             im = Image.open(path)
+            im_ = im.convert(mode="RGB")
             
             if self.data_type!='images': ## only do this preprocessing if you are working with sketches
-                im = RGBA2RGB(im)
                 
-                # crop to sketch only (reduce white space)
-                arr = np.asarray(im)
+                arr = np.asarray(im_)
                 w,h,d = np.where(arr<255) # where the image is not white
                 if len(h)==0:
                     print(path)  
@@ -132,16 +131,14 @@ class FeatureExtractor():
                 except ValueError:
                     print('Blank image {}'.format(path))
                     pass
-            else:
-                im = RGBA2RGB(im)
-                
+       
             loader = transforms.Compose([
                 transforms.Pad(padding), 
                 transforms.CenterCrop(imsize),
                 transforms.Scale(imsize),
                 transforms.ToTensor()])
 
-            im = Variable(loader(im), volatile=volatile)
+            im = Variable(loader(im_), volatile=volatile)
             # im = im.unsqueeze(0)
             if use_cuda:
                 im = im.cuda(self.cuda_device)
@@ -192,9 +189,12 @@ class FeatureExtractor():
                 label_batch = [] 
                 if (n+1)%1==0:
                     print('Batch {}'.format(n + 1))
+                    print ('batch size: {}'.format(batch_size))
                 for b in range(batch_size):
                     try:
                         sketch, label = generator.next()
+                        #print ('sketch: {}'.format(sketch))
+                        #print ('label: {}'.format(label))
                         ##print(list(sketch.size()),label)
                         sketch_batch[b] = sketch 
                         label_batch.append(label)
