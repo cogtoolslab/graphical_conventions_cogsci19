@@ -105,24 +105,6 @@ def plot_repeated_control(D_repeated, D_control, var, ax, numReps):
                    errwidth = 3,
                    scale = 0.7,
                    ax=ax)
-    
-    #mean_accuracy_list = []
-    #for i in range(0,6):
-    #    outcome_list = (D.loc[D['repetition'] == i])['outcome']
-    #    mean_accuracy = (sum(outcome_list) / float(len(outcome_list)))*5
-    #    mean_accuracy_list.append(mean_accuracy)
-    #D_mean = pd.DataFrame()
-    #D_mean['meanAccuracy'] = mean_accuracy_list
-    #D_mean['repetition'] = range(0,6)
-    #plt.figure(figsize=(6,6))
-    
-    #sns.tsplot(data=D_mean,
-     #        time='repetition',
-      #       value='meanAccuracy',
-       #      ax=ax)    
-    # plt.ylim([0,limit])
-    
-    #ax.set(xlim=(-0.5, numReps - 0.5), xticks=range(0,8))
 
 ###############################################################################################
 
@@ -351,6 +333,17 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
 
 ###############################################################################################
 
+def filter_crazies(D, dv):
+    arr = np.array(D[dv])
+    keep = []
+    for i, d in D.iterrows():
+        if d[dv] < np.median(arr) + 3 * np.std(arr):
+            keep.append(i)
+    D_filtered = D.loc[keep]
+    return D_filtered
+
+###############################################################################################
+
 ### normalizing dataframe in terms of numstrokes
 def grand_mean_normalize(D_normalized, dv, _complete_games):
 
@@ -364,6 +357,79 @@ def grand_mean_normalize(D_normalized, dv, _complete_games):
                     D_normalized.ix[i, dv] = float(d[dv]  - subject_mean + grand_mean)
                 
     return D_normalized
+
+###############################################################################################
+
+def save_sketches(D, complete_games, sketch_dir, dir_name, iterationNum):
+    for g in list(D['gameID']):
+        print "saving sketches from game: {}".format(g)
+        if g in list(D['gameID']):
+            _D = D[D['condition'] == 'repeated']
+            for i,_d in _D.iterrows():
+                imgData = _d['png']
+                trialNum = _d['trialNum']
+                target = _d['target']
+                repetition = _d['repetition']
+                filestr = base64.b64decode(imgData)
+                fname = 'sketch.png'
+                with open(fname, "wb") as fh:
+                    fh.write(imgData.decode('base64'))
+                im = Image.open(fname)
+                #im = im.convert("RGB")
+                ### saving sketches to sketch_dir 
+                filepath = os.path.join('{}_{}_{}_{}_{}.png'.format(g,trialNum,target, repetition, iterationNum))     
+                if not os.path.exists(os.path.join(sketch_dir,dir_name)):
+                    os.makedirs(os.path.join(sketch_dir,dir_name))
+                im.save(os.path.join(sketch_dir,dir_name,filepath))
+                
+###############################################################################################
+
+def clean_up_metadata(M):
+    M = M.rename(columns={'label':'path'})    
+    label = [i.split('/')[-1] for i in M.path.values]    
+    M = M.assign(label=pd.Series(label))
+    M = M.drop(columns=['Unnamed: 0'])
+    return M
+
+###############################################################################################
+
+def split_up_metadata(M):
+    ## splitting up M so metadata is more accessible 
+    game_id_list = []
+    trial_num_list = []
+    repetition_list = []
+    target_list = []
+
+    for i,d in M.iterrows():
+        game_id_list.append(d['label'].split("_")[0]) # first term is gameID
+        trial_num_list.append(d['label'].split("_")[1]) # second term is trial number 
+        repetition_list.append(d['label'].split("_")[2]) # third term is repetition 
+        target_list.append(d['label'].split("_")[3] + "_" + d['label'].split("_")[4]) # third and fourth term together is target 
+    M['gameID'] = game_id_list
+    M['trialNum'] = trial_num_list
+    M['repetition'] = repetition_list
+    M['target'] = target_list
+    M = M.drop(["path", "label"], axis=1)
+    M['feature_ind'] = pd.Series(range(len(M)))
+    return M
+
+###############################################################################################
+
+# create and plot RDM 
+def get_and_plot_RDM(M,F,sorted_feature_ind, axs, x_ind, y_ind, rep):
+    ordered_objs = M['target'].unique()
+    labels = M.target.values
+    means = F
+    ordered_means = means[sorted_feature_ind,:]
+    sns.set_style('white')
+    CORRMAT = np.corrcoef(ordered_means)
+    sns.set_context('paper')
+    ax = axs[y_ind, x_ind]
+    ax.set_title("rep {}".format(rep), fontsize=30)
+    sns.heatmap(1-CORRMAT, vmin=0, vmax=2, cmap="plasma", ax=ax, cbar=False, xticklabels=False, yticklabels=False)
+    RDM = CORRMAT
+    plt.tight_layout()    
+    return RDM
 
 ###############################################################################################
 
@@ -521,22 +587,6 @@ def ts_repeated_control(D, # the dataframe
                interpolate=False,
                ax=ax,
                color='r')
-    
-##    mean_accuracy_list = []
-##    for i in range(0,6):
-##        outcome_list = (D.loc[D['repetition'] == i])['outcome']
-##       mean_accuracy = (sum(outcome_list) / float(len(outcome_list)))*10
- #       mean_accuracy_list.append(mean_accuracy)
-    #D_mean = pd.DataFrame()
-   # D_mean['meanAccuracy'] = mean_accuracy_list
-    #D_mean['repetition'] = range(0,6)
-    #plt.figure(figsize=(6,6))
-    
-    #sns.tsplot(data=D_mean,
-    #         time='repetition',
-     #        value='meanAccuracy',
-       #      ax=ax)    
-    # plt.ylim([0,limit])
     
     plt.xlim([-0.5, numReps - 0.5])
     plt.ylim([lower_limit, upper_limit])
@@ -1218,3 +1268,130 @@ def get_confusion_matrix_on_rep(D, category, set_size, repetition):
     plt.tight_layout()
     #plt.savefig('./plots/confusion_matrix_all.pdf')
     #plt.close(fig)
+    
+    
+###############################################################################################   
+
+def plot_between_interaction_similarity(M):
+    ### computing average of upper triangle of RDM and plotting across repetitions 
+    new_df = pd.DataFrame()
+    for targ in M['target'].unique():
+        M_targ = M[M['target'] == targ]
+        M_targ.sort_values(by=['repetition'])
+        for rep in range(8):
+            M_targ_rep = M_targ[M_targ['repetition'] == str(int(rep))]
+            inds_to_compare = M_targ_rep['feature_ind']
+            features_to_compare = F[inds_to_compare, :]
+            CORRMAT = np.corrcoef(features_to_compare)
+            avr = np.mean(np.tril(CORRMAT)) # only upper triangle 
+            df_to_add = pd.DataFrame([[rep, targ, avr]], columns=['repetition', 'target', 'average_similarity'])
+            new_df = new_df.append(df_to_add)
+    sns.set_context('paper')
+    plt.figure(figsize=(8,5))
+    sns.lineplot(data=new_df, x='repetition', y='average_similarity', estimator = np.mean)
+    plt.xlim(-0.5, 7.5)
+    
+############################################################################################### 
+    
+def scramble_df_within_target_rep(M):
+    M_pseudo = pd.DataFrame()
+    for target in M['target'].unique():
+        M_targ = M[M['target'] == target]
+        for rep in M_targ['repetition'].unique():
+            M_targ_rep = M_targ[M_targ['repetition'] == rep]
+            gameIDs = np.array(M_targ_rep['gameID'])
+            np.random.shuffle(gameIDs)
+            M_targ_rep['pseudo_gameID'] = list(gameIDs)
+            M_pseudo = M_pseudo.append(M_targ_rep)
+    return M_pseudo
+
+############################################################################################### 
+    
+def make_adjacency_matrix(M, gameID):
+    result = np.zeros((8, 8))
+    count = 0
+    F_ = np.vstack((F, [float('NaN')] * 4096))
+    arr_of_corrmats = []
+    for game in M[gameID].unique(): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
+        for target in (M[M[gameID] == game])['target'].unique():  #['dining_04']:
+            count = count + 1
+            M_isolated = M[(M[gameID] == game) & (M['target'] == target)]
+            for rep in range(8):
+                if rep not in list(M_isolated['repetition']):
+                    df_to_add = pd.DataFrame([[game, float('NaN'), rep, target, len(F)]], columns=[gameID, 'trialNum', 'repetition', 'target', 'feature_ind'])
+                    M_isolated = M_isolated.append(df_to_add)
+            M_isolated_sorted = M_isolated.sort_values(by=['repetition'])
+            inds_to_compare = M_isolated_sorted['feature_ind']
+            features_to_compare = F_[inds_to_compare, :]
+
+            # add features to a new dataframe 
+            # and compute corr with pandas to handle NaN well  
+            features_df = pd.DataFrame()
+            column_index = 0
+            for row in features_to_compare:
+                features_df[str(column_index)] = pd.Series(list(row))
+                column_index = column_index + 1
+
+            pd_CORRMAT = features_df.corr()
+            np_CORRMAT = pd_CORRMAT.values
+            arr_of_corrmats.append(np_CORRMAT)
+
+    for i in range(8):
+        for j in range(8):
+            to_add = [mat[i][j] for mat in arr_of_corrmats]
+            result[i][j] = np.nanmean(np.array(to_add))
+
+    average_corr_mat = np.array(result)
+    
+    sns.set_context('paper')
+    fig, ax = plt.subplots(figsize=(5,4)) 
+    sns.heatmap(1-average_corr_mat, cmap="plasma", cbar=True, xticklabels=True, yticklabels=True, ax=ax)
+    plt.tight_layout()   
+    
+    return arr_of_corrmats
+    
+############################################################################################### 
+
+def plot_within_interaction_similarity(arr_of_corrmats):
+    one_back_df = pd.DataFrame()
+    for base_rep in range(7):
+        for i, corrmat in enumerate(arr_of_corrmats):
+            corrcoef = corrmat[base_rep][base_rep+1]
+            df_to_add = pd.DataFrame([[i, base_rep, corrcoef]], columns=['corrmat_num','base_rep', 'similarity']) 
+            one_back_df = one_back_df.append(df_to_add)
+    sns.lineplot(
+        data=one_back_df, 
+        estimator=np.mean,
+        x='base_rep',
+        y='similarity')
+    
+############################################################################################### 
+    
+def standardize(D, dv):
+    new_D = pd.DataFrame()
+    trialNum_list = []
+    dv_list = []
+    rep_list - []
+    for g in list(D['gameID']):
+        D_game = D[D['gameID'] == g]
+        mean = np.mean(np.array(D_game[dv]))
+        std = np.std(np.array(D_game[dv]))
+        for t in list(D_game['trialNum']):
+            D_trial = D_game[D_game['trialNum'] == t]
+            trialNum_list.append(t)
+            z_score = (D_trial[dv] - mean) / std
+            dv_list.append(z_score)
+            rep_list.append(D_trial['repetition'])
+    new_D['trialNum'] = trialNum_list
+    new_D[dv] = dv_list
+    new_D['repetition'] = rep_list
+    return new_D
+
+############################################################################################### 
+
+def add_bis_scores(D, dv):
+    bis_score_list = []
+    for i,d in D.iterrows():
+        bis_score = d['outcome'] - d[dv] 
+        bis_score_list.append(bis_score)
+    D['bis_score'] = bis_score_list
