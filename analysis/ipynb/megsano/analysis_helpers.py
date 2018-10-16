@@ -1372,6 +1372,7 @@ def standardize(D, dv):
     trialNum_list = []
     dv_list = []
     rep_list = []
+    game_id_list = []
     for g in list(D['gameID']):
         D_game = D[D['gameID'] == g]
         mean = np.mean(np.array(D_game[dv]))
@@ -1382,9 +1383,11 @@ def standardize(D, dv):
             z_score = (list(D_trial[dv])[0] - mean) / std
             dv_list.append(z_score)
             rep_list.append(list(D_trial['repetition'])[0])
+            game_id_list.append(g)
     new_D['trialNum'] = trialNum_list
     new_D[dv] = dv_list
     new_D['repetition'] = rep_list
+    new_D['gameID'] = game_id_list
     return new_D
 
 ############################################################################################### 
