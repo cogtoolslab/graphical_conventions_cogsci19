@@ -19,21 +19,33 @@ from matplotlib.path import Path
 import matplotlib.patches as patches
 
 import pandas as pd
-from svgpathtools import parse_path
+from svgpathtools import parse_path, wsvg
 
-def polycurve_pathmaker(curves):
+def polysegment_pathmaker(segment):
     x = []    
     y = []
     codes = []
-    for i,l in enumerate(curves):
-        for _i,_l in enumerate(l):
-            x.append(_l[0])
-            y.append(_l[1])
-            if _i%4==0:
-                codes.append(Path.MOVETO)
-            else:
-                codes.append(Path.CURVE4) # remaining control and endpoints for each spline
-    verts = zip(x,y)            
+    for i,pair in enumerate(segment):
+        if pair[0] == "curve":
+            for _i,_l in enumerate(pair[1]):
+                x.append(_l[0])
+                y.append(_l[1])
+                if _i%4==0:
+                    codes.append(Path.MOVETO)
+                else:
+                    codes.append(Path.CURVE4) # remaining control and endpoints for each spline
+        else:      
+            for _i, _l in enumerate(pair[1]):
+                x.append(_l[0])
+                y.append(_l[1])
+                if _i == 0:
+                    codes.append(Path.MOVETO)
+                elif _i < len(pair[1]) - 1:
+                    codes.append(Path.LINETO)  # keep pen on page
+                else:
+                    if _i != len(segment) - 1:  # final vertex
+                        codes.append(Path.MOVETO)
+    verts = zip(x, y)
     return verts, codes
 
 def path_renderer(verts, codes):
@@ -41,7 +53,7 @@ def path_renderer(verts, codes):
     ax = fig.add_subplot(111)
     if len(verts)>0:
         path = Path(verts, codes)
-        patch = patches.PathPatch(path, facecolor='none', lw=2)
+        patch = patches.PathPatch(path, facecolor='none', edgecolor='black',lw=2)
         ax.add_patch(patch)
         ax.set_xlim(0,500)
         ax.set_ylim(0,500) 
@@ -61,33 +73,46 @@ def flatten(x):
 
 
 def get_verts_and_codes(svg_list):
-    '''
-    parse into x,y coordinates and output list of lists of coordinates
-    
-    '''    
-    curves = []
+    segment = []
     Verts = []
     Codes = []
     for stroke_ind,stroke in enumerate(svg_list):
+        #print "stroke number {}".format(stroke_ind)
         x = []
         y = []
         parsed = parse_path(stroke)
-        for i,p in enumerate(parsed):
-            x.append(p.start.real)
-            y.append(p.start.imag)  
-            x.append(p.control1.real)
-            y.append(p.control1.imag) 
-            x.append(p.control2.real)
-            y.append(p.control2.imag)
-            x.append(p.end.real)
-            y.append(p.end.imag)
-        assert len(zip(x,y))%4==0
-        curves.append(zip(x,y))
-        verts, codes = polycurve_pathmaker(curves)
-        
+        for i, p in enumerate(parsed):
+            if len(p) == 4:
+                x.append(p.start.real)
+                y.append(p.start.imag)  
+                x.append(p.control1.real)
+                y.append(p.control1.imag) 
+                x.append(p.control2.real)
+                y.append(p.control2.imag)
+                x.append(p.end.real)
+                y.append(p.end.imag)
+                segment.append(["curve", zip(x,y)])
+            else:
+                assert len(p) == 2
+                
+                if i != len(parsed) - 1:  # last line segment
+                    if (p.start.real != p.end.real or p.start.imag != p.end.imag):
+                        x.append(p.start.real)
+                        y.append(p.start.imag)
+                else:
+                    x.append(p.start.real)
+                    print p.start.real
+                    y.append(p.start.imag)
+                    print p.start.imag
+                    x.append(p.end.real)
+                    print p.end.real
+                    y.append(p.end.imag)
+                    print p.end.imag
+                segment.append(["line", zip(x,y)])
+        verts, codes = polysegment_pathmaker(segment)
         Verts.append(verts)
-        Codes.append(codes)                  
-    return Verts, Codes
+        Codes.append(codes)     
+    return Verts, Codes 
     
 def make_svg_list(stroke_recs):
     '''
@@ -121,11 +146,11 @@ def render_and_save(Verts,
     
     '''
     ## where do you want to save your cumulative drawings?
-    out_path = os.path.join('./cumulative_drawings','{}_{}'.format(game_id,age),'{}_{}'.format(trial_num,category))
+    out_path = os.path.join('./cumulative_drawings','{}'.format(game_id),'{}_{}'.format(trial_num,category))
     if not os.path.exists('./cumulative_drawings'):
         os.makedirs('./cumulative_drawings')
-    if not os.path.exists(os.path.join('cumulative_drawings','{}_{}'.format(game_id,age))):
-        os.makedirs(os.path.join('cumulative_drawings','{}_{}'.format(game_id,age)))
+    if not os.path.exists(os.path.join('cumulative_drawings','{}'.format(game_id))):
+        os.makedirs(os.path.join('cumulative_drawings','{}'.format(game_id)))
 
     verts = Verts[0]
     codes = Codes[0]
