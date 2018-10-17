@@ -20,7 +20,11 @@ import matplotlib.patches as patches
 
 import pandas as pd
 from svgpathtools import parse_path, wsvg
+from glob import glob
 
+def list_files(path, ext='png'):
+    result = [y for x in os.walk(path) for y in glob(os.path.join(x[0], '*.%s' % ext))]
+    return result
 
 def flatten(x):
     return [val for sublist in x for val in sublist]
@@ -61,7 +65,11 @@ def render_svg(paths,
          viewbox=viewbox,
          filename=os.path.join(base_dir,out_dir,out_fname))    
 
-    
+def generate_svg_path_list(svg_dir):    
+    svg_paths = list_files(svg_dir, ext='svg')
+    svg_paths = [i for i in svg_paths if i != '.DS_Store']
+    return svg_paths
+
 def svg_to_png(svg_paths,
                base_dir = './',
                out_dir = 'png'):
