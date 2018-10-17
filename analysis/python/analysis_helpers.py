@@ -1,7 +1,7 @@
 from __future__ import division
 
 import os
-import urllib, cStringIO
+#import urllib, cStringIO
 
 import json
 
@@ -132,9 +132,9 @@ def get_complete_and_valid_games(games,
         viewer = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'},{'iterationName':iterationName}]}).distinct('workerId')
         sketcher = coll.find({'$and': [{'gameid':game},{'eventType':'stroke'},{'iterationName':iterationName}]}).distinct('workerId')
         if viewer == 'A1V2P0JYPD7GM6' or sketcher == 'A1V2P0JYPD7GM6':
-            print "A1V2P0JYPD7GM6 did complete HIT"
+            print("A1V2P0JYPD7GM6 did complete HIT")
         if viewer == 'A6FE2ZQNFW12V' or sketcher == 'A6FE2ZQNFW12V':
-            print "A6FE2ZQNFW12V did complete HIT"
+            print("A6FE2ZQNFW12V did complete HIT")
         viewer_is_researcher = viewer in researchers
         sketcher_is_researcher = sketcher in researchers  
         try:
@@ -146,7 +146,7 @@ def get_complete_and_valid_games(games,
                 real_workers = True
         except:
             if (len(game) < 1):
-                print 'There was something wrong with this game {}'.format(game)
+                print ('There was something wrong with this game {}'.format(game))
 
         ## check to make sure there are the correct number of clicked Obj events, which should equal the number of trials in the game   
         finished_game = False
@@ -164,7 +164,7 @@ def get_complete_and_valid_games(games,
         ## now if BOTH of the above conditions are true, bother to analyze them
         if (real_workers) & (finished_game):
             complete_games.append(game)
-    print 'There are {} complete games in total.'.format(len(complete_games))
+    print ('There are {} complete games in total.'.format(len(complete_games)))
     return complete_games
 
 ###############################################################################################
@@ -201,7 +201,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     y = ['3601-5426f18c-ab9f-40c9-b627-e4d09ce1679a'] ## game where trial 4 was repeated 
     _complete_games= [item for item in complete_games if item not in y]
     for i,g in enumerate(_complete_games):
-            print 'Analyzing game {} | {} of {}: '.format(g, i, len(_complete_games))
+            print( 'Analyzing game {} | {} of {}: '.format(g, i, len(_complete_games)))
 
             # collection of all clickedObj events in a particular game 
             X = coll.find({ '$and': [{'gameid': g}, {'eventType': 'clickedObj'}]}).sort('time')
@@ -235,8 +235,8 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
                     lastStrokeNum = float(y[y.count() - 1]['currStrokeNum']) # get currStrokeNum at last stroke
                     ns = y.count()
                     if not lastStrokeNum == ns:
-                        print "ns: " + str(ns)
-                        print "lastStrokeNum: " + str(lastStrokeNum)
+                        print ("ns: " + str(ns))
+                        print ("lastStrokeNum: " + str(lastStrokeNum))
 
                     numStrokes.append(lastStrokeNum)
 
@@ -310,7 +310,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
         mean_accuracy = sum(all_accuracies) / float(len(all_accuracies))
         accuracy_list.append(mean_accuracy)
         if any(d['timedOut'] == True for i, d in D_.iterrows()):
-            print "timed out!"
+            print ("timed out!")
             timed_outs.append(g)
 
     arr = np.array(accuracy_list)
@@ -319,7 +319,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     crazy_games = [_complete_games[i] for i, acc in enumerate(accuracy_list) if (med-acc)/sd > 3]
     crazy_games = crazy_games + timed_outs
     if (len(crazy_games) > 0):
-        print "there were some crazy games: ", crazy_games
+        print ("there were some crazy games: ", crazy_games)
     #complete_games= [item for item in _complete_games if item not in crazy_games]                 
     D = _D.loc[~_D['gameID'].isin(crazy_games)]
 
@@ -362,7 +362,7 @@ def grand_mean_normalize(D_normalized, dv, _complete_games):
 
 def save_sketches(D, complete_games, sketch_dir, dir_name, iterationNum):
     for g in list(D['gameID']):
-        print "saving sketches from game: {}".format(g)
+        print ("saving sketches from game: {}".format(g))
         if g in list(D['gameID']):
             _D = D[D['condition'] == 'repeated']
             for i,_d in _D.iterrows():
@@ -394,23 +394,29 @@ def clean_up_metadata(M):
 ###############################################################################################
 
 def split_up_metadata(M):
-    ## splitting up M so metadata is more accessible 
-    game_id_list = []
-    trial_num_list = []
-    repetition_list = []
-    target_list = []
+    ## parse labels into columns for M
+    new_M = pd.DataFrame(
+        M.label.str.split('_',6).tolist(),
+        columns = ['gameid','trialNum', 'category', 'target', 'repetition', 'collectionrun']
+    )
+    new_M['feature_ind'] = pd.Series(range(len(M)))
+    return new_M
 
-    for i,d in M.iterrows():
-        game_id_list.append(d['label'].split("_")[0]) # first term is gameID
-        trial_num_list.append(d['label'].split("_")[1]) # second term is trial number 
-        repetition_list.append(d['label'].split("_")[2]) # third term is repetition 
-        target_list.append(d['label'].split("_")[3] + "_" + d['label'].split("_")[4]) # third and fourth term together is target 
-    M['gameID'] = game_id_list
-    M['trialNum'] = trial_num_list
-    M['repetition'] = repetition_list
-    M['target'] = target_list
-    M = M.drop(["path", "label"], axis=1)
-    M['feature_ind'] = pd.Series(range(len(M)))
+#     game_id_list = []
+#     trial_num_list = []
+#     repetition_list = []
+#     target_list = []
+
+#     for i,d in M.iterrows():
+#         game_id_list.append(d['label'].split("_")[0]) # first term is gameID
+#         trial_num_list.append(d['label'].split("_")[1]) # second term is trial number 
+#         repetition_list.append(d['label'].split("_")[2]) # third term is repetition 
+#         target_list.append(d['label'].split("_")[3] + "_" + d['label'].split("_")[4]) # third and fourth term together is target 
+#     M['gameID'] = game_id_list
+#     M['trialNum'] = trial_num_list
+#     M['repetition'] = repetition_list
+#     M['target'] = target_list
+#     M = M.drop(["path", "label"], axis=1)
     return M
 
 ###############################################################################################
@@ -851,7 +857,7 @@ def print_repeated_sketches(D,
     _valid_gameids = complete_games
 
     for g in _valid_gameids:
-        print 'Printing out sketches from game: ' + g
+        print ('Printing out sketches from game: ' + g)
         trial_types = ['repeated']
         for tt in trial_types:
             _D = D[(D.condition=='repeated') & (D.gameID==g)]
@@ -910,7 +916,7 @@ def print_control_sketches(D,
                                    sketch_dir): 
 
     for g in complete_games:
-        print 'Printing out sketches from game: ' + g
+        print ('Printing out sketches from game: ' + g)
         trial_types = ['control']
         for tt in trial_types:
             _D = D[(D.condition=='control') & (D.gameID==g)]
@@ -976,7 +982,7 @@ def print_repeated_actual(D,
         numReps = 6
     
     for g in complete_games:
-        print 'Printing out sketches from game: ' + g
+        print ('Printing out sketches from game: ' + g)
         trial_types = ['repeated']
         for tt in trial_types:
             _D = D[(D.condition=='repeated') & (D.gameID==g)]
@@ -1060,7 +1066,7 @@ def print_repeated_control(D,
         numReps = 6
     
     for g in complete_games:
-        print 'Printing out sketches from game: ' + g
+        print ('Printing out sketches from game: ' + g)
         trial_types = ['repeated']
         for tt in trial_types:
             _D = D[(D.condition=='repeated') & (D.gameID==g)]
@@ -1312,10 +1318,12 @@ def make_adjacency_matrix(M, F, gameID):
     count = 0
     F_ = np.vstack((F, [float('NaN')] * 4096))
     arr_of_corrmats = []
-    for game in M[gameID].unique(): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
-        for target in (M[M[gameID] == game])['target'].unique():  #['dining_04']:
+    gameIDs = M[gameID].unique()
+    for game in gameIDs: #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
+        targets = (M[M[gameID] == game])['target'].unique()
+        for target in targets:  #['dining_04']:
             count = count + 1
-            M_isolated = M[(M[gameID] == game) & (M['target'] == target)]
+            M_isolated = M.query()
             for rep in range(8):
                 if rep not in list(M_isolated['repetition']):
                     df_to_add = pd.DataFrame([[game, float('NaN'), rep, target, len(F)]], columns=[gameID, 'trialNum', 'repetition', 'target', 'feature_ind'])
