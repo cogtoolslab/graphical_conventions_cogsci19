@@ -191,6 +191,7 @@ function endStroke(event) {
   // Only send stroke if actual line (single points don't get rendered)
   if (globalGame.drawingAllowed && globalGame.path.length > 1) {
     globalGame.endStrokeTime = Date.now();
+    //console.log("endstroketime: " + globalGame.endStrokeTime);
     // Increment stroke num
     globalGame.currStrokeNum += 1;
 
