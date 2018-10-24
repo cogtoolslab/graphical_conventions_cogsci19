@@ -402,9 +402,9 @@ def split_up_metadata(M):
 
     for i,d in M.iterrows():
         game_id_list.append(d['label'].split("_")[0]) # first term is gameID
-        trial_num_list.append(d['label'].split("_")[1]) # second term is trial number 
-        repetition_list.append(d['label'].split("_")[2]) # third term is repetition 
-        target_list.append(d['label'].split("_")[3] + "_" + d['label'].split("_")[4]) # third and fourth term together is target 
+        trial_num_list.append(d['label'].split("_")[1]) # second term is trialNum
+        target_list.append(d['label'].split("_")[2] + '_' + d['label'].split("_")[3]) # third and fourth are target 
+        repetition_list.append(d['label'].split("_")[4]) # fifth term is repetition 
     M['gameID'] = game_id_list
     M['trialNum'] = trial_num_list
     M['repetition'] = repetition_list
@@ -776,28 +776,28 @@ def ts_grid_repeated(D, # the dataframe
     sns.lineplot(data=D0,
                x='repetition',
                hue='gameID',
-               unit='gameID',
+               units='gameID',
                y=var0,
                ax=ax0)
 
     sns.lineplot(data=D1,
                x='repetition',
                hue='gameID',
-               unit='gameID',
+               units='gameID',
                y=var1,
                ax=ax1)
 
     sns.lineplot(data=D2,
                x='repetition',
                hue='gameID',
-               unit='gameID',
+               units='gameID',
                y=var2,
                ax=ax2)
 
     sns.lineplot(data=D3,
                x='repetition',
                hue='gameID',
-               unit='gameID',
+               units='gameID',
                y=var3,
                ax=ax3)
 
@@ -1227,7 +1227,6 @@ def get_confusion_matrix(D, category, set_size):
 ###############################################################################################   
 
 
-
 def get_confusion_matrix_on_rep(D, category, set_size, repetition):
 
     _D = D[D['condition'] == 'repeated']
@@ -1342,10 +1341,11 @@ def make_adjacency_matrix(M, F, gameID):
             result[i][j] = np.nanmean(np.array(to_add))
 
     average_corr_mat = np.array(result)
+    print average_corr_mat
     
     sns.set_context('paper')
     fig, ax = plt.subplots(figsize=(5,4)) 
-    sns.heatmap(1-average_corr_mat, cmap="plasma", cbar=True, xticklabels=True, yticklabels=True, ax=ax)
+    sns.heatmap(1-average_corr_mat, cmap="plasma", cbar=True, ax=ax)
     plt.tight_layout()   
     
     return arr_of_corrmats
@@ -1372,19 +1372,25 @@ def standardize(D, dv):
     trialNum_list = []
     dv_list = []
     rep_list = []
+    game_id_list = []
     for g in list(D['gameID']):
         D_game = D[D['gameID'] == g]
         mean = np.mean(np.array(D_game[dv]))
         std = np.std(np.array(D_game[dv]))
         for t in list(D_game['trialNum']):
+            game_id_list.append(g)
             D_trial = D_game[D_game['trialNum'] == t]
             trialNum_list.append(t)
-            z_score = (list(D_trial[dv])[0] - mean) / std
+            if std == 0:
+                z_score = 0
+            else:
+                z_score = (list(D_trial[dv])[0] - mean) / float(std)
             dv_list.append(z_score)
             rep_list.append(list(D_trial['repetition'])[0])
     new_D['trialNum'] = trialNum_list
     new_D[dv] = dv_list
     new_D['repetition'] = rep_list
+    new_D['gameID'] = game_id_list
     return new_D
 
 ############################################################################################### 
@@ -1397,3 +1403,121 @@ def add_bis_scores(D, dv):
         bis_score_list.append(bis_score)
     new_D['bis_score'] = bis_score_list
     return new_D
+
+############################################################################################### 
+
+def plot_bis_scores(D_filtered):
+
+    # split into repeated and control 
+    D_repeated = D_filtered[D_filtered['condition'] == 'repeated']
+    D_control = D_filtered[D_filtered['condition'] == 'control']
+    D_control.repetition = D_control.repetition.replace(1, 7)
+    D_filtered = pd.concat([D_repeated, D_control], axis = 0)
+
+    # standardize accuracy across repetitions within game
+    #standardized_outcome_repeated = standardize(D_repeated, 'outcome')
+    #standardized_outcome_control = standardize(D_control, 'outcome')
+    #standardized_outcome_repeated = standardized_outcome_repeated.drop(['repetition', 'trialNum', 'gameID'], axis = 1)
+    #standardized_outcome_control = standardized_outcome_control.drop(['repetition', 'trialNum', 'gameID'], axis = 1)
+    
+    standardized_outcome = standardize(D_filtered, 'outcome')
+    standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID'], axis = 1)
+    standardized_drawDuration = standardize(D_filtered, 'drawDuration')
+    standardized_numStrokes = standardize(D_filtered, 'numStrokes')
+    
+    drawDuration_accuracy = pd.concat([standardized_drawDuration, standardized_outcome], axis = 1)
+    numStrokes_accuracy = pd.concat([standardized_numStrokes, standardized_outcome], axis = 1)
+    
+    drawDuration_accuracy_bis = add_bis_scores(drawDuration_accuracy, 'drawDuration')
+    numStrokes_accuracy_bis = add_bis_scores(numStrokes_accuracy, 'numStrokes')
+    
+    #D_control.repetition = D_control.repetition.replace(1, 7)
+
+    # standardize drawDuration across repetitions within game 
+    #standardized_drawDuration_repeated = standardize(D_repeated, 'drawDuration')
+    #standardized_drawDuration_control = standardize(D_control, 'drawDuration')
+
+    # standardize numStrokes across repetitions within game
+    #standardized_numStrokes_repeated = standardize(D_repeated, 'numStrokes')
+    #standardized_numStrokes_control = standardize(D_control, 'numStrokes')
+
+    # concatenate dv and accuracy dataframes 
+    #drawDuration_accuracy_repeated = pd.concat([standardized_drawDuration_repeated, standardized_outcome_repeated], axis = 1)
+    #drawDuration_accuracy_control = pd.concat([standardized_drawDuration_control, standardized_outcome_control], axis = 1)
+    #numStrokes_accuracy_repeated = pd.concat([standardized_numStrokes_repeated, standardized_outcome_repeated], axis = 1)
+    #numStrokes_accuracy_control = pd.concat([standardized_numStrokes_control, standardized_outcome_control], axis = 1)
+
+#     drawDuration_accuracy_bis_repeated = add_bis_scores(drawDuration_accuracy_repeated, 'drawDuration')
+#     drawDuration_accuracy_bis_control = add_bis_scores(drawDuration_accuracy_control, 'drawDuration')
+#     numStrokes_accuracy_bis_repeated = add_bis_scores(numStrokes_accuracy_repeated, 'numStrokes')
+#     numStrokes_accuracy_bis_control = add_bis_scores(numStrokes_accuracy_control, 'numStrokes')
+    
+    drawDuration_accuracy_bis.to_csv("graphical_conventions_{}_{}_{}".format('bis_score', 'drawDuration', 'repeated'))
+    numStrokes_accuracy_bis.to_csv("graphical_conventions_{}_{}_{}".format('bis_score', 'numStrokes', 'repeated'))
+
+    df2 = pd.DataFrame([[float('NaN'), float('NaN'), 1, float('NaN'), float('NaN'), float('NaN')],
+                        [float('NaN'), float('NaN'), 2, float('NaN'), float('NaN'), float('NaN')], 
+                        [float('NaN'), float('NaN'), 3, float('NaN'), float('NaN'), float('NaN')], 
+                        [float('NaN'), float('NaN'), 4, float('NaN'), float('NaN'), float('NaN')], 
+                        [float('NaN'), float('NaN'), 5, float('NaN'), float('NaN'), float('NaN')], 
+                        [float('NaN'), float('NaN'), 6, float('NaN'), float('NaN'), float('NaN')]], 
+                       columns=['trialNum', 'drawDuration', 'repetition', 'gameID', 'outcome', 'bis_score'])
+    drawDuration_accuracy_bis_control = drawDuration_accuracy_bis_control.append(df2)
+
+    df2 = pd.DataFrame([[float('NaN'), float('NaN'), 1, float('NaN'), float('NaN'), float('NaN')],
+                        [float('NaN'), float('NaN'), 2, float('NaN'), float('NaN'), float('NaN')], 
+                        [float('NaN'), float('NaN'), 3, float('NaN'), float('NaN'), float('NaN')], 
+                        [float('NaN'), float('NaN'), 4, float('NaN'), float('NaN'), float('NaN')], 
+                        [float('NaN'), float('NaN'), 5, float('NaN'), float('NaN'), float('NaN')], 
+                        [float('NaN'), float('NaN'), 6, float('NaN'), float('NaN'), float('NaN')]], 
+                       columns=['trialNum', 'numStrokes', 'repetition', 'gameID', 'outcome', 'bis_score'])
+    numStrokes_accuracy_bis_control = numStrokes_accuracy_bis_control.append(df2)
+
+    fig, ((ax0), (ax1)) = plt.subplots(nrows=1, ncols=2, figsize=(24,12))
+
+    sns.lineplot(data=drawDuration_accuracy_bis_repeated,
+           x='repetition',
+          y='bis_score',
+           ax=ax0)
+
+    sns.pointplot(data=drawDuration_accuracy_bis_control ,
+                   x='repetition',
+                   y='bis_score',
+                   join=False,
+                   color='r',
+                   dodge=True,
+                   errwidth = 3,
+                   scale = 0.7,
+                   ax=ax0)
+
+    sns.lineplot(data=numStrokes_accuracy_bis_repeated,
+           x='repetition',
+           y='bis_score',
+           ax=ax1)
+
+    sns.pointplot(data=numStrokes_accuracy_bis_control,
+                   x='repetition',
+                   y='bis_score',
+                   join=False,
+                   color='r',
+                   dodge=True,
+                   errwidth = 3,
+                   scale = 0.7,
+                   ax=ax1)
+
+    # plt.figure(figsize=(6,6)) 
+    # sns.lineplot(
+    #         data=drawDuration_accuracy_bis_repeated, 
+    #         x='repetition',
+    #         y='bis_score')
+    # plt.ylim([-1,1])
+    # plt.xticks(np.arange(0, 8, step=1))
+
+    ax0.set_ylim([-1.5, 1])
+    ax0.set(xlim=(-0.5, 7.5), xticks=range(0,8))
+    ax1.set_ylim([-1.5, 1])
+    ax1.set(xlim=(-0.5, 7.5), xticks=range(0,8))
+
+    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+
+############################################################################################### 
