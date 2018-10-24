@@ -156,22 +156,37 @@ class FeatureExtractor():
 
             return vgg19  
         
+        def flatten_list(x):
+            return np.array([item for sublist in x for item in sublist])
+        
         def get_metadata_from_path(path):
-            label = path.split('.')[0]            
-            return label        
+            parsed_path = path.split('.')[0].split('/')[-1].split('_')
+            ## e.g., 'run4_6540-741a0240-208a-46d6-8181-5858614f27c0_37_control_dining_05_1'
+            runNum = parsed_path[0]
+            gameID = parsed_path[1]
+            trialNum = parsed_path[2]
+            condition = parsed_path[3]
+            target = parsed_path[4]+parsed_path[5]
+            repetition = parsed_path[6]               
+            return runNum, gameID, trialNum, condition, target, repetition        
 
         def generator(paths, imsize=self.imsize, use_cuda=use_cuda):
             for path in paths:
-                image = load_image(path)
-                label = get_metadata_from_path(path)
-                yield (image, label)        
+                image = load_image(path)             
+                runNum, gameID, trialNum, condition, target, repetition = get_metadata_from_path(path)
+                yield (image, runNum, gameID, trialNum, condition, target, repetition)        
                                                 
         # define generator
         generator = generator(self.paths,imsize=self.imsize,use_cuda=self.use_cuda)
         
         # initialize sketch and label matrices
         Features = []
-        Labels = []
+        RunNums = []
+        GameIDs = []
+        TrialNums = []
+        Conditions = []
+        Targets = []
+        Repetitions = []
         
         n = 0
         quit = False 
@@ -186,18 +201,26 @@ class FeatureExtractor():
                 sketch_batch = Variable(torch.zeros(batch_size, 3, self.imsize, self.imsize))                
                 if use_cuda:
                     sketch_batch = sketch_batch.cuda(self.cuda_device)             
-                label_batch = [] 
+                run_batch = []
+                game_batch = []
+                trial_batch = []
+                condition_batch = []
+                target_batch = []
+                repetition_batch = []
+                
                 if (n+1)%1==0:
                     print('Batch {}'.format(n + 1))
                     print ('batch size: {}'.format(batch_size))
                 for b in range(batch_size):
                     try:
-                        sketch, label = generator.next()
-                        #print ('sketch: {}'.format(sketch))
-                        #print ('label: {}'.format(label))
-                        ##print(list(sketch.size()),label)
+                        sketch, runNum, gameID, trialNum, condition, target, repetition = generator.next()
                         sketch_batch[b] = sketch 
-                        label_batch.append(label)
+                        run_batch.append(runNum)
+                        game_batch.append(gameID)
+                        trial_batch.append(trialNum)
+                        condition_batch.append(condition)
+                        target_batch.append(target)
+                        repetition_batch.append(repetition)
                     except StopIteration:
                         quit = True
                         print('stopped!')
@@ -217,9 +240,18 @@ class FeatureExtractor():
                 else:
                     Features = np.vstack((Features,sketch_batch))
 
-                Labels.append(label_batch)
+                RunNums.append(run_batch)
+                GameIDs.append(game_batch)
+                TrialNums.append(trial_batch)
+                Conditions.append(condition_batch)
+                Targets.append(target_batch)
+                Repetitions.append(repetition_batch)                                        
 
                 if n == self.num_images//batch_size + 1:
                     break
         Labels = np.array([item for sublist in Labels for item in sublist])
-        return Features, Labels
+        RunNums,GameIDs,TrialNums,\
+        Conditions,Targets,Repetitions = map(flatten_list,\
+                                            [RunNums,GameIDs,TrialNums,\
+                                            Conditions,Targets,Repetitions])
+        return Features, RunNums,GameIDs,TrialNums,Conditions,Targets,Repetitions
