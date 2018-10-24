@@ -20,6 +20,48 @@ import re
 sns.set_context('poster')
 colors = sns.color_palette("cubehelix", 5)
 
+################################################################################################
+# Dictionaries to convert between objects and categories 
+
+OBJECT_TO_CATEGORY_run1 = {
+    'basset': 'dog', 'beetle': 'car', 'bloodhound': 'dog', 'bluejay': 'bird',
+    'bluesedan': 'car', 'bluesport': 'car', 'brown': 'car', 'bullmastiff': 'dog',
+    'chihuahua': 'dog', 'crow': 'bird', 'cuckoo': 'bird', 'doberman': 'dog',
+    'goldenretriever': 'dog', 'hatchback': 'car', 'inlay': 'chair', 'knob': 'chair',
+    'leather': 'chair', 'nightingale': 'bird', 'pigeon': 'bird', 'pug': 'dog',
+    'redantique': 'car', 'redsport': 'car', 'robin': 'bird', 'sling': 'chair',
+    'sparrow': 'bird', 'squat': 'chair', 'straight': 'chair', 'tomtit': 'bird',
+    'waiting': 'chair', 'weimaraner': 'dog', 'white': 'car', 'woven': 'chair',
+}
+CATEGORY_TO_OBJECT_run1 = {
+    'dog': ['basset', 'bloodhound', 'bullmastiff', 'chihuahua', 'doberman', 'goldenretriever', 'pug', 'weimaraner'],
+    'car': ['beetle', 'bluesedan', 'bluesport', 'brown', 'hatchback', 'redantique', 'redsport', 'white'],
+    'bird': ['bluejay', 'crow', 'cuckoo', 'nightingale', 'pigeon', 'robin', 'sparrow', 'tomtit'],
+    'chair': ['inlay', 'knob', 'leather', 'sling', 'squat', 'straight', 'waiting', 'woven'],
+}
+
+OBJECT_TO_CATEGORY_run2 = {
+    'deck_00':'deck', 'deck_01':'deck', 'deck_02':'deck', 'deck_03':'deck', 'deck_04':'deck', 'deck_05':'deck',
+     'deck_06':'deck', 'deck_07':'deck', 'deck_08':'deck', 'deck_09':'deck', 'deck_10':'deck', 'deck_11':'deck',
+     'dining_00':'dining','dining_01':'dining','dining_02':'dining','dining_03':'dining','dining_04':'dining','dining_05':'dining',
+    'dining_06':'dining','dining_07':'dining','dining_08':'dining','dining_09':'dining','dining_10':'dining','dining_11':'dining',
+    'armchair_00':'armchair','armchair_01':'armchair','armchair_02':'armchair','armchair_03':'armchair','armchair_04':'armchair','armchair_05':'armchair',
+    'armchair_06':'armchair','armchair_07':'armchair','armchair_08':'armchair','armchair_09':'armchair','armchair_10':'armchair','armchair_11':'armchair',
+    'waiting_00':'waiting', 'waiting_01':'waiting', 'waiting_02':'waiting', 'waiting_03':'waiting', 'waiting_04':'waiting', 'waiting_05':'waiting',
+     'waiting_06':'waiting', 'waiting_07':'waiting', 'waiting_08':'waiting', 'waiting_09':'waiting', 'waiting_10':'waiting', 'waiting_11':'waiting'
+}
+
+CATEGORY_TO_OBJECT_run2 = {
+    'deck': ['deck_00', 'deck_01', 'deck_02', 'deck_03', 'deck_04', 'deck_05', 'deck_06', 'deck_07', 'deck_08', 'deck_09', 'deck_10', 'deck_11'],
+    'dining': ['dining_00', 'dining_01','dining_02','dining_03','dining_04','dining_05','dining_06','dining_07','dining_08','dining_09','dining_10','dining_11'],
+    'armchair': ['armchair_00','armchair_01','armchair_02','armchair_03','armchair_04','armchair_05','armchair_06','armchair_07','armchair_08','armchair_09','armchair_10','armchair_11'],
+    'waiting': ['waiting_00','waiting_01','waiting_02','waiting_03','waiting_04','waiting_05','waiting_06','waiting_07','waiting_08','waiting_09','waiting_10','waiting_11']
+}
+
+
+################################################################################################
+# helper functions to generate dataframe
+
 def get_complete_and_valid_games(games,
                                  coll,       
                                  iterationName,
@@ -38,6 +80,7 @@ def get_complete_and_valid_games(games,
     '''
     complete_games = []
     for i, game in enumerate(games):
+        print('{} | {}'.format(i,game))
         num_clicks = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'},{'iterationName':iterationName}]}).count()
         ## check to make sure there were two real mturk workers participating who were not researchers
         real_workers = False
@@ -100,8 +143,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     Phase = []
     numStrokes = []
     drawDuration = [] # in seconds
-    svgStringLength = [] # sum of svg string for whole sketch
-    svgStringLengthPerStroke = [] # svg string length per stroke
+    svgString = [] # svg string representation of ksetch
     numCurvesPerSketch = [] # number of curve segments per sketch
     numCurvesPerStroke = [] # mean number of curve segments per stroke
     svgStringStd = [] # std of svg string length across strokes for this sketch
@@ -113,7 +155,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     y = ['3601-5426f18c-ab9f-40c9-b627-e4d09ce1679a'] ## game where trial 4 was repeated 
     _complete_games= [item for item in complete_games if item not in y]
     for i,g in enumerate(_complete_games):
-            print( 'Analyzing game {} | {} of {}: '.format(g, i, len(_complete_games)))
+            print( 'Analyzing game {} | {} of {} '.format(g, i, len(_complete_games)))
 
             # collection of all clickedObj events in a particular game 
             X = coll.find({ '$and': [{'gameid': g}, {'eventType': 'clickedObj'}]}).sort('time')
@@ -135,15 +177,15 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
                 if (y.count() == 0):
                     numStrokes.append(float('NaN'))
                     drawDuration.append(float('NaN'))
-                    svgStringLength.append(float('NaN'))
-                    svgStringLengthPerStroke.append(float('NaN'))
+                    svgString.append('NaN')
                     numCurvesPerSketch.append(float('NaN'))
                     numCurvesPerStroke.append(float('NaN'))
-                    svgStringStd.append(float('NaN'))
                     meanPixelIntensity.append('NaN')
                     timedOut.append(True)
                 else: 
                     y = coll.find({ '$and': [{'gameid': g}, {'eventType': 'stroke'}, {'trialNum': t['trialNum']}]}).sort('time')
+
+                    
                     lastStrokeNum = float(y[y.count() - 1]['currStrokeNum']) # get currStrokeNum at last stroke
                     ns = y.count()
                     if not lastStrokeNum == ns:
@@ -151,22 +193,21 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
                         print ("lastStrokeNum: " + str(lastStrokeNum))
 
                     numStrokes.append(lastStrokeNum)
-
+                    
                     # calculate drawDuration 
                     startStrokeTime =  float(y[0]['startStrokeTime'])
                     endStrokeTime = float(y[y.count() - 1]['endStrokeTime']) ## took out negative 1 
                     duration = (endStrokeTime - startStrokeTime) / 1000
                     drawDuration.append(duration)
+                    
+                    # extract svg string into list
+                    svg_list = [_y['svgData'] for _y in y]
 
-                    # calculate other measures that have to do with sketch 
-                    ls = [len(_y['svgData']) for _y in y]
-                    svgStringLength.append(sum(ls))
+                    # calculate other measures that have to do with sketch                     
                     y = coll.find({ '$and': [{'gameid': g}, {'eventType': 'stroke'}, {'trialNum': t['trialNum']}]}).sort('time')            
                     num_curves = [len([m.start() for m in re.finditer('c',str(_y['svgData']))]) for _y in y] ## gotcha: need to call string on _y['svgData'], o/w its unicode and re cant do anything with it
                     numCurvesPerSketch.append(sum(num_curves))
                     numCurvesPerStroke.append(sum(num_curves)/lastStrokeNum)
-                    svgStringLengthPerStroke.append(sum(ls)/lastStrokeNum)
-                    svgStringStd.append(np.std(ls))
                     timedOut.append(False)
 
                     ## calculate pixel intensity (amount of ink spilled) 
@@ -195,7 +236,8 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
                 Outcome.append(t['correct'])
                 Distractor1.append(distractors[0])
                 Distractor2.append(distractors[1])
-                Distractor3.append(distractors[2])  
+                Distractor3.append(distractors[2])
+                svgString.append(svg_list)
                 if (iterationName == 'run3_size4_waiting'):
                     Generalization.append('within')
                 else:
@@ -203,13 +245,13 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
                     
     
     ## now actually make dataframe
-    GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity, svgStringLength, svgStringLengthPerStroke, svgStringStd, numCurvesPerSketch, numCurvesPerStroke, timedOut, png = map(np.array, \
-    [GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity,svgStringLength, svgStringLengthPerStroke, svgStringStd, numCurvesPerSketch, numCurvesPerStroke, timedOut,png])    
+    GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity, numCurvesPerSketch, numCurvesPerStroke, timedOut, png,svgString = map(np.array, \
+    [GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity, numCurvesPerSketch, numCurvesPerStroke, timedOut,png, svgString])    
 
     Repetition = map(int,Repetition)
 
-    _D = pd.DataFrame([GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity,svgStringLength, svgStringLengthPerStroke, svgStringStd, numCurvesPerSketch, numCurvesPerStroke, timedOut, png], 
-                     index = ['gameID','trialNum','condition', 'target', 'category', 'repetition', 'phase', 'Generalization', 'drawDuration', 'outcome', 'response', 'numStrokes', 'meanPixelIntensity', 'svgStringLength', 'svgStringLengthPerStroke', 'svgStringStd', 'numCurvesPerSketch', 'numCurvesPerStroke', 'timedOut', 'png'])
+    _D = pd.DataFrame([GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity, numCurvesPerSketch, numCurvesPerStroke, timedOut, png,svgString], 
+                     index = ['gameID','trialNum','condition', 'target', 'category', 'repetition', 'phase', 'Generalization', 'drawDuration', 'outcome', 'response', 'numStrokes', 'meanPixelIntensity', 'numCurvesPerSketch', 'numCurvesPerStroke', 'timedOut', 'png','svgString'])
     _D = _D.transpose()
 
     # filter out crazy games (low accuracy and timeouts)
@@ -272,27 +314,27 @@ def grand_mean_normalize(D_normalized, dv, _complete_games):
 
 ###############################################################################################
 
-def save_sketches(D, complete_games, sketch_dir, dir_name, iterationNum):
-    for g in list(D['gameID']):
-        print ("saving sketches from game: {}".format(g))
-        if g in list(D['gameID']):
-            _D = D[D['condition'] == 'repeated']
-            for i,_d in _D.iterrows():
-                imgData = _d['png']
-                trialNum = _d['trialNum']
-                target = _d['target']
-                repetition = _d['repetition']
-                filestr = base64.b64decode(imgData)
-                fname = 'sketch.png'
-                with open(fname, "wb") as fh:
-                    fh.write(imgData.decode('base64'))
-                im = Image.open(fname)
-                #im = im.convert("RGB")
-                ### saving sketches to sketch_dir 
-                filepath = os.path.join('{}_{}_{}_{}_{}.png'.format(g,trialNum,target, repetition, iterationNum))     
-                if not os.path.exists(os.path.join(sketch_dir,dir_name)):
-                    os.makedirs(os.path.join(sketch_dir,dir_name))
-                im.save(os.path.join(sketch_dir,dir_name,filepath))
+def save_sketches(D, sketch_dir, dir_name, iterationName):
+    for i,_d in D.iterrows():
+        if i%50==0:
+            print ("saving trial {} sketch from game: {}".format(_d['trialNum'],_d['gameID']))
+        g = _d['gameID']
+        cond = _d['condition']
+        imgData = _d['png']
+        trialNum = _d['trialNum']
+        target = _d['target']
+        repetition = _d['repetition']
+        filestr = base64.b64decode(imgData)
+        fname = 'sketch.png'
+        with open(fname, "wb") as fh:
+            fh.write(imgData.decode('base64'))
+        im = Image.open(fname)
+        #im = im.convert("RGB")
+        ### saving sketches to sketch_dir 
+        filepath = os.path.join('{}_{}_{}_{}_{}_{}.png'.format(iterationName, g, trialNum, cond, target, repetition))     
+        if not os.path.exists(os.path.join(sketch_dir,dir_name)):
+            os.makedirs(os.path.join(sketch_dir,dir_name))
+        im.save(os.path.join(sketch_dir,dir_name,filepath))
                 
 ###############################################################################################
 
