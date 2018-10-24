@@ -396,28 +396,13 @@ def clean_up_metadata(M):
 def split_up_metadata(M):
     ## parse labels into columns for M
     new_M = pd.DataFrame(
-        M.label.str.split('_',6).tolist(),
-        columns = ['gameid','trialNum', 'category', 'target', 'repetition', 'collectionrun']
+        M.label.str.split('_',5).tolist(),
+        columns = ['gameID','trialNum', 'category', 'targetID', 'repetition', 'iterationName']
     )
-    new_M['feature_ind'] = pd.Series(range(len(M)))
-    return new_M
-
-#     game_id_list = []
-#     trial_num_list = []
-#     repetition_list = []
-#     target_list = []
-
-#     for i,d in M.iterrows():
-#         game_id_list.append(d['label'].split("_")[0]) # first term is gameID
-#         trial_num_list.append(d['label'].split("_")[1]) # second term is trial number 
-#         repetition_list.append(d['label'].split("_")[2]) # third term is repetition 
-#         target_list.append(d['label'].split("_")[3] + "_" + d['label'].split("_")[4]) # third and fourth term together is target 
-#     M['gameID'] = game_id_list
-#     M['trialNum'] = trial_num_list
-#     M['repetition'] = repetition_list
-#     M['target'] = target_list
-#     M = M.drop(["path", "label"], axis=1)
-    return M
+    new_M['objID'] = new_M.category.str.cat(new_M.targetID, sep = '_')
+    new_M['feature_ind'] = pd.Series(range(len(new_M)))
+    new_M['repetition'] = pd.to_numeric(new_M['repetition'])
+    return new_M.drop(columns = ['category', 'targetID'])
 
 ###############################################################################################
 
@@ -1314,24 +1299,25 @@ def scramble_df_within_target_rep(M):
 ############################################################################################### 
     
 def make_adjacency_matrix(M, F, gameID):
+    print(F)
     result = np.zeros((8, 8))
     count = 0
     F_ = np.vstack((F, [float('NaN')] * 4096))
     arr_of_corrmats = []
-    gameIDs = M[gameID].unique()
-    for game in gameIDs: #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
-        targets = (M[M[gameID] == game])['target'].unique()
-        for target in targets:  #['dining_04']:
+    for game in M.gameID.unique(): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
+        for target in M.query('gameID == "{}"'.format(game)).objID.unique():  #['dining_04']:
             count = count + 1
-            M_isolated = M.query()
+            M_isolated = M.query('gameID == "{}" and objID == "{}"'.format(game, target))
             for rep in range(8):
                 if rep not in list(M_isolated['repetition']):
-                    df_to_add = pd.DataFrame([[game, float('NaN'), rep, target, len(F)]], columns=[gameID, 'trialNum', 'repetition', 'target', 'feature_ind'])
+                    df_to_add = pd.DataFrame([[game, float('NaN'), rep, target, len(F)]], 
+                                             columns=[gameID, 'trialNum', 'repetition', 'objID', 'feature_ind'])
                     M_isolated = M_isolated.append(df_to_add)
             M_isolated_sorted = M_isolated.sort_values(by=['repetition'])
             inds_to_compare = M_isolated_sorted['feature_ind']
             features_to_compare = F_[inds_to_compare, :]
-
+            print(inds_to_compare.shape)
+            print(features_to_compare)
             # add features to a new dataframe 
             # and compute corr with pandas to handle NaN well  
             features_df = pd.DataFrame()
@@ -1339,8 +1325,9 @@ def make_adjacency_matrix(M, F, gameID):
             for row in features_to_compare:
                 features_df[str(column_index)] = pd.Series(list(row))
                 column_index = column_index + 1
-
+            print(features_df)
             pd_CORRMAT = features_df.corr()
+            print(pd_CORRMAT)
             np_CORRMAT = pd_CORRMAT.values
             arr_of_corrmats.append(np_CORRMAT)
 
