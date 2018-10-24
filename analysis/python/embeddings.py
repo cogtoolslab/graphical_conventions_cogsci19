@@ -83,7 +83,7 @@ class VGG19Embeddings(nn.Module):
         
 class FeatureExtractor():
     
-    def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=0, data_type='images',spatial_avg=True):
+    def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=4, data_type='images',spatial_avg=True):
         self.layer = layer
         self.paths = paths
         self.num_images = len(self.paths)
@@ -135,7 +135,7 @@ class FeatureExtractor():
             loader = transforms.Compose([
                 transforms.Pad(padding), 
                 transforms.CenterCrop(imsize),
-                transforms.Scale(imsize),
+                transforms.Resize(imsize),
                 transforms.ToTensor()])
 
             im = Variable(loader(im_), volatile=volatile)
@@ -210,7 +210,6 @@ class FeatureExtractor():
                 
                 if (n+1)%1==0:
                     print('Batch {}'.format(n + 1))
-                    print ('batch size: {}'.format(batch_size))
                 for b in range(batch_size):
                     try:
                         sketch, runNum, gameID, trialNum, condition, target, repetition = generator.next()
@@ -230,6 +229,12 @@ class FeatureExtractor():
                 if n == self.num_images//self.batch_size:
                     sketch_batch = sketch_batch.narrow(0,0,b)
                     label_batch = label_batch[:b + 1] 
+                    run_batch = run_batch[:b + 1]
+                    game_batch = game_batch[:b + 1]
+                    trial_batch = trial_batch[:b + 1]
+                    condition_batch = condition_batch[:b + 1]
+                    target_batch = target_batch[:b + 1]
+                    repetition_batch = repetition_batch[:b + 1]
                 
                 # extract features from batch
                 sketch_batch = extractor(sketch_batch)
