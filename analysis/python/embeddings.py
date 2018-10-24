@@ -254,4 +254,4 @@ class FeatureExtractor():
         Conditions,Targets,Repetitions = map(flatten_list,\
                                             [RunNums,GameIDs,TrialNums,\
                                             Conditions,Targets,Repetitions])
-        return Features, RunNums,GameIDs,TrialNums,Conditions,Targets,Repetitions
+        return Features,RunNums,GameIDs,TrialNums,Conditions,Targets,Repetitions
