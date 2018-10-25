@@ -1006,17 +1006,17 @@ def scramble_df_within_target_rep(M):
 
 ############################################################################################### 
     
-def make_adjacency_matrix(M, F, gameID):
+def make_adjacency_matrix(M, F, gameID_colname):
     # add scratch index to handle NaNs
     F_ = np.vstack((F, [float('NaN')] * 4096))
     arr_of_corrmats = []
-    for game in M.gameID.unique(): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
-        for target in M.query('gameID == "{}"'.format(game)).target.unique():  #['dining_04']:
-            M_instance = M.query('gameID == "{}" and target == "{}"'.format(game, target))
+    for game in M[gameID_colname]unique(): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
+        for target in M.query('{} == "{}"'.format(gameID_colname, game)).target.unique():  #['dining_04']:
+            M_instance = M.query('{} == "{}" and target == "{}"'.format(gameID_colname, game, target))
             for rep in range(8):
                 if rep not in list(M_instance['repetition']):
                     df_to_add = pd.DataFrame([[game, float('NaN'), rep, target, len(F)]], 
-                                             columns=[gameID, 'trialNum', 'repetition', 'target', 'feature_ind'])
+                                             columns=[gameID_colname, 'trialNum', 'repetition', 'target', 'feature_ind'])
                     M_instance = M_instance.append(df_to_add)
             M_instance_sorted = M_instance.sort_values(by=['repetition'])
             inds_to_compare = M_instance_sorted['feature_ind']
