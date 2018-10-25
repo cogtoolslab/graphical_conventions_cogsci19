@@ -73,6 +73,9 @@ def save_features(Features, Y, layer_num, data_type,feat_path='/data/jefan/graph
     Y.to_csv(os.path.join(feat_path,'METADATA_{}.csv'.format(data_type)))
     return layers[int(layer_num)]
 
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1")
+
 if __name__ == "__main__":
     import argparse
     proj_dir = os.path.abspath('../..')
@@ -83,12 +86,12 @@ if __name__ == "__main__":
     parser.add_argument('--layer_ind', help='fc6 = 5, fc7 = 6', default=5)
     parser.add_argument('--data_type', help='"images" or "sketch"', default='images')
     parser.add_argument('--spatial_avg', type=bool, help='collapse over spatial dimensions, preserving channel activation only if true', default=True)     
-    parser.add_argument('--crop_sketch', type=bool, help='do we crop sketches by default?', default=False)     
-    parser.add_argument('--test', type=bool, help='testing only, do not save features', default=False)  
+    parser.add_argument('--crop_sketch', type=str2bool, help='do we crop sketches by default?', default='False')     
+    parser.add_argument('--test', type=str2bool, help='testing only, do not save features', default='False')  
     parser.add_argument('--ext', type=str, help='image extension type (e.g., "png")', default="png")    
 
     args = parser.parse_args()
-    
+        
     ## get list of all sketch paths
     image_paths = sorted(list_files(args.data,args.ext))
     print('Length of image_paths before filtering: {}'.format(len(image_paths)))

@@ -120,7 +120,6 @@ class FeatureExtractor():
             
             ## POSSIBLY do this preprocessing if you are working with sketches
             if (self.data_type=='sketch') & (self.crop_sketch==True): 
-                
                 arr = np.asarray(im_)
                 w,h,d = np.where(arr<255) # where the image is not white
                 if len(h)==0:
@@ -132,7 +131,7 @@ class FeatureExtractor():
                     yub = max(w)
                     lb = min([xlb,ylb])
                     ub = max([xub,yub])            
-                    im = im.crop((lb, lb, ub, ub))
+                    im_ = im_.crop((lb, lb, ub, ub))
                 except ValueError:
                     print('Blank image {}'.format(path))
                     pass
@@ -153,7 +152,7 @@ class FeatureExtractor():
             vgg19 = models.vgg19(pretrained=True).cuda(self.cuda_device)        
             vgg19 = VGG19Embeddings(vgg19,layer_index,spatial_avg=self.spatial_avg)
             vgg19.eval()  # freeze dropout
-            print('CUDA DEVICE NUM: {}'.format(self.cuda_device))
+            print('CUDA DEVICE NUM: {}  CROP SKETCH set to {}'.format(self.cuda_device, self.crop_sketch))
 
             # freeze each parameter
             for p in vgg19.parameters():
