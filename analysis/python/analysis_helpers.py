@@ -110,6 +110,7 @@ def plot_repeated_control(D_repeated, D_control, var, ax, numReps):
 
 def clean_up_metadata(M):
     return (M.drop(columns=['Unnamed: 0'])
+             .assign(feature_ind=pd.Series(range(len(M))))
              .assign(repetition=pd.to_numeric(M.repetition)))
 
 ###############################################################################################
@@ -1006,46 +1007,36 @@ def scramble_df_within_target_rep(M):
 ############################################################################################### 
     
 def make_adjacency_matrix(M, F, gameID):
-    print(F)
-    result = np.zeros((8, 8))
-    count = 0
+    # add scratch index to handle NaNs
     F_ = np.vstack((F, [float('NaN')] * 4096))
     arr_of_corrmats = []
     for game in M.gameID.unique(): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
-        for target in M.query('gameID == "{}"'.format(game)).objID.unique():  #['dining_04']:
-            count = count + 1
-            M_isolated = M.query('gameID == "{}" and objID == "{}"'.format(game, target))
+        for target in M.query('gameID == "{}"'.format(game)).target.unique():  #['dining_04']:
+            M_instance = M.query('gameID == "{}" and target == "{}"'.format(game, target))
             for rep in range(8):
-                if rep not in list(M_isolated['repetition']):
+                if rep not in list(M_instance['repetition']):
                     df_to_add = pd.DataFrame([[game, float('NaN'), rep, target, len(F)]], 
-                                             columns=[gameID, 'trialNum', 'repetition', 'objID', 'feature_ind'])
-                    M_isolated = M_isolated.append(df_to_add)
-            M_isolated_sorted = M_isolated.sort_values(by=['repetition'])
-            inds_to_compare = M_isolated_sorted['feature_ind']
+                                             columns=[gameID, 'trialNum', 'repetition', 'target', 'feature_ind'])
+                    M_instance = M_instance.append(df_to_add)
+            M_instance_sorted = M_instance.sort_values(by=['repetition'])
+            inds_to_compare = M_instance_sorted['feature_ind']
             features_to_compare = F_[inds_to_compare, :]
-            print(inds_to_compare.shape)
-            print(features_to_compare)
-            # add features to a new dataframe 
-            # and compute corr with pandas to handle NaN well  
-            features_df = pd.DataFrame()
-            column_index = 0
-            for row in features_to_compare:
-                features_df[str(column_index)] = pd.Series(list(row))
-                column_index = column_index + 1
-            print(features_df)
-            pd_CORRMAT = features_df.corr()
-            print(pd_CORRMAT)
-            np_CORRMAT = pd_CORRMAT.values
-            arr_of_corrmats.append(np_CORRMAT)
 
+            # transpose array so that features are columns
+            # pandas .corr() handles NaNs better and expects columns
+            pd_CORRMAT = pd.DataFrame(features_to_compare.T).corr()
+            arr_of_corrmats.append(pd_CORRMAT.values)
+
+    # Average across games and targets for each entry in matrix
+    result = np.zeros((8, 8))
     for i in range(8):
         for j in range(8):
             to_add = [mat[i][j] for mat in arr_of_corrmats]
             result[i][j] = np.nanmean(np.array(to_add))
 
     average_corr_mat = np.array(result)
-    print(average_corr_mat)
-    
+
+    # Plot it
     sns.set_context('paper')
     fig, ax = plt.subplots(figsize=(5,4)) 
     sns.heatmap(1-average_corr_mat, cmap="plasma", cbar=True, ax=ax)
