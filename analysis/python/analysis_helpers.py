@@ -109,24 +109,8 @@ def plot_repeated_control(D_repeated, D_control, var, ax, numReps):
 ###############################################################################################
 
 def clean_up_metadata(M):
-    M = M.rename(columns={'label':'path'})    
-    label = [i.split('/')[-1] for i in M.path.values]    
-    M = M.assign(label=pd.Series(label))
-    M = M.drop(columns=['Unnamed: 0'])
-    return M
-
-###############################################################################################
-
-def split_up_metadata(M):
-    ## parse labels into columns for M
-    new_M = pd.DataFrame(
-        M.label.str.split('_',5).tolist(),
-        columns = ['gameID','trialNum', 'category', 'targetID', 'repetition', 'iterationName']
-    )
-    new_M['objID'] = new_M.category.str.cat(new_M.targetID, sep = '_')
-    new_M['feature_ind'] = pd.Series(range(len(new_M)))
-    new_M['repetition'] = pd.to_numeric(new_M['repetition'])
-    return new_M.drop(columns = ['category', 'targetID'])
+    return (M.drop(columns=['Unnamed: 0'])
+             .assign(repetition=pd.to_numeric(M.repetition)))
 
 ###############################################################################################
 
@@ -1060,7 +1044,7 @@ def make_adjacency_matrix(M, F, gameID):
             result[i][j] = np.nanmean(np.array(to_add))
 
     average_corr_mat = np.array(result)
-    print average_corr_mat
+    print(average_corr_mat)
     
     sns.set_context('paper')
     fig, ax = plt.subplots(figsize=(5,4)) 
