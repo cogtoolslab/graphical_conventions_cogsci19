@@ -20,6 +20,11 @@ import re
 sns.set_context('poster')
 colors = sns.color_palette("cubehelix", 5)
 
+# directory & file hierarchy
+proj_dir = os.path.abspath('../../..')
+analysis_dir = os.getcwd()
+results_dir = os.path.join(proj_dir,'results')
+
 ###############################################################################################
 ################### HELPERS FOR graphical conventions analysis notebook ####################################
 ###############################################################################################
@@ -1122,8 +1127,8 @@ def plot_bis_scores(D_filtered):
     drawDuration_accuracy_bis = add_bis_scores(drawDuration_accuracy, 'drawDuration')
     numStrokes_accuracy_bis = add_bis_scores(numStrokes_accuracy, 'numStrokes')
 
-    drawDuration_accuracy_bis.to_csv("graphical_conventions_{}_{}".format('bis_score', 'drawDuration'))
-    numStrokes_accuracy_bis.to_csv("graphical_conventions_{}_{}".format('bis_score', 'numStrokes'))
+    drawDuration_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}".format('bis_score', 'drawDuration')))
+    numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}".format('bis_score', 'numStrokes')))
 
     drawDuration_accuracy_bis_repeated = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'repeated']
     drawDuration_accuracy_bis_control = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'control']
