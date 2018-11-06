@@ -1072,6 +1072,7 @@ def standardize(D, dv):
     dv_list = []
     rep_list = []
     game_id_list = []
+    target_list = []
     condition_list = []
     for g in list(D['gameID']):
         D_game = D[D['gameID'] == g]
@@ -1088,11 +1089,13 @@ def standardize(D, dv):
             dv_list.append(z_score)
             rep_list.append(list(D_trial['repetition'])[0])
             condition_list.append(list(D_trial['condition'])[0])
+            target_list.append(list(D_trial['target'])[0])
     new_D['trialNum'] = trialNum_list
     new_D[dv] = dv_list
     new_D['repetition'] = rep_list
     new_D['gameID'] = game_id_list
     new_D['condition'] = condition_list
+    new_D['target'] = target_list
     return new_D
 
 ############################################################################################### 
@@ -1117,7 +1120,7 @@ def plot_bis_scores(D_filtered):
     D_filtered = pd.concat([D_repeated, D_control], axis = 0)
 
     standardized_outcome = standardize(D_filtered, 'outcome')
-    standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID','condition'], axis = 1)
+    standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID','condition', 'target'], axis = 1)
     standardized_drawDuration = standardize(D_filtered, 'drawDuration')
     standardized_numStrokes = standardize(D_filtered, 'numStrokes')
 
@@ -1127,8 +1130,8 @@ def plot_bis_scores(D_filtered):
     drawDuration_accuracy_bis = add_bis_scores(drawDuration_accuracy, 'drawDuration')
     numStrokes_accuracy_bis = add_bis_scores(numStrokes_accuracy, 'numStrokes')
 
-    drawDuration_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}".format('bis_score', 'drawDuration')))
-    numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}".format('bis_score', 'numStrokes')))
+    drawDuration_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'drawDuration')))
+    numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'numStrokes')))
 
     drawDuration_accuracy_bis_repeated = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'repeated']
     drawDuration_accuracy_bis_control = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'control']
