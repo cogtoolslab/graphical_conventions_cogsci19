@@ -12,6 +12,7 @@ library(lmerTest)
 library(brms)
 library(reshape2)
 library(Rmisc)
+library(tidyboot)
 ```
 
 # Run 3: size 4, within-cluster generalization, waiting and dining only
@@ -21,6 +22,46 @@ library(Rmisc)
 ```{r}
 d.run3.raw <- read_csv('../../results/graphical_conventions_group_data_run3_size4_waiting.csv')  %>% select(-png)
 d.run4.raw <- read_csv('../../results/graphical_conventions_group_data_run4_generalization.csv')  %>% select(-png)
+d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_drawDuration.csv') 
+d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') 
+```
+
+```{r}
+#d.bis.drawDuration.repeated <- d.bis.drawDuration %>% filter(condition == 'repeated')
+#ggplot(data=d.bis.drawDuration.repeated, aes(x=repetition, y=bis_score)) + geom_line() + geom_ribbon(aes(ymin=d.bis.drawDuration.repeated$lower, #ymax=d.bis.drawDuration.repeated$upper), linetype=2, alpha=0.1)
+# + stat_summary(geom="ribbon", fun.data=mean_cl_normal, width=0.1, conf.int=0.95, fill="lightblue")+
+#  stat_summary(geom="line", fun.y=mean, linetype="dashed")+
+#  stat_summary(geom="point", fun.y=mean, color="red")
+
+View(d.bis.drawDuration)
+d.bis.drawDuration %>%
+  group_by(condition, repetition) %>%
+  tidyboot_mean(column = bis_score) %>%
+  ggplot(aes(x=repetition,y=bis_score, color=condition)) + 
+    geom_line() + 
+    geom_errorbar(aes(ymin=ci_lower, ymax = ci_upper), width = 0) # position = dodge, 
+  #group_by(trialNum) %>% 
+  #summarize(bis_mean = mean(bis_score)) %>%
+  #ggplot(aes(x=repetition, y=bis_mean)) + 
+   # geom_point() + 
+   # theme_few() + 
+   # geom_hline(yintercept = 0.25, linetype = 2) +
+   # guides(color = FALSE) +
+   # geom_smooth(method = 'loess') +
+   # ylab("BIS") +
+   # ylim(-1,1) 
+
+```
+
+```{r}
+#lmer model for interaction between repetition and condition for bis (right syntax but doesn't converge)
+interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | gameID) + (1 + phase*condition | target), data = d.bis.drawDuration %>%
+                          filter(repetition == 0 | repetition == 7) %>% mutate(phase = ifelse(repetition == 0, 'pre', 'post'))) 
+summary(interaction_lmm)
+```
+
+```{r}
+coef(summary(interaction_lmm))
 ```
 
 ## Stroke histogram
