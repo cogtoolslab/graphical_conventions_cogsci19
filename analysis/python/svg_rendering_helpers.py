@@ -17,7 +17,6 @@ sns.set_context('poster')
 sns.set_style('white')
 from matplotlib.path import Path
 import matplotlib.patches as patches
-
 import pandas as pd
 from svgpathtools import parse_path, wsvg
 from glob import glob
