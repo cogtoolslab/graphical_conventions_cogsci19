@@ -20,6 +20,13 @@ import base64
 
 from embeddings import *
 
+'''
+To extract features, run, e.g.:
+
+python extract_features.py --data='/data/jefan/graphical_conventions/sketches' --layer_ind=5 --data_type='sketch' --spatial_avg=True
+
+'''
+
 # retrieve sketch paths
 def list_files(path, ext='png'):
     result = [y for x in os.walk(path) for y in glob(os.path.join(x[0], '*.%s' % ext))]
@@ -63,8 +70,11 @@ def save_features(Features, Y, layer_num, data_type,feat_path='/data/jefan/graph
         os.makedirs('./features')
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
     np.save(os.path.join(feat_path,'FEATURES_{}_{}.npy'.format(layers[int(layer_num)], data_type)), Features)
-    Y.to_csv(os.path.join(feat_path,'METADATA_{}.csv'.format(data_type)))
+    Y.to_csv(os.path.join(feat_path,'METADATA_{}.csv'.format(data_type)), index=False)
     return layers[int(layer_num)]
+
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1")
 
 if __name__ == "__main__":
     import argparse
@@ -76,11 +86,12 @@ if __name__ == "__main__":
     parser.add_argument('--layer_ind', help='fc6 = 5, fc7 = 6', default=5)
     parser.add_argument('--data_type', help='"images" or "sketch"', default='images')
     parser.add_argument('--spatial_avg', type=bool, help='collapse over spatial dimensions, preserving channel activation only if true', default=True)     
-    parser.add_argument('--test', type=bool, help='testing only, do not save features', default=False)  
+    parser.add_argument('--crop_sketch', type=str2bool, help='do we crop sketches by default?', default='False')     
+    parser.add_argument('--test', type=str2bool, help='testing only, do not save features', default='False')  
     parser.add_argument('--ext', type=str, help='image extension type (e.g., "png")', default="png")    
 
     args = parser.parse_args()
-    
+        
     ## get list of all sketch paths
     image_paths = sorted(list_files(args.data,args.ext))
     print('Length of image_paths before filtering: {}'.format(len(image_paths)))
@@ -91,7 +102,10 @@ if __name__ == "__main__":
     
     ## extract features
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
-    extractor = FeatureExtractor(image_paths,layer=args.layer_ind,data_type=args.data_type,spatial_avg=args.spatial_avg)
+    extractor = FeatureExtractor(image_paths,layer=args.layer_ind,\
+                                 data_type=args.data_type,\
+                                 spatial_avg=args.spatial_avg,\
+                                 crop_sketch=args.crop_sketch)
     Features,RunNums,GameIDs,\
     TrialNums,Conditions,Targets,Repetitions = extractor.extract_feature_matrix()   
     
@@ -100,5 +114,5 @@ if __name__ == "__main__":
     _Features, _Y = preprocess_features(Features, Y)
 
     if args.test==False:
-        layer = save_features(_Features, _Y, args.layer_ind, args.data_type)
+        layer = save_features(_Features, _Y, args.layer_ind, args.data_type)        
        

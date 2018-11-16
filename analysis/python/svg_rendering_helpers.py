@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from __future__ import division
 import os
 import urllib, cStringIO
@@ -228,3 +229,5 @@ def svg_to_png(svg_paths,
 #         print filepath
 #         fig.savefig(filepath,bbox_inches='tight')
 #         plt.close(fig)
+=======
+>>>>>>> ebd66b053d3c50e6ba4368ca4833219cd19351b9
