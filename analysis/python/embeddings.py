@@ -83,7 +83,7 @@ class VGG19Embeddings(nn.Module):
         
 class FeatureExtractor():
     
-    def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=0, data_type='images',spatial_avg=True):
+    def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=0, data_type='images',spatial_avg=True,crop_sketch=False):
         self.layer = layer
         self.paths = paths
         self.num_images = len(self.paths)
@@ -93,6 +93,7 @@ class FeatureExtractor():
         self.batch_size = batch_size
         self.cuda_device = cuda_device
         self.data_type = data_type ## either 'images' or 'sketches'
+        self.crop_sketch = crop_sketch ## do we want to crop sketches or not?
         self.spatial_avg = spatial_avg ## if true, collapse across spatial dimensions to just preserve channel activation
         
     def extract_feature_matrix(self):
@@ -112,10 +113,13 @@ class FeatureExtractor():
 
         def load_image(path, imsize=224, padding=self.padding, volatile=True, use_cuda=False):
             im = Image.open(path)
-            im_ = im.convert(mode="RGB")
+            if self.data_type=='sketch':
+                im_ = RGBA2RGB(im)
+            elif self.data_type=='images':
+                im_ = im.convert(mode="RGB")
             
-            if self.data_type!='images': ## only do this preprocessing if you are working with sketches
-                
+            ## POSSIBLY do this preprocessing if you are working with sketches
+            if (self.data_type=='sketch') & (self.crop_sketch==True): 
                 arr = np.asarray(im_)
                 w,h,d = np.where(arr<255) # where the image is not white
                 if len(h)==0:
@@ -127,7 +131,7 @@ class FeatureExtractor():
                     yub = max(w)
                     lb = min([xlb,ylb])
                     ub = max([xub,yub])            
-                    im = im.crop((lb, lb, ub, ub))
+                    im_ = im_.crop((lb, lb, ub, ub))
                 except ValueError:
                     print('Blank image {}'.format(path))
                     pass
@@ -135,7 +139,7 @@ class FeatureExtractor():
             loader = transforms.Compose([
                 transforms.Pad(padding), 
                 transforms.CenterCrop(imsize),
-                transforms.Scale(imsize),
+                transforms.Resize(imsize),
                 transforms.ToTensor()])
 
             im = Variable(loader(im_), volatile=volatile)
@@ -148,7 +152,7 @@ class FeatureExtractor():
             vgg19 = models.vgg19(pretrained=True).cuda(self.cuda_device)        
             vgg19 = VGG19Embeddings(vgg19,layer_index,spatial_avg=self.spatial_avg)
             vgg19.eval()  # freeze dropout
-            print('CUDA DEVICE NUM: {}'.format(self.cuda_device))
+            print('CUDA DEVICE NUM: {}  CROP SKETCH set to {}'.format(self.cuda_device, self.crop_sketch))
 
             # freeze each parameter
             for p in vgg19.parameters():
@@ -210,7 +214,6 @@ class FeatureExtractor():
                 
                 if (n+1)%1==0:
                     print('Batch {}'.format(n + 1))
-                    print ('batch size: {}'.format(batch_size))
                 for b in range(batch_size):
                     try:
                         sketch, runNum, gameID, trialNum, condition, target, repetition = generator.next()
@@ -229,7 +232,12 @@ class FeatureExtractor():
                 n = n + 1       
                 if n == self.num_images//self.batch_size:
                     sketch_batch = sketch_batch.narrow(0,0,b)
-                    label_batch = label_batch[:b + 1] 
+                    run_batch = run_batch[:b + 1]
+                    game_batch = game_batch[:b + 1]
+                    trial_batch = trial_batch[:b + 1]
+                    condition_batch = condition_batch[:b + 1]
+                    target_batch = target_batch[:b + 1]
+                    repetition_batch = repetition_batch[:b + 1]
                 
                 # extract features from batch
                 sketch_batch = extractor(sketch_batch)
@@ -249,7 +257,6 @@ class FeatureExtractor():
 
                 if n == self.num_images//batch_size + 1:
                     break
-        Labels = np.array([item for sublist in Labels for item in sublist])
         RunNums,GameIDs,TrialNums,\
         Conditions,Targets,Repetitions = map(flatten_list,\
                                             [RunNums,GameIDs,TrialNums,\
