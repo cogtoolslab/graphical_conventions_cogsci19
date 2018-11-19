@@ -294,7 +294,7 @@ def find_crazies(D):
     arr2 = np.array(D['numCurvesPerSketch'])
     crazies = []
     for i, d in D.iterrows():
-        if d[dv1] < np.median(arr1) + 3 * np.std(arr1) and d[dv2] < np.median(arr2) + 3 * np.std(arr2):
+        if d['numStrokes'] < np.median(arr1) + 3 * np.std(arr1) and d['numCurvesPerSketch'] < np.median(arr2) + 3 * np.std(arr2):
             crazies.append(False)
         else:
             crazies.append(True)
