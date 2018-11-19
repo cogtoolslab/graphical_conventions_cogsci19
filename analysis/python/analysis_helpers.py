@@ -180,126 +180,6 @@ def plot_accuracy_phase(D):
 
 ###############################################################################################
 
-def ts_repeated(D, # the dataframe
-                        var='drawDuration', # the variable you want to see plotted against numRepts
-                        limit=10,
-                        save_plot=False,
-                        plot_dir='./plots'): # the y range for the plot
-
-    '''
-    purpose: get timeseries (with error band) for some behavioral measure of interest across repetitions
-    note: This only applies to the "repeated" objects.
-          We are currently aggregating across objects within a repetition within subject, so the error bands
-          only reflect between-subject variability.
-    input:
-            D: the group dataframe
-            var: the variable you want to see plotted against numReps, e.g., 'drawDuration'
-            limit: the y range for the plot
-            save_plot: do you want to save the plot?
-            plot_dir: path to where to save out the plot
-    output: another dataframe?
-            a timeseries plot
-    '''
-
-    ## first convert variable type so we are allowed to do arithmetic on it
-    D = convert_numeric(D,var)
-
-    ## collapsing across objects within repetition (within pair)
-    ## and only aggregating repeated trials into this sub-dataframe
-    _D0 = D[D['condition']=='repeated']
-    D0 = _D0.groupby(['gameID','repetition','condition'])[var].mean()
-    D0 = D0.reset_index()
-
-    ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
-    num_reps = len(np.unique(D.repetition.values))
-    assert D0.groupby('gameID')['gameID'].count()[0]==num_reps
-
-    fig = plt.figure(figsize=(6,6))
-    ## repeated condition
-    sns.tsplot(data=D0,
-               time='repetition',
-               unit='gameID',
-               value=var,
-               ci=68)
-    plt.xlim([-0.5,7.5])
-    plt.ylim([0,limit])
-    plt.xticks(np.arange(np.max(D0['repetition'])+1))
-    plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var)))
-
-    return D0
-
-###############################################################################################
-
-def ts_repeated_control(D, # the dataframe
-                        var='drawDuration', # the variable you want to see plotted against numRepts
-                        numReps = 8,
-                        upper_limit=10,
-                        lower_limit = 2,
-                        save_plot=False,
-                        plot_dir='./plots'): # the y range for the plot
-
-    '''
-    purpose: get timeseries (with error band) for some behavioral measure of interest across repetitions
-    note: This applies to BOTH repeated and control objects
-          We are currently aggregating across objects within a repetition within subject, so the error bands
-          only reflect between-subject variability.
-    input:
-            D: the group dataframe
-            var: the variable you want to see plotted against numReps, e.g., 'drawDuration'
-            limit: the y range for the plot
-            save_plot: do you want to save the plot?
-            plot_dir: path to where to save out the plot
-    output:
-            a timeseries plot
-    '''
-
-    ## first convert variable type so we are allowed to do arithmetic on it
-    D = convert_numeric(D,var)
-
-    ## collapsing across objects within repetition (within pair)
-    ## and only aggregating repeated trials into this sub-dataframe
-    _D0 = D[D['condition']=='repeated']
-    D0 = _D0.groupby(['gameID','repetition','condition'])[var].mean()
-    D0 = D0.reset_index()
-
-    ## and only aggregating control trials into this sub-dataframe
-    _D1 = D[D['condition']=='control']
-    D1 = _D1.groupby(['gameID','repetition','condition'])[var].mean()
-    D1 = D1.reset_index()
-    D1.repetition = D1.repetition.replace(1, numReps-1) # rescale control repetitions
-
-    ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
-    num_reps = len(np.unique(D.repetition.values))
-    assert D0.groupby('gameID')['gameID'].count()[0]==num_reps
-
-    fig, ax = plt.subplots()
-
-    ## repeated condition
-    sns.tsplot(data=D0,
-               time='repetition',
-               unit='gameID',
-               value=var,
-               ci=68,
-               ax=ax)
-
-    ## control condition
-    sns.tsplot(data=D1,
-               time='repetition',
-               unit='gameID',
-               value=var,
-               ci=68,
-               err_style='ci_bars',
-               interpolate=False,
-               ax=ax,
-               color='r')
-
-    plt.xlim([-0.5, numReps - 0.5])
-    plt.ylim([lower_limit, upper_limit])
-    plt.xticks(np.arange(0, numReps, step=1))
-    plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var)))
-
-###############################################################################################
-
 def ts_grid_repeated_control(D,
                                       var0, var1, var2, var3,
                                        numReps=8,
@@ -437,77 +317,6 @@ def line_grid_individual(D,
     ax2.set_ylim([8, 50])
     ax3.set_ylim([0.01, 0.07])
     ax3.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-###############################################################################################
-
-def ts_grid_repeated(D, # the dataframe
-                        var0, var1, var2, var3,
-                        save_plot=False,
-                        plot_dir='./plots'): # the y range for the plot
-
-    '''
-    purpose: get timeseries (with error band) for 4 behavioral measures of interest across repetitions:
-                drawDuration, numStrokes (actions), numCurvesPerSketch (total splines), and numCurvesPerStroke (stroke complexity)
-
-    note: This only applies to the "repeated" objects.
-          We are currently aggregating across objects within a repetition within subject, so the error bands
-          only reflect between-subject variability.
-
-    input:
-            D: the group dataframe
-            save_plot: do you want to save the plot?
-            plot_dir: path to where to save out the plot
-
-    output:
-            a timeseries plot
-    '''
-
-    D = convert_numeric(convert_numeric(convert_numeric(convert_numeric(D,var0),var1),var2),var3)
-
-    ## collapsing across objects within repetition (within pair)
-    ## and only aggregating repeated trials into this sub-dataframe
-    D0 = collapse_within_repetition(D, var0, 'repeated')
-    D1 = collapse_within_repetition(D, var1, 'repeated')
-    D2 = collapse_within_repetition(D, var2, 'repeated')
-    D3 = collapse_within_repetition(D, var3, 'repeated')
-
-    #fig = plt.figure(figsize=(12,12))
-    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(nrows=2, ncols=2, figsize=(10,5))
-
-    ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
-    num_reps = len(np.unique(D.repetition.values))
-    assert D0.groupby('gameID')['gameID'].count()[0]==num_reps
-
-    sns.lineplot(data=D0,
-               x='repetition',
-               hue='gameID',
-               units='gameID',
-               y=var0,
-               ax=ax0)
-
-    sns.lineplot(data=D1,
-               x='repetition',
-               hue='gameID',
-               units='gameID',
-               y=var1,
-               ax=ax1)
-
-    sns.lineplot(data=D2,
-               x='repetition',
-               hue='gameID',
-               units='gameID',
-               y=var2,
-               ax=ax2)
-
-    sns.lineplot(data=D3,
-               x='repetition',
-               hue='gameID',
-               units='gameID',
-               y=var3,
-               ax=ax3)
-
-    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-    plt.xticks(np.arange(np.max(D0['repetition'])+1))
 
 ###############################################################################################
 
@@ -1111,18 +920,18 @@ def add_bis_scores(D, dv):
 
 ###############################################################################################
 
-def plot_bis_scores(D_filtered):
+def save_bis_scores(D):
 
     # split into repeated and control
-    D_repeated = D_filtered[D_filtered['condition'] == 'repeated']
-    D_control = D_filtered[D_filtered['condition'] == 'control']
+    D_repeated = D[D['condition'] == 'repeated']
+    D_control = D[D['condition'] == 'control']
     D_control.repetition = D_control.repetition.replace(1, 7)
-    D_filtered = pd.concat([D_repeated, D_control], axis = 0)
+    D = pd.concat([D_repeated, D_control], axis = 0)
 
-    standardized_outcome = standardize(D_filtered, 'outcome')
+    standardized_outcome = standardize(D, 'outcome')
     standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID','condition', 'target'], axis = 1)
-    standardized_drawDuration = standardize(D_filtered, 'drawDuration')
-    standardized_numStrokes = standardize(D_filtered, 'numStrokes')
+    standardized_drawDuration = standardize(D, 'drawDuration')
+    standardized_numStrokes = standardize(D, 'numStrokes')
 
     drawDuration_accuracy = pd.concat([standardized_drawDuration, standardized_outcome], axis = 1)
     numStrokes_accuracy = pd.concat([standardized_numStrokes, standardized_outcome], axis = 1)
@@ -1133,29 +942,30 @@ def plot_bis_scores(D_filtered):
     drawDuration_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'drawDuration')))
     numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'numStrokes')))
 
-    drawDuration_accuracy_bis_repeated = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'repeated']
-    drawDuration_accuracy_bis_control = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'control']
-    numStrokes_accuracy_bis_repeated = numStrokes_accuracy_bis[numStrokes_accuracy_bis['condition'] == 'repeated']
-    numStrokes_accuracy_bis_control= numStrokes_accuracy_bis[numStrokes_accuracy_bis['condition'] == 'control']
-
-    df2 = pd.DataFrame([[float('NaN'), float('NaN'), 1, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 2, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 3, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 4, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 5, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 6, float('NaN'), float('NaN'), float('NaN')]],
-                       columns=['trialNum', 'drawDuration', 'repetition', 'gameID', 'outcome', 'bis_score'])
-    drawDuration_accuracy_bis_control = drawDuration_accuracy_bis_control.append(df2)
-
-    df2 = pd.DataFrame([[float('NaN'), float('NaN'), 1, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 2, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 3, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 4, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 5, float('NaN'), float('NaN'), float('NaN')],
-                        [float('NaN'), float('NaN'), 6, float('NaN'), float('NaN'), float('NaN')]],
-                       columns=['trialNum', 'numStrokes', 'repetition', 'gameID', 'outcome', 'bis_score'])
-    numStrokes_accuracy_bis_control = numStrokes_accuracy_bis_control.append(df2)
-
-    return drawDuration_accuracy_bis_repeated, drawDuration_accuracy_bis_control, numStrokes_accuracy_bis_repeated, numStrokes_accuracy_bis_control
+    return drawDuration_accuracy_bis, numStrokes_accuracy_bis
+    # drawDuration_accuracy_bis_repeated = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'repeated']
+    # drawDuration_accuracy_bis_control = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'control']
+    # numStrokes_accuracy_bis_repeated = numStrokes_accuracy_bis[numStrokes_accuracy_bis['condition'] == 'repeated']
+    # numStrokes_accuracy_bis_control= numStrokes_accuracy_bis[numStrokes_accuracy_bis['condition'] == 'control']
+    #
+    # df2 = pd.DataFrame([[float('NaN'), float('NaN'), 1, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 2, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 3, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 4, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 5, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 6, float('NaN'), float('NaN'), float('NaN')]],
+    #                    columns=['trialNum', 'drawDuration', 'repetition', 'gameID', 'outcome', 'bis_score'])
+    # drawDuration_accuracy_bis_control = drawDuration_accuracy_bis_control.append(df2)
+    #
+    # df2 = pd.DataFrame([[float('NaN'), float('NaN'), 1, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 2, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 3, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 4, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 5, float('NaN'), float('NaN'), float('NaN')],
+    #                     [float('NaN'), float('NaN'), 6, float('NaN'), float('NaN'), float('NaN')]],
+    #                    columns=['trialNum', 'numStrokes', 'repetition', 'gameID', 'outcome', 'bis_score'])
+    # numStrokes_accuracy_bis_control = numStrokes_accuracy_bis_control.append(df2)
+    #
+    # return drawDuration_accuracy_bis_repeated, drawDuration_accuracy_bis_control, numStrokes_accuracy_bis_repeated, numStrokes_accuracy_bis_control
 
 ###############################################################################################
