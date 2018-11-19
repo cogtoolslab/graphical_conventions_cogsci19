@@ -883,7 +883,7 @@ def standardize(D, dv):
     game_id_list = []
     target_list = []
     condition_list = []
-    for g in list(D['gameID']):
+    for g in D['gameID'].unique():
         D_game = D[D['gameID'] == g]
         mean = np.mean(np.array(D_game[dv]))
         std = np.std(np.array(D_game[dv]))
@@ -943,29 +943,5 @@ def save_bis_scores(D):
     numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'numStrokes')))
 
     return drawDuration_accuracy_bis, numStrokes_accuracy_bis
-    # drawDuration_accuracy_bis_repeated = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'repeated']
-    # drawDuration_accuracy_bis_control = drawDuration_accuracy_bis[drawDuration_accuracy_bis['condition'] == 'control']
-    # numStrokes_accuracy_bis_repeated = numStrokes_accuracy_bis[numStrokes_accuracy_bis['condition'] == 'repeated']
-    # numStrokes_accuracy_bis_control= numStrokes_accuracy_bis[numStrokes_accuracy_bis['condition'] == 'control']
-    #
-    # df2 = pd.DataFrame([[float('NaN'), float('NaN'), 1, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 2, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 3, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 4, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 5, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 6, float('NaN'), float('NaN'), float('NaN')]],
-    #                    columns=['trialNum', 'drawDuration', 'repetition', 'gameID', 'outcome', 'bis_score'])
-    # drawDuration_accuracy_bis_control = drawDuration_accuracy_bis_control.append(df2)
-    #
-    # df2 = pd.DataFrame([[float('NaN'), float('NaN'), 1, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 2, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 3, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 4, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 5, float('NaN'), float('NaN'), float('NaN')],
-    #                     [float('NaN'), float('NaN'), 6, float('NaN'), float('NaN'), float('NaN')]],
-    #                    columns=['trialNum', 'numStrokes', 'repetition', 'gameID', 'outcome', 'bis_score'])
-    # numStrokes_accuracy_bis_control = numStrokes_accuracy_bis_control.append(df2)
-    #
-    # return drawDuration_accuracy_bis_repeated, drawDuration_accuracy_bis_control, numStrokes_accuracy_bis_repeated, numStrokes_accuracy_bis_control
 
 ###############################################################################################
