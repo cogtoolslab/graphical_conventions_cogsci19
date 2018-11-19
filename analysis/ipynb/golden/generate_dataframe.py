@@ -116,4 +116,4 @@ D = pd.concat([D_run3, D_run4], axis=0)
 D = h.find_crazies(D)
 
 # write out csv to results dir
-D.to_csv(os.path.join(results_dir, 'graphical_conventions_{}_{}.csv')
+D.to_csv(os.path.join(results_dir, 'graphical_conventions.csv'))

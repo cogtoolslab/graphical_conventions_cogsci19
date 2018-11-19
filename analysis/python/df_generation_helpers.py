@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import seaborn as sns
 import re
-from IPython.display import clear_output
+
 sns.set_context('poster')
 colors = sns.color_palette("cubehelix", 5)
 
@@ -81,7 +81,7 @@ def get_complete_and_valid_games(games,
     '''
     complete_games = []
     for i, game in enumerate(games):
-        clear_output(wait=True)
+        #clear_output(wait=True)
         print('{} | {}'.format(i,game))
         num_clicks = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'},{'iterationName':iterationName}]}).count()
         ## check to make sure there were two real mturk workers participating who were not researchers
