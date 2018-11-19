@@ -12,6 +12,7 @@ library(lmerTest)
 library(brms)
 library(reshape2)
 library(Rmisc)
+library(tidyboot)
 ```
 
 # Run 3: size 4, within-cluster generalization, waiting and dining only
@@ -21,6 +22,40 @@ library(Rmisc)
 ```{r}
 d.run3.raw <- read_csv('../../results/graphical_conventions_group_data_run3_size4_waiting.csv')  %>% select(-png)
 d.run4.raw <- read_csv('../../results/graphical_conventions_group_data_run4_generalization.csv')  %>% select(-png)
+d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_drawDuration.csv')  %>% select(-X1) %>% distinct()
+d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') %>% select(-X1) %>% distinct()
+```
+
+```{r}
+
+d.bootstrap %>%
+  ggplot(aes(x=repetition,y=empirical_stat, color=condition, fill=condition)) + 
+    geom_ribbon(aes(ymin=ci_lower, ymax = ci_upper), alpha =.25, color=NA,
+                data = d.bootstrap %>% filter(condition == 'repeated')) + # position = dodge, 
+    geom_line()+#data = d.bootstrap %>% filter(condition == 'repeated')) + 
+    geom_errorbar(aes(ymin=ci_lower, ymax = ci_upper), width = 0,
+                  data = d.bootstrap %>% filter(condition == 'control')) + 
+    geom_point(size = 2) + 
+    scale_x_continuous(breaks = round(seq(min(d.bootstrap$repetition), max(d.bootstrap$repetition), by =1),1)) + 
+    ylab("BIS") +
+    #ylim(-1,1) +
+    theme_bw() +
+    scale_color_manual(values=c("#cc0000", "#0066cc")) + 
+    scale_fill_manual(values=c("#cc0000", "#0066cc"))
+ggsave('../../writing/cogsci19/bis_score.pdf', width=20, height = 15, units='cm')
+
+
+```
+
+```{r}
+#lmer model for interaction between repetition and condition for bis (right syntax but doesn't converge)
+interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | gameID) + (1 + phase*condition | target), data = d.bis.drawDuration %>%
+                          filter(repetition == 0 | repetition == 7) %>% mutate(phase = ifelse(repetition == 0, 'pre', 'post'))) 
+summary(interaction_lmm)
+```
+
+```{r}
+coef(summary(interaction_lmm))
 ```
 
 ## Stroke histogram
