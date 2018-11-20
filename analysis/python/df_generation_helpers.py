@@ -59,6 +59,27 @@ CATEGORY_TO_OBJECT_run2 = {
     'waiting': ['waiting_00','waiting_01','waiting_02','waiting_03','waiting_04','waiting_05','waiting_06','waiting_07','waiting_08','waiting_09','waiting_10','waiting_11']
 }
 
+################################################################################################
+# map object names to shapenet ids 
+
+object_to_shapenet = {
+    "dining_00":"30afd2ef2ed30238aa3d0a2f00b54836",
+    "dining_01":"30dc9d9cfbc01e19950c1f85d919ebc2",
+    "dining_02":"4c1777173111f2e380a88936375f2ef4",
+    "dining_03":"3466b6ecd040e252c215f685ba622927",
+    "dining_04":"38f87e02e850d3bd1d5ccc40b510e4bd",
+    "dining_05":"3cf6db91f872d26c222659d33fd79709",
+    "dining_06":"3d7ebe5de86294b3f6bcd046624c43c9",
+    "dining_07":"56262eebe592b085d319c38340319ae4",
+    "waiting_00":"1d1641362ad5a34ac3bd24f986301745",
+    "waiting_01":"1da9942b2ab7082b2ba1fdc12ecb5c9e",
+    "waiting_02":"2448d9aeda5bb9b0f4b6538438a0b930",
+    "waiting_03":"23b0da45f23e5fb4f4b6538438a0b930",
+    "waiting_04":"2b5953c986dd08f2f91663a74ccd2338",
+    "waiting_05":"2e291f35746e94fa62762c7262e78952",
+    "waiting_06":"2eaab78d6e4c4f2d7b0c85d2effc7e09",
+    "waiting_07":"309674bdec2d24d7597976c675750537"
+}
 
 ################################################################################################
 # helper functions to generate dataframe
