@@ -432,3 +432,50 @@ def save_bis_scores(D):
     numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'numStrokes')))
 
     return drawDuration_accuracy_bis, numStrokes_accuracy_bis
+
+
+###############################################################################################
+
+def add_recog_session_ids(D):
+
+    D_repeated = D[D['condition'] == 'repeated']
+    D_control = D[D['condition'] == 'control']
+
+    repeated_tuple_list = []
+    for g in D_repeated['gameID'].unique():
+        target_list = D_repeated[D_repeated['gameID'] == g]['target'].unique()
+        for t in target_list:
+            repeated_tuple_list.append((g, t))
+    repeated = np.array(repeated_tuple_list)
+
+    control_tuple_list = []
+    for g in D_control['gameID'].unique():
+        target_list = D_control[D_control['gameID'] == g]['target'].unique()
+        for t in target_list:
+            control_tuple_list.append((g, t))
+    control = np.array(control_tuple_list)
+
+    assert len(repeated) == 268
+    assert len(control) == 268
+
+    new_d = pd.DataFrame()
+    for rep in range(8):
+        new_d['repeated_rep_{}'.format(rep)] = list(np.roll(repeated, rep * 4, axis=0))
+
+    for rep in [0,7]:
+        new_d['control_rep_{}'.format(rep)] = list(np.roll(control, (rep+8) * 4, axis=0))
+
+    D['recog_id'] = [0] * len(D)
+
+    for i,d in new_d.iterrows():
+        for j, pair in enumerate(list(d)):
+            if j == 8 or j == 9:
+                condition = 'control'
+                rep_num = 0 if j == 8 else 1
+            else:
+                condition = 'repeated'
+                rep_num = j
+            row_index = list(D.index[(D['gameID'] == pair[0]) & (D['target'] == pair[1]) & (D['repetition'] == rep_num) & (D['condition'] == condition)])[0]
+            D.loc[row_index, 'recog_id'] = i
+
+    return D
