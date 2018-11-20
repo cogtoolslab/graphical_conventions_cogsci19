@@ -23,13 +23,15 @@ function setupGame () {
   var socket = io.connect();
 
   socket.on('onConnected', function(d) {
-    var meta = d.meta; // contains trial level metadata
+    var meta = d.meta; // contains trial level metadata, a list of dictionaries
+    meta = _.shuffle(meta); // shuffle the order the dictionaries
+
     var id = d.id;     // gameID for *this* session
 
     // high level experiment parameter (placeholder)
     var num_trials = d.num_trials;
 
-    // define trial list
+    // define trial list: `tmp` contains boiler plate metadata that is true for every trial
     var tmp = {
       type: 'image-button-response',
       iterationName: 'testing',
@@ -104,14 +106,27 @@ function setupGame () {
 
     for (var i = 0; i < tmp.num_trials; i++) {
       var k = i+1;
+      this_meta = meta[i]; // grab this trial's metadata
       trials[k] = {
       	type: tmp.type,
       	iterationName : tmp.iterationName,
         num_trials: tmp.num_trials,                
       	trialNum : i, // trial number
       	gameID: id,
+        //
+        target: {filename: 'filename', shapenetid: 'shapenetid' , objectname: 'objectname', url:  'https://tinyurl.com/y9rzglpn'},
+        distractor1: {filename: 'filename', shapenetid: 'shapenetid' , objectname: 'objectname', url:  'https://tinyurl.com/y9rzglpn'},
+        distractor2: {filename: 'filename', shapenetid: 'shapenetid' , objectname: 'objectname', url:  'https://tinyurl.com/y9rzglpn'},
+        distractor3: {filename: 'filename', shapenetid: 'shapenetid' , objectname: 'objectname', url:  'https://tinyurl.com/y9rzglpn'},  
+        condition: 'XX',
+        repetition: 'XX',
+        trialNum: 'XX',
+        phase: 'XX',
+        category: 'XX',
+        generalization:'XX',
+        //
         prompt: "Please select the object that best matches the sketch.",
-        utterance: 'https://s3.amazonaws.com/graphical-conventions-sketches/0051-e13f6f0c-ae9b-4976-8fcd-870cdb75f63f_02_waiting_02.png', 
+        sketch: 'https://s3.amazonaws.com/graphical-conventions-sketches/0051-e13f6f0c-ae9b-4976-8fcd-870cdb75f63f_02_waiting_02.png', 
         choices: ['https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn'], // to be filled in dynamically
         dev_mode: tmp.dev_mode,
         on_finish: main_on_finish,
