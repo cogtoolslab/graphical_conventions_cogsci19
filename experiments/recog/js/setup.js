@@ -1,4 +1,4 @@
-var oldCallback;
+var callback;
 var score = 0;
 
 function sendData() {
@@ -6,20 +6,32 @@ function sendData() {
   jsPsych.turk.submitToTurk({'score':score});
 }
 
+// function makeNewCallback(trial) {
+//   return function(d) {
+//     console.log('data retrieved from db: ',d);
+//       trial.utterance = d.utt;
+//       trial.choices = _.shuffle([d.target.url, d.distractor1.url, d.distractor2.url]);
+//       trial.condition = d.condition;
+//       trial.family = d.family;
+//       trial._id = d._id;
+//       trial.shuffle_ind = d.shuffler_ind;
+//   };
+// };
+
 function setupGame () {
   // number of trials to fetch from database is defined in ./app.js
   var socket = io.connect();
 
   socket.on('onConnected', function(d) {
-    var meta = d.meta;
-    var id = d.id;
-    var trials = d.trials;
+    var meta = d.meta; // contains trial level metadata, a list of dictionaries
+    meta = _.shuffle(meta); // shuffle the order the dictionaries
+
+    var id = d.id;     // gameID for *this* session
 
     // high level experiment parameter (placeholder)
-    var num_trials = meta.num_trials;
-    var games = meta.games; // list of games in order of repetition
+    var num_trials = d.num_trials;
 
-    // define trial list
+    // define trial list: `tmp` contains boiler plate metadata that is true for every trial
     var tmp = {
       type: 'image-button-response',
       iterationName: 'testing',
@@ -81,33 +93,41 @@ function setupGame () {
     // Only start next trial once description comes back
     // have to remove and reattach to have local trial in scope...
     var main_on_start = function(trial) {
-      oldCallback = newCallback;
-      var newCallback = function(d) {
-        console.log('data retrieved from db: ',d);
-      	trial.utterance = d.utt; // png string
-        trial.choices = _.shuffle([d.target.url, d.distractor1.url, d.distractor2.url, d.distractor3.url]); // added another distractor
-        //trial.condition = d.condition;
-        //trial.family = d.family;
-        trial._id = d._id;
-        trial.shuffle_ind = d.shuffler_ind;
-      };
-      socket.removeListener('stimulus', oldCallback);
-      socket.on('stimulus', newCallback);
+      // Remove callback from previous trial
+      socket.removeListener('stimulus', callback);
+
+      // Make and attach callback for current trial
+      callback = makeNewCallback(trial);
+      socket.on('stimulus', callback);
+
       // call server for stims
       socket.emit('getStim', {gameID: id});
     };
 
     for (var i = 0; i < tmp.num_trials; i++) {
       var k = i+1;
+      this_meta = meta[i]; // grab this trial's metadata
       trials[k] = {
       	type: tmp.type,
       	iterationName : tmp.iterationName,
         num_trials: tmp.num_trials,
       	trialNum : i, // trial number
       	gameID: id,
+        //
+        target: {filename: 'filename', shapenetid: 'shapenetid' , objectname: 'objectname', url:  'https://tinyurl.com/y9rzglpn'},
+        distractor1: {filename: 'filename', shapenetid: 'shapenetid' , objectname: 'objectname', url:  'https://tinyurl.com/y9rzglpn'},
+        distractor2: {filename: 'filename', shapenetid: 'shapenetid' , objectname: 'objectname', url:  'https://tinyurl.com/y9rzglpn'},
+        distractor3: {filename: 'filename', shapenetid: 'shapenetid' , objectname: 'objectname', url:  'https://tinyurl.com/y9rzglpn'},
+        condition: 'XX',
+        repetition: 'XX',
+        trialNum: 'XX',
+        phase: 'XX',
+        category: 'XX',
+        generalization:'XX',
+        //
         prompt: "Please select the object that best matches the sketch.",
-        utterance: "Placeholder sketch.", // to be filled in dynamically
-        choices: ['https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn'], // to be filled in dynamically, added another sketch
+        sketch: 'https://s3.amazonaws.com/graphical-conventions-sketches/0051-e13f6f0c-ae9b-4976-8fcd-870cdb75f63f_02_waiting_02.png',
+        choices: ['https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn'], // to be filled in dynamically
         dev_mode: tmp.dev_mode,
         on_finish: main_on_finish,
       	on_start: main_on_start
