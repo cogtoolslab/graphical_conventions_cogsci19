@@ -5,9 +5,9 @@
  * plugin for displaying a utterance and getting a button click response
  *
  * documentation: docs.jspsych.org
- * 
- * adapted by Judy Fan (judithfan@gmail.com) Sep 2018 
- * to present a string as the utterance and record a mouse click on an image as response
+ *
+ * adapted by Judy Fan (judithfan@gmail.com) Sep 2018
+ * to present a sketch (produced in graphical conventions reference game) and record a mouse click on an image as response
  **/
 
 var score = 0;
@@ -23,10 +23,10 @@ jsPsych.plugins["image-button-response"] = (function() {
     description: '',
     parameters: {
       utterance: {
-        type: jsPsych.plugins.parameterType.STRING,
-        pretty_name: 'utterance',
+        type: jsPsych.plugins.parameterType.IMAGE,
+        pretty_name: 'Sketch (images URL)',
         default: undefined,
-        description: 'The description to be displayed'
+        description: 'The sketch to be displayed'
       },
       choices: {
         type: jsPsych.plugins.parameterType.STRING,
@@ -94,7 +94,7 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     // wrapper function to show everything, call this when you've waited what you
     // reckon is long enough for the data to come back from the db
-    function show_display() { 
+    function show_display() {
 
       //display buttons
       var buttons = [];
@@ -113,7 +113,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       //show prompt if there is one
       if (trial.prompt !== null) {
         var html = '<div id="prompt">' +trial.prompt + '</div>';
-      }    
+      }
 
       // display utterance (string)
       html += '<div><p id="jspsych-image-button-response-utterance"> "'+ trial.utterance +'"</p></div>';
@@ -127,28 +127,28 @@ jsPsych.plugins["image-button-response"] = (function() {
         html += '<div class="jspsych-image-button-response-button" style="display: inline-block; margin :'+trial.margin_horizontal+' '+trial.margin_vertical+'" id="jspsych-image-button-response-button-' + i +'" data-choice="'+object_id+'">'+str+'</div>';
       }
 
-      html += '</div>';       
+      html += '</div>';
 
       // display score earned so far
       html += '<div id="score"> <p> bonus points earned: ' + score + '</p></div>'
       html += '<div id="trial-counter"> <p> trial ' + trial.trialNum + ' of ' + trial.num_trials + '</p></div>'
 
-      // display helpful info during debugging 
-      if (trial.dev_mode==true) {
-        html += '<div id="family"> <p> family: ' + trial.family + '</p></div>'        
-        html += '<div id="condition"> <p> condition: ' + trial.condition + '</p></div>'
-      }
+      // display helpful info during debugging
+      // if (trial.dev_mode==true) {
+      //   html += '<div id="family"> <p> family: ' + trial.family + '</p></div>'
+      //   html += '<div id="condition"> <p> condition: ' + trial.condition + '</p></div>'
+      // }
 
       // actually assign html to display_element.innerHTML
       display_element.innerHTML = html;
 
-      // add click event listener to the image response buttons    
+      // add click event listener to the image response buttons
       for (var i = 0; i < trial.choices.length; i++) {
         display_element.querySelector('#jspsych-image-button-response-button-' + i).addEventListener('click', function(e){
           var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
           after_response(choice);
         });
-      }  
+      }
 
 
     }
@@ -203,13 +203,13 @@ jsPsych.plugins["image-button-response"] = (function() {
       // hitID
       var hitID = turkInfo.hitId;
       // assignmentID
-      var aID = turkInfo.assignmentId;     
+      var aID = turkInfo.assignmentId;
 
       // prettify choices list
       var pretty_choices = new Array;
       _.forEach(trial.choices, function(x) {
                 pretty_choices.push(x.split('/').slice(-1)[0].split('.')[0])
-                }); 
+                });
       // check if response matches target, i.e., whether response is correct
       if (response.button.split('_')[1] == 'target') {
         trial_correct = 1;
@@ -223,9 +223,9 @@ jsPsych.plugins["image-button-response"] = (function() {
         dbname: '3dObjects',
         colname: 'shapenet_chairs_speaker_eval',
         type: trial.type,
-        iterationName: trial.iterationName, 
-        gameID: trial.gameID, 
-        trialNum: trial.trialNum,             
+        iterationName: trial.iterationName,
+        gameID: trial.gameID,
+        trialNum: trial.trialNum,
         rt: response.rt,
         utterance: trial.utterance,
         choices: pretty_choices,
@@ -234,12 +234,12 @@ jsPsych.plugins["image-button-response"] = (function() {
         family: trial.family,
         response: response.button,
         shuffle_ind: trial.shuffle_ind,
-        score: score, 
-        correct: trial_correct, 
+        score: score,
+        correct: trial_correct,
         wID: wID,
         hitID: hitID,
-        aID: aID,   
-        timestamp: Date.now()     
+        aID: aID,
+        timestamp: Date.now()
       };
 
       console.log('trial data: ', trial_data);
