@@ -115,5 +115,8 @@ D = pd.concat([D_run3, D_run4], axis=0)
 ## filter crazies and add column
 D = h.find_crazies(D)
 
-# write out csv to results dir
+# write out main dataframe to results dir
 D.to_csv(os.path.join(results_dir, 'graphical_conventions.csv'))
+
+## write out bis dataframe to results dir
+drawDuration_accuracy_bis, numStrokes_accuracy_bis = h.save_bis_scores(D)

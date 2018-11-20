@@ -342,3 +342,72 @@ def save_sketches(D, sketch_dir, dir_name, iterationName):
         im.save(os.path.join(sketch_dir,dir_name,filepath))
 
 ###############################################################################################
+
+def standardize(D, dv):
+    new_D = pd.DataFrame()
+    trialNum_list = []
+    dv_list = []
+    rep_list = []
+    game_id_list = []
+    target_list = []
+    condition_list = []
+    for g in D['gameID'].unique():
+        D_game = D[D['gameID'] == g]
+        mean = np.mean(np.array(D_game[dv]))
+        std = np.std(np.array(D_game[dv]))
+        for t in list(D_game['trialNum']):
+            game_id_list.append(g)
+            D_trial = D_game[D_game['trialNum'] == t]
+            trialNum_list.append(t)
+            if std == 0:
+                z_score = 0
+            else:
+                z_score = (list(D_trial[dv])[0] - mean) / float(std)
+            dv_list.append(z_score)
+            rep_list.append(list(D_trial['repetition'])[0])
+            condition_list.append(list(D_trial['condition'])[0])
+            target_list.append(list(D_trial['target'])[0])
+    new_D['trialNum'] = trialNum_list
+    new_D[dv] = dv_list
+    new_D['repetition'] = rep_list
+    new_D['gameID'] = game_id_list
+    new_D['condition'] = condition_list
+    new_D['target'] = target_list
+    return new_D
+
+###############################################################################################
+
+def add_bis_scores(D, dv):
+    new_D = D.copy(deep=True)
+    bis_score_list = []
+    for i,d in D.iterrows():
+        bis_score = d['outcome'] - d[dv]
+        bis_score_list.append(bis_score)
+    new_D['bis_score'] = bis_score_list
+    return new_D
+
+###############################################################################################
+
+def save_bis_scores(D):
+
+    # split into repeated and control
+    D_repeated = D[D['condition'] == 'repeated']
+    D_control = D[D['condition'] == 'control']
+    D_control.repetition = D_control.repetition.replace(1, 7)
+    D = pd.concat([D_repeated, D_control], axis = 0)
+
+    standardized_outcome = standardize(D, 'outcome')
+    standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID','condition', 'target'], axis = 1)
+    standardized_drawDuration = standardize(D, 'drawDuration')
+    standardized_numStrokes = standardize(D, 'numStrokes')
+
+    drawDuration_accuracy = pd.concat([standardized_drawDuration, standardized_outcome], axis = 1)
+    numStrokes_accuracy = pd.concat([standardized_numStrokes, standardized_outcome], axis = 1)
+
+    drawDuration_accuracy_bis = add_bis_scores(drawDuration_accuracy, 'drawDuration')
+    numStrokes_accuracy_bis = add_bis_scores(numStrokes_accuracy, 'numStrokes')
+
+    drawDuration_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'drawDuration')))
+    numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'numStrokes')))
+
+    return drawDuration_accuracy_bis, numStrokes_accuracy_bis

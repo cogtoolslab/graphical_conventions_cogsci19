@@ -22,8 +22,8 @@ library(tidyboot)
 ```{r}
 d.run3.raw <- read_csv('../../results/graphical_conventions_group_data_run3_size4_waiting.csv')  %>% select(-png)
 d.run4.raw <- read_csv('../../results/graphical_conventions_group_data_run4_generalization.csv')  %>% select(-png)
-d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_drawDuration.csv')  %>% select(-X1) %>% distinct()
-d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') %>% select(-X1) %>% distinct()
+d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_drawDuration.csv')  %>% select(-X1)
+d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') %>% select(-X1)
 ```
 
 ```{r}
@@ -41,8 +41,9 @@ d.bootstrap %>%
     #ylim(-1,1) +
     theme_bw() +
     scale_color_manual(values=c("#cc0000", "#0066cc")) + 
-    scale_fill_manual(values=c("#cc0000", "#0066cc"))
-ggsave('../../writing/cogsci19/bis_score.pdf', width=20, height = 15, units='cm')
+    scale_fill_manual(values=c("#cc0000", "#0066cc")) + 
+  theme(legend.position = c(0.9, 0.2))
+ggsave('../../writing/cogsci19/figures/bis_score.pdf', width=20, height = 15, units='cm')
 
 
 ```
