@@ -135,7 +135,7 @@ jsPsych.plugins["image-button-response"] = (function() {
 
       // display helpful info during debugging 
       if (trial.dev_mode==true) {
-        html += '<div id="family"> <p> family: ' + trial.family + '</p></div>'        
+        html += '<div id="repetition"> <p> repetition: ' + trial.repetition + '</p></div>'        
         html += '<div id="condition"> <p> condition: ' + trial.condition + '</p></div>'
       }
 
