@@ -1,0 +1,563 @@
+---
+title: "graphical_conventions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggthemes)
+library(lme4)
+library(lmerTest)
+library(brms)
+library(reshape2)
+library(Rmisc)
+library(tidyboot)
+```
+
+# Run 3: size 4, within-cluster generalization, waiting and dining only
+
+## Import group data
+
+```{r}
+d.run3.raw <- read_csv('../../results/graphical_conventions_group_data_run3_size4_waiting.csv')  %>% select(-png)
+d.run4.raw <- read_csv('../../results/graphical_conventions_group_data_run4_generalization.csv')  %>% select(-png)
+d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_drawDuration.csv')  %>% select(-X1)
+d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') %>% select(-X1)
+```
+
+```{r}
+
+d.bootstrap %>%
+  ggplot(aes(x=repetition,y=empirical_stat, color=condition, fill=condition)) + 
+    geom_ribbon(aes(ymin=ci_lower, ymax = ci_upper), alpha =.25, color=NA,
+                data = d.bootstrap %>% filter(condition == 'repeated')) + # position = dodge, 
+    geom_line()+#data = d.bootstrap %>% filter(condition == 'repeated')) + 
+    geom_errorbar(aes(ymin=ci_lower, ymax = ci_upper), width = 0,
+                  data = d.bootstrap %>% filter(condition == 'control')) + 
+    geom_point(size = 2) + 
+    scale_x_continuous(breaks = round(seq(min(d.bootstrap$repetition), max(d.bootstrap$repetition), by =1),1)) + 
+    ylab("BIS") +
+    #ylim(-1,1) +
+    theme_bw() +
+    scale_color_manual(values=c("#cc0000", "#0066cc")) + 
+    scale_fill_manual(values=c("#cc0000", "#0066cc")) + 
+  theme(legend.position = c(0.9, 0.2))
+ggsave('../../writing/cogsci19/figures/bis_score.pdf', width=20, height = 15, units='cm')
+
+
+```
+
+```{r}
+#lmer model for interaction between repetition and condition for bis (right syntax but doesn't converge)
+interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | gameID) + (1 + phase*condition | target), data = d.bis.drawDuration %>%
+                          filter(repetition == 0 | repetition == 7) %>% mutate(phase = ifelse(repetition == 0, 'pre', 'post'))) 
+summary(interaction_lmm)
+```
+
+```{r}
+coef(summary(interaction_lmm))
+```
+
+## Stroke histogram
+
+```{r}
+d.run3.raw %>% 
+  #filter(condition == "repeated")%>%
+  group_by(numCurvesPerSketch) %>% ggplot(aes(x = numCurvesPerSketch)) + geom_histogram()
+```
+
+```{r}
+d.run3.raw %>% 
+  #filter(condition == "repeated")%>%
+  group_by(numStrokes) %>% ggplot(aes(x = numStrokes)) + geom_histogram()
+```
+
+```{r}
+strokeLimit = median(d.run3.raw$numStrokes) + 3 * sd(d.run3.raw$numStrokes)
+numCurvesLimit = median(d.run3.raw$numCurvesPerSketch) + 3 * sd(d.run3.raw$numCurvesPerSketch)
+```
+```{r}
+
+```
+
+## Find people who used crazy numbers of strokes and number of curves per sketch, also just get correct trials
+
+```{r}
+#crazies.run3 <- unique((d.run3.raw %>% filter(condition == 'repeated' & (numStrokes > strokeLimit | #numCurvesPerStroke > numCurvesLimit)) %>% select(gameID))$gameID)
+
+#crazies.run3.trialNum <- unique((d.run3.raw %>% filter(condition == 'repeated' & (numStrokes > strokeLimit | #numCurvesPerStroke > numCurvesLimit)) %>% select(trialNum))$trialNum)
+#crazies.pilot1 = c(crazies.pilot1, 
+#            '0766-fcb90e7e-bf4a-4a46-b6d6-3165b6c12b88', 
+#            '7024-8ac78089-539a-428b-9d0e-b52c71a0a1b4')
+d.run3 <- d.run3.raw%>% 
+  filter(outcome == "True")
+#%>% filter(!(gameID %in% crazies.run3 & trialNum %in% crazies.run3.trialNum))
+
+length(unique(d.run3$gameID))
+```
+
+```{r}
+d.run3 %>%
+  filter(condition == 'repeated') %>%
+  filter()
+  #filter(!(gameID %in% crazies)) %>%
+  #filter(drawDuration < 60) %>%
+  ggplot(data = d.run3, aes(x=drawDuration)) + geom_histogram() + geom_vline(aes(xintercept = median(drawDuration)))
+  # group_by(repetition, target, gameID) %>%
+  # summarize(drawDuration = mean(drawDuration))
+```
+
+# Reduction by target 
+
+```{r}
+d.run3 %>%
+  filter(condition == 'repeated') %>%
+  group_by(repetition, target) %>%
+  summarize(numStrokes = mean(drawDuration)) %>%
+  ggplot(aes(x = repetition, y = numStrokes, group=target)) +
+    geom_line() +
+    theme_few() +
+    geom_smooth(aes(group = 1), method ='loess')
+```
+
+# Reduction by gameid
+
+```{r}
+d.run3 %>%
+  filter(condition == 'repeated') %>%
+  group_by(repetition, gameID) %>%
+  summarize(drawDuration = mean(drawDuration)) %>%
+  ggplot(aes(x = repetition, y = drawDuration, group=interaction(gameID))) +
+    geom_line(alpha=.3) +
+    geom_smooth(aes(group = 1), method ='loess') +
+    theme_few() +
+    xlab('# repetitions') +
+    ylab('# svg string length')
+```
+
+# Reduction (completely disaggregated)
+
+```{r}
+d.run3 %>%
+  filter(condition == 'repeated') %>%
+  #filter(!(gameID %in% crazies)) %>%
+  #filter(drawDuration < 60) %>%
+  group_by(repetition, target, gameID) %>%
+  summarize(drawDuration = mean(drawDuration)) %>%
+  ggplot(aes(x = repetition, y = drawDuration, group=interaction(gameID, target))) +
+    geom_line(alpha=.1) +
+    geom_smooth(aes(group = 1), method ='loess') +
+    theme_few() +
+    xlab('# repetitions') +
+    ylab('draw duration') +
+    ggtitle('Reduction per target per game') +
+  #ylim(0, 25) +
+  theme(aspect.ratio = 1)
+```
+
+```{r}
+```
+
+## Mixed-effects model
+
+```{r}
+#lmer model for effect of repetition on numstrokes 
+lmm <- (lmer(numStrokes ~ repetition + (1 + repetition| gameID) + (1 + repetition| target), data = d.run3 %>%   
+  filter(condition == 'repeated') %>%
+  filter(!(gameID %in% crazies.run3))))
+summary(lmm)
+```
+```{r}
+```
+
+
+```{r}
+#brms model for effect of repetition on numstrokes 
+bmm <- brm(numStrokes ~ repetition + (1 + repetition| gameID) + (1 + repetition| target), 
+            data = d.run3 %>%   
+  filter(condition == 'repeated') %>%
+  filter(!(gameID %in% crazies.run3)), family = gaussian())
+
+summary(bmm)
+```
+
+```{r}
+### lmer model for simplest form of interaction 
+interaction_simple_lmm <- lmer(numStrokes ~ phase * condition+ (1 + phase | target) + (1 + condition | gameID), data = d.run3.raw %>%   
+  #filter(!(gameID %in% crazies.run3)) %>%
+  filter(phase != 'repeated'))
+summary(interaction_simple_lmm)
+```
+
+```{r}
+#lmer model for interaction between phase and condition (right syntax but doesn't converge)
+interaction_lmm <- lmer(numStrokes ~ phase * condition + (1 + phase:condition | gameID) + (1 + phase | target), data = d.run3.raw %>%   
+  #filter(!(gameID %in% crazies.run3)) %>%
+  filter(phase != 'repeated'))
+summary(interaction_lmm)
+```
+
+```{r}
+#brms model for interaction between phase and condition 
+interaction_bmm <- brm(numStrokes ~ phase * condition + (1 + phase:condition | gameID) + (1 + phase | target), data = d.run3.raw %>%   
+  #filter(!(gameID %in% crazies.run3)) %>%
+  filter(phase != 'repeated'), family = poisson())
+summary(interaction_bmm)
+```
+
+```{r}
+### lm treating everything as fixed effects 
+interaction_lm <- lm(numStrokes ~ phase * condition, data = d.run3.raw %>%   
+  #filter(!(gameID %in% crazies.run3)) %>%
+  filter(phase != 'repeated'))
+summary(interaction_lm)
+```
+
+```{r}
+
+
+```
+
+```{r}
+### plotting stuff
+
+pre_repeated_mean <- d.run3.sum_repeated[1, "numStrokes"]
+post_repeated_mean <- d.run3.sum_repeated[2, "numStrokes"]
+pre_repeated_ci <- d.run3.sum_repeated[1, "ci"]
+post_repeated_ci <- d.run3.sum_repeated[2, "ci"]
+pre_control_mean <- d.run3.sum_control[1, "numStrokes"]
+post_control_mean <- d.run3.sum_control[2, "numStrokes"]
+pre_control_ci <- d.run3.sum_control[1, "ci"]
+post_control_ci <- d.run3.sum_control[2, "ci"]
+
+ggplot()+
+  geom_bar(data = d.run3%>% filter(phase!="repeated")%>%filter(condition == "repeated"), 
+          aes(x=factor(phase, level = c("pre", "post")),y=numStrokes,color=condition),
+          stat = "summary", fun.y = "mean", position = "dodge")+
+  #geom_errorbar(aes(ymin=, ymax=numStrokes+0.5),
+  #                width=.2,                    # Width of the error bars
+  #                position=position_dodge(.9))+
+  facet_wrap(~condition,nrow=1, scale = "free_x")
+```
+
+```{r}
+
+```
+
+```{r}
+d.run3$repetition[d.run3$condition == "control" & d.run3$phase == "post"] <- "7" 
+# change control and post phase repetition to 7 instead of 1 
+ggplot()+
+  geom_line(aes(x = repetition, y = numStrokes, color = condition, group = 1), data = d.run3%>%filter(condition == "repeated"), stat = "summary", fun.y="mean")+
+  geom_point(aes(x = repetition, y = numStrokes, color = condition, group = 1), data = d.run3%>%filter(condition == "control"), stat = "summary", fun.y="mean")
+```
+
+```{r}
+d.run3.sum_repeated <- summarySEwithin(data=d.run3%>%filter(phase != "repeated" & condition == "repeated"), measurevar="numStrokes", withinvars="phase",
+                            idvar="gameID", na.rm=FALSE, conf.interval=.95, .drop=TRUE)
+d.run3.sum_control <- summarySEwithin(data=d.run3%>%filter(phase != "repeated" & condition == "control"), measurevar="numStrokes", withinvars="phase",
+                            idvar="gameID", na.rm=FALSE, conf.interval=.95, .drop=TRUE)
+
+```
+
+```
+
+```{r}
+
+```
+
+```{r}
+duration <- as.data.frame(t(apply(ranef(duration_lmm)$gameID,
+  1,function(x) fixef(duration_lmm) + x)))
+pred_duration <- melt(apply(duration,1,function(x) x[1] + x[2]*0:9),
+  value.name = "drawDuration")
+names(pred_duration)[1:2] <- c("repetition","gameID")
+pred_duration$gameID <- as.factor(pred_duration$gameID)
+
+ggplot(pred_duration,aes(x=repetition,y=drawDuration,color=gameID))+
+  geom_line()+
+  geom_point(data=d.run3,aes(x=repetition,y=drawDuration))+
+  facet_wrap(~gameID,nrow=3, scales = "free_x") +
+  scale_x_continuous(breaks = c(0, 1, 2, 3, 4, 5, 6, 7), limits = c(0, 7)) +
+  theme(
+    strip.background = element_blank(),
+    strip.text.x = element_blank()
+  )+ scale_color_discrete(guide=guide_legend(nrow=10,keywidth = 0.5))
+  
+```
+
+## Compare repetition against control
+
+```{r}
+d.run3.prepost <- d.run3 %>%
+  mutate(phase = case_when(
+    phase %in% c('0_control', '0_repeated') ~ 'pre',
+    phase %in% c('1_control', '7_repeated') ~ 'post'
+  )) %>%
+  mutate(phase = ordered(phase, levels = c('pre', 'post'))) %>%
+  filter(!is.na(phase)) %>%
+  # We don't know why but that 
+  filter(gameID != "2904-d5fa6f4a-24e1-4568-b0ed-fb01ad503ed3") %>%
+  group_by(phase, condition) %>%
+  summarize(len = mean(drawDuration), se=sd(drawDuration)/sqrt(length(drawDuration)))
+
+# d.toplot %>%
+#   spread(condition, m) %>%
+ggplot(d.run3.prepost, aes(x = phase, y = len, color = condition)) + #, linetype = condition, color=condition)) +
+  geom_line(aes(group = condition)) + 
+  geom_errorbar(aes(ymin=len-se,ymax=len+se), width=0) +
+  #geom_text(aes(gameID))
+  theme_few() +
+  ylab('mean draw duration') +
+  theme(aspect.ratio = 1) 
+```
+
+## prepost
+
+```{r}
+d.toplot <- d.run3 %>%
+  mutate(phase = case_when(
+    phase %in% c('0_control', '0_repeated') ~ 'pre',
+    phase %in% c('1_control', '7_repeated') ~ 'post'
+  )) %>%
+  mutate(phase = ordered(phase, levels = c('pre', 'post'))) %>%
+  filter(!is.na(phase)) %>%
+  group_by(gameID, target, phase, condition) %>%
+  summarize(len = mean(svgStringLength)) %>% #multi_boot_standard('svgStringLength')
+  spread(phase, len) %>%
+  mutate(reduction = post - pre) %>%
+  group_by(gameID, condition) %>%
+  summarize(m = mean(reduction))
+  #multi_boot_standard('reduction')
+
+d.toplot %>%
+  spread(condition, m) %>%
+ggplot(aes(x = control, y = repeated)) + #, linetype = condition, color=condition)) +
+  #geom_bar(aes(group = condition)) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0) +
+  theme_few() +
+  theme(aspect.ratio = 1)
+```
+
+# Run 4: size 4, between-cluster generalization, waiting and dining only
+
+```{r}
+d.run4.raw <- read_csv('../../results/graphical_conventions_group_data_run4_generalization.csv')  %>% select(-png)
+```
+
+### Stroke histogram
+
+```{r}
+d.run4.raw %>% ggplot(aes(x = numStrokes)) + geom_histogram(binwidth = 1) + theme_few()
+```
+
+### Find shift key users...
+
+```{r}
+crazies.run4 <- unique((d.run4.raw %>% filter(condition == 'repeated' & numStrokes > 25) %>%
+# 
+select(gameID))$gameID)
+d.run4 <- d.run4.raw %>% filter(!(gameID %in% crazies.run4)) 
+length(unique(d.run4$gameID))
+```
+
+### Num strokes over time
+
+```{r}
+d.run4 %>%
+  filter(condition == 'repeated') %>%
+  group_by(repetition, target) %>%
+  summarize(numStrokes = mean(numStrokes)) %>%
+  ggplot(aes(x = repetition, y = numStrokes, group=target)) +
+    geom_line() +
+    theme_few() +
+    geom_smooth(aes(group = 1), method ='loess')
+```
+
+```{r}
+d.run4 %>%
+  filter(condition == 'repeated') %>%
+  group_by(repetition, gameID) %>%
+  summarize(numStrokes = mean(svgStringLength)) %>%
+  ggplot(aes(x = repetition, y = numStrokes, group=gameID)) +
+    geom_line() +
+    theme_few() +
+    geom_smooth(aes(group = 1), method ='loess')
+```
+
+```{r}
+d.run4 %>%
+  filter(condition == 'repeated') %>%
+  group_by(repetition, target, gameID) %>%
+  summarize(numStrokes = mean(svgStringLength)) %>%
+  ggplot(aes(x = repetition, y = numStrokes, group=interaction(gameID, target))) +
+    geom_line(alpha=.3) +
+    geom_smooth(aes(group = 1), method ='loess') +
+    theme_few() +
+    xlab('# repetitions') +
+    ylab('# strokes') +
+    ggtitle('Reduction per target per game') +
+  #ylim(0, 30) +
+  theme(aspect.ratio = 1)
+```
+
+```{r}
+d.run4 %>%
+  filter(condition == 'repeated') %>%
+  group_by(repetition, target, gameID) %>%
+  summarize(drawDuration = mean(drawDuration)) %>%
+  ggplot(aes(x = repetition, y = drawDuration, group=interaction(target, gameID))) +
+    geom_line(alpha=.3) +
+    geom_smooth(aes(group = 1), method ='loess') +
+    theme_few() +
+    xlab('# repetitions') +
+    ylab('draw duration') +
+    ggtitle('Reduction per target per game') +
+  #ylim(0, 60) +
+  theme(aspect.ratio = 1)
+```
+
+### Does accuracy go up?
+
+```{r}
+d.run4 %>%
+  filter(condition == 'repeated') %>%
+  group_by(trialNum) %>%
+  mutate(outcome = ifelse(outcome == 'True', TRUE, FALSE)) %>%
+  summarize(acc = mean(outcome)) %>%
+  ggplot(aes(x = trialNum, y = acc)) +
+    geom_point(alpha=.3) +
+    geom_smooth(aes(group = 1), method ='loess') +
+    theme_few() +
+    xlab('# repetitions') +
+    ylab('% acc') +
+    ggtitle('accuracy') +
+  ylim(0, 1) +
+  theme(aspect.ratio = 1)
+```
+
+# Comparison of two runs
+
+## Overall effect of feedback on accuracy?
+
+```{r}
+library(langcog)
+rbind(d.run3 %>% mutate(src = 'within-cluster'),
+      d.run4 %>% mutate(src = 'between-cluster')) %>%
+  filter(condition == 'repeated') %>%
+  group_by(src, repetition) %>%
+  mutate(outcome = ifelse(outcome == 'True', 1, 0)) %>%
+  multi_boot_standard('outcome', nboot = 100) %>%
+  ggplot(aes(x = repetition, y = mean, color = src)) +
+    geom_line() +
+    #geom_errorbar(aes(ymax = summary_ci_upper, ymin = summary_ci_lower), width = 0) +
+    theme_few() +
+    ylab('accuracy') +
+    xlab('repetition #') 
+  
+```
+
+## Overall effect of feedback on draw duration?
+
+```{r}
+rbind(d.run3 %>% mutate(src = 'within-cluster'),
+      d.run4 %>% mutate(src = 'between-cluster')) %>%
+  filter(condition == 'repeated') %>%
+  filter(drawDuration < 60) %>%
+  group_by(src, repetition) %>%
+  summarize(m = mean(drawDuration), se = sd(drawDuration)/sqrt(length(drawDuration)))  %>%
+  ggplot(aes(x = repetition, y = m, color = src)) +
+    geom_line() +
+    geom_errorbar(aes(ymax = m + se, ymin = m - se), width = 0) +
+    theme_few() +
+    ylab('draw duration (in seconds)') +
+    xlab('repetition #')
+```
+
+## Overall effect of IES (summary statistic)
+
+```{r}
+rbind(d.run3 %>% mutate(src = 'within-cluster'),
+      d.run4 %>% mutate(src = 'between-cluster')) %>%
+  filter(condition == 'repeated') %>%
+  mutate(outcome = ifelse(outcome == 'True', 1, 0)) %>%
+  group_by(src, gameID, repetition) %>%
+  summarize(ies = mean(drawDuration)/mean(outcome))  %>%
+  group_by(src, repetition) %>%
+  multi_boot_standard('ies', nboot=1000)  %>%
+  ggplot(aes(x = repetition, y = mean, color = src)) +
+    geom_line() +
+    #geom_errorbar(aes(ymax = summary_ci_upper, ymin = summary_ci_lower), width = .1) +
+    theme_few() +
+    ylab('ies') +
+    xlab('repetition #') +
+    ylim(0, 60)
+```
+
+```{r}
+numStrokes.bootstrapped = rbind(d.run3 %>% mutate(src = 'within-cluster'),
+      d.run4 %>% mutate(src = 'between-cluster')) %>%
+  filter(condition == 'repeated') %>%
+  mutate(outcome = ifelse(outcome == 'True', 1, 0)) %>%
+  group_by(src, repetition) %>%
+  #summarize(numStrokes = median(numStrokes))  %>%
+  #group_by(src, repetition) %>%
+  multi_boot_standard('numStrokes', nboot=1000) 
+
+numStrokes.bootstrapped %>%
+  ggplot(aes(x = repetition, y = mean, color = src)) +
+    geom_line() +
+    #geom_errorbar(aes(ymax = summary_ci_upper, ymin = summary_ci_lower), width = .1) +
+    theme_few() +
+    ylab('mean # strokes') +
+    xlab('repetition #') +
+    ylim(0, 15)
+```
+
+```{r}
+svgLength.bootstrapped <-rbind(d.run3 %>% mutate(src = 'within-cluster'),
+      d.run4 %>% mutate(src = 'between-cluster')) %>%
+  filter(condition == 'repeated') %>%
+  mutate(outcome = ifelse(outcome == 'True', 1, 0)) %>%
+  group_by(src, repetition) %>%
+  #summarize(numStrokes = median(numStrokes))  %>%
+  #group_by(src, repetition) %>%
+  multi_boot_standard('svgStringLength', nboot=1000) 
+
+svgLength.bootstrapped %>%
+  ggplot(aes(x = repetition, y = mean, color = src)) +
+    geom_line() +
+    #geom_errorbar(aes(ymax = summary_ci_upper, ymin = summary_ci_lower), width = .1) +
+    theme_few() +
+    ylab('svgLength') +
+    xlab('repetition #') 
+    #ylim(0, 20)
+```
+
+
+## Pre-post
+
+```{r}
+d.run4.prepost <- d.run4 %>%
+  mutate(phase = case_when(
+    phase %in% c('0_control', '0_repeated') ~ 'pre',
+    phase %in% c('1_control', '7_repeated') ~ 'post'
+  )) %>%
+  mutate(phase = ordered(phase, levels = c('pre', 'post'))) %>%
+  filter(!is.na(phase)) %>%
+  # We don't know why but that 
+  group_by(phase, condition) %>%
+  summarize(len = mean(drawDuration), se=sd(drawDuration)/sqrt(length(drawDuration)))
+
+# d.toplot %>%
+#   spread(condition, m) %>%
+ggplot(d.run4.prepost, aes(x = phase, y = len, color = condition)) + #, linetype = condition, color=condition)) +
+  geom_line(aes(group = condition)) + 
+  geom_errorbar(aes(ymin=len-se,ymax=len+se), width=0) +
+  #geom_text(aes(gameID))
+  theme_few() +
+  ylab('mean draw duration') +
+  theme(aspect.ratio = 1) 
+```

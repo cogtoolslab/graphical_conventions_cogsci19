@@ -3,10 +3,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.DS_Store
+
+
+*.pdf
 *.png
+*.csv
 chairs1k_triplets/
 *.pdf
 *.csv
+*.npy
 auth.json
 auth.txt
 
