@@ -6,33 +6,33 @@ function sendData() {
   jsPsych.turk.submitToTurk({'score':score});
 }
 
-function makeNewCallback(trial) {
-  return function(d) {
-    console.log('data retrieved from db: ',d);
-      trial.utterance = d.utt;
-      trial.choices = _.shuffle([d.target.url, d.distractor1.url, d.distractor2.url]);
-      trial.condition = d.condition;
-      trial.family = d.family;
-      trial._id = d._id;
-      trial.shuffle_ind = d.shuffler_ind;
-  };
-};
+// function makeNewCallback(trial) {
+//   return function(d) {
+//     console.log('data retrieved from db: ',d);
+//       trial.utterance = d.utt;
+//       trial.choices = _.shuffle([d.target.url, d.distractor1.url, d.distractor2.url]);
+//       trial.condition = d.condition;
+//       trial.family = d.family;
+//       trial._id = d._id;
+//       trial.shuffle_ind = d.shuffler_ind;
+//   };
+// };
 
 function setupGame () {
   // number of trials to fetch from database is defined in ./app.js
   var socket = io.connect();
 
   socket.on('onConnected', function(d) {
-    var meta = d.meta;
-    var id = d.id;
+    var meta = d.meta; // contains trial level metadata
+    var id = d.id;     // gameID for *this* session
 
     // high level experiment parameter (placeholder)
-    var num_trials = meta.num_trials;
+    var num_trials = d.num_trials;
 
     // define trial list
     var tmp = {
       type: 'image-button-response',
-      iterationName: 'pilot0',
+      iterationName: 'testing',
       num_trials: num_trials,
       dev_mode: false,
     };
@@ -110,8 +110,8 @@ function setupGame () {
         num_trials: tmp.num_trials,                
       	trialNum : i, // trial number
       	gameID: id,
-        prompt: "Please select the object that best matches the description.",
-        utterance: "Placeholder utterance.", // to be filled in dynamically 
+        prompt: "Please select the object that best matches the sketch.",
+        utterance: 'https://s3.amazonaws.com/graphical-conventions-sketches/0051-e13f6f0c-ae9b-4976-8fcd-870cdb75f63f_02_waiting_02.png', 
         choices: ['https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn'], // to be filled in dynamically
         dev_mode: tmp.dev_mode,
         on_finish: main_on_finish,
