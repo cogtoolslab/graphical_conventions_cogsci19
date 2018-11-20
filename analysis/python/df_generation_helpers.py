@@ -458,3 +458,35 @@ def add_recog_session_ids(D):
             D.loc[row_index, 'recog_id'] = i
 
     return D
+
+###############################################################################################
+
+# add target shapenet ids
+def add_distractors_and_shapenet_ids(D):
+    target_shapenets = [0] * len(D)
+    D['target_shapenet'] = target_shapenets
+    for i,d in D.iterrows():
+        target = d['target']
+        shapenet_id = h.object_to_shapenet[target]
+        D.loc[i, 'target_shapenet'] = shapenet_id
+    # add distractor
+    # add shapenet ids for distractors
+    distractors = [[0]] * len(D)
+    distractors_shapenets = [[0]] * len(D)
+    D['distractors'] = distractors
+    D['distractors_shapenet'] = distractors_shapenets
+    for i,d in D.iterrows():
+        gameID = d['gameID']
+        condition = d['condition']
+        target_list = D[(D['gameID'] == gameID) & (D['condition'] == condition)]['target'].unique()
+        distractors_list = [target for target in target_list if target !=  d['target']]
+        distractors_dict = {'distractor1':distractors_list[0],'distractor2':distractors_list[1],'distractor3':distractors_list[2]}
+        D.at[i, 'distractors'] = distractors_dict
+        shapenets_list = [h.object_to_shapenet[dist] for dist in distractors_list]
+        shapenets_dict = {'distractor1':shapenets_list[0],'distractor2':shapenets_list[1],'distractor3':shapenets_list[2]}
+        D.at[i, 'distractors_shapenet'] = shapenets_dict
+    if 'Unnamed: 0' in list(D.columns.values):
+        D = D.drop(['Unnamed: 0'], axis=1)
+    if 'row_index' in list(D.columns.values):
+        D = D.drop(['row_index'], axis=1)
+    return D

@@ -115,7 +115,9 @@ D = pd.concat([D_run3, D_run4], axis=0)
 ## filter crazies and add column
 D = h.find_crazies(D)
 
+## add features for recognition experiment
 D = h.add_recog_session_ids(D)
+D = h.add_distractors_and_shapenet_ids(D)
 
 # write out main dataframe to results dir
 D.to_csv(os.path.join(results_dir, 'graphical_conventions.csv'))
