@@ -1,10 +1,22 @@
-var oldCallback;
+var callback;
 var score = 0;
 
 function sendData() {
   console.log('sending data to mturk');
   jsPsych.turk.submitToTurk({'score':score});
 }
+
+function makeNewCallback(trial) {
+  return function(d) {
+    console.log('data retrieved from db: ',d);
+      trial.utterance = d.utt;
+      trial.choices = _.shuffle([d.target.url, d.distractor1.url, d.distractor2.url]);
+      trial.condition = d.condition;
+      trial.family = d.family;
+      trial._id = d._id;
+      trial.shuffle_ind = d.shuffler_ind;
+  };
+};
 
 function setupGame () {
   // number of trials to fetch from database is defined in ./app.js
@@ -79,18 +91,13 @@ function setupGame () {
     // Only start next trial once description comes back
     // have to remove and reattach to have local trial in scope...
     var main_on_start = function(trial) {
-      oldCallback = newCallback;
-      var newCallback = function(d) {
-        console.log('data retrieved from db: ',d);
-      	trial.utterance = d.utt;
-        trial.choices = _.shuffle([d.target.url, d.distractor1.url, d.distractor2.url]);
-        trial.condition = d.condition;
-        trial.family = d.family;
-        trial._id = d._id;
-        trial.shuffle_ind = d.shuffler_ind;
-      };
-      socket.removeListener('stimulus', oldCallback);
-      socket.on('stimulus', newCallback);
+      // Remove callback from previous trial
+      socket.removeListener('stimulus', callback); 
+
+      // Make and attach callback for current trial
+      callback = makeNewCallback(trial);     
+      socket.on('stimulus', callback);
+
       // call server for stims
       socket.emit('getStim', {gameID: id});
     };
