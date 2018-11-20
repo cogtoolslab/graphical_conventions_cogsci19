@@ -13,14 +13,16 @@ function setupGame () {
   socket.on('onConnected', function(d) {
     var meta = d.meta;
     var id = d.id;
+    var trials = d.trials;
 
     // high level experiment parameter (placeholder)
     var num_trials = meta.num_trials;
+    var games = meta.games; // list of games in order of repetition
 
     // define trial list
     var tmp = {
       type: 'image-button-response',
-      iterationName: 'pilot0',
+      iterationName: 'testing',
       num_trials: num_trials,
       dev_mode: false,
     };
@@ -28,16 +30,16 @@ function setupGame () {
     var trials = new Array(tmp.num_trials + 2);
 
     consentHTML = {
-      'str1' : '<p>In this HIT, you will see some descriptions of objects. For each description, you will try to guess which of the objects is the best match. For each correct match, you will receive a bonus. </p>',
-      'str2' : '<p>We expect the average game to last approximately 5-10 minutes, including the time it takes to read instructions.</p>',
+      'str1' : '<p>In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. For each correct match, you will receive a bonus. </p>',
+      'str2' : '<p>We expect the average game to last approximately 2-3 minutes, including the time it takes to read instructions.</p>',
       'str3' : "<p>If you encounter a problem or error, send us an email (sketchloop@gmail.com) and we will make sure you're compensated for your time! Please pay attention and do your best! Thank you!</p><p> Note: We recommend using Chrome. We have not tested this HIT in other browsers.</p>",
       'str4' : ["<u><p id='legal'>Consenting to Participate:</p></u>",
 		"<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b> or Noah Goodman (n goodma at stanford dot edu) You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
     }
     // add welcome page
     instructionsHTML = {
-      'str1' : "<p> Here's how the game will work: On each trial, you will see a short description appear next to three images of different chairs. Your goal is to select the chair in the set that best matches the description.",
-      'str2' : '<p> For each correct match, you will receive a $0.01 bonus. It is very important that you consider the options carefully and try your best!',
+      'str1' : "<p> Here's how the game will work: On each trial, you will see a sketch appear above four images of different objects. Your goal is to select the object in the set that best matches the sketch.",
+      'str2' : '<p> For each correct match, you will receive a $0.02 bonus. It is very important that you consider the options carefully and try your best!',
       'str3' : "<p> Once you are finished, the HIT will be automatically submitted for approval. If you enjoyed this HIT, please know that you are welcome to perform it multiple times. Let's begin! </p>"
     }
 
@@ -82,10 +84,10 @@ function setupGame () {
       oldCallback = newCallback;
       var newCallback = function(d) {
         console.log('data retrieved from db: ',d);
-      	trial.utterance = d.utt;
-        trial.choices = _.shuffle([d.target.url, d.distractor1.url, d.distractor2.url]);
-        trial.condition = d.condition;
-        trial.family = d.family;
+      	trial.utterance = d.utt; // png string
+        trial.choices = _.shuffle([d.target.url, d.distractor1.url, d.distractor2.url, d.distractor3.url]); // added another distractor
+        //trial.condition = d.condition;
+        //trial.family = d.family;
         trial._id = d._id;
         trial.shuffle_ind = d.shuffler_ind;
       };
@@ -100,12 +102,12 @@ function setupGame () {
       trials[k] = {
       	type: tmp.type,
       	iterationName : tmp.iterationName,
-        num_trials: tmp.num_trials,                
+        num_trials: tmp.num_trials,
       	trialNum : i, // trial number
       	gameID: id,
-        prompt: "Please select the object that best matches the description.",
-        utterance: "Placeholder utterance.", // to be filled in dynamically 
-        choices: ['https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn'], // to be filled in dynamically
+        prompt: "Please select the object that best matches the sketch.",
+        utterance: "Placeholder sketch.", // to be filled in dynamically
+        choices: ['https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn','https://tinyurl.com/y9rzglpn'], // to be filled in dynamically, added another sketch
         dev_mode: tmp.dev_mode,
         on_finish: main_on_finish,
       	on_start: main_on_start
