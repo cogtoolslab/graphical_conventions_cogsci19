@@ -20,6 +20,8 @@ import matplotlib.patches as patches
 import pandas as pd
 from svgpathtools import parse_path, wsvg
 from glob import glob
+from IPython.display import clear_output
+
 
 def list_files(path, ext='png'):
     result = [y for x in os.walk(path) for y in glob(os.path.join(x[0], '*.%s' % ext))]
@@ -42,7 +44,8 @@ def make_svg_list(stroke_recs):
 def render_svg(paths,
                stroke_width = 5,
                stroke_linecap = 'round',
-               stroke_color = 'black',   
+               stroke_color = 'black',  
+               fill_mode = 'none',
                viewbox=[0, 0, 300, 300],
                base_dir = './',
                out_dir = 'svg',
@@ -59,8 +62,9 @@ def render_svg(paths,
         os.makedirs(out_dir)        
     wsvg(paths,
          attributes=[{'stroke-width':stroke_width,\
-                      'stroke-linecap':stroke_linecap,
-                      'stroke':stroke_color}]*len(paths),
+                      'stroke-linecap':stroke_linecap,\
+                      'stroke':stroke_color,\
+                      'fill':fill_mode}]*len(paths),
          viewbox=viewbox,
          filename=os.path.join(base_dir,out_dir,out_fname))    
 
@@ -75,13 +79,14 @@ def svg_to_png(svg_paths,
     '''
     svg_paths: list of paths to svg files
     '''
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
+    if not os.path.exists(os.path.join(base_dir,out_dir)):
+        os.makedirs(os.path.join(base_dir,out_dir))
     for path in svg_paths: 
-        out_path = os.path.join(base_dir,out_dir,'{}.png'.format(path.split('/')[1].split('.')[0]))
+        out_path = os.path.join(base_dir,out_dir,'{}.png'.format(path.split('/')[-1].split('.')[0]))
         cmd_string = 'convert {} {}'.format(path,out_path)
         print(cmd_string)
-        os.system(cmd_string)    
+        os.system(cmd_string) 
+        clear_output(wait=True)
     
     
 
