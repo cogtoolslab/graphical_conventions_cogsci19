@@ -134,10 +134,10 @@ jsPsych.plugins["image-button-response"] = (function() {
       html += '<div id="trial-counter"> <p> trial ' + trial.trialNum + ' of ' + trial.num_trials + '</p></div>'
 
       // display helpful info during debugging
-      // if (trial.dev_mode==true) {
-      //   html += '<div id="family"> <p> family: ' + trial.family + '</p></div>'
-      //   html += '<div id="condition"> <p> condition: ' + trial.condition + '</p></div>'
-      // }
+      if (trial.dev_mode==true) {
+        html += '<div id="repetition"> <p> repetition: ' + trial.repetition + '</p></div>'
+        html += '<div id="condition"> <p> condition: ' + trial.condition + '</p></div>'
+      }
 
       // actually assign html to display_element.innerHTML
       display_element.innerHTML = html;
