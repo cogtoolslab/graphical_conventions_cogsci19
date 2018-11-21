@@ -252,7 +252,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       var trial_data = _.extend(_.omit(trial, 'on_finish', 'choices'), {
         dbname: '3dObjects',
         colname: 'graphical_conventions_recog',
-	ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
+	      ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
         rt: response.rt,
         stim_mongo_id: trial._id,
         response: response.button,
