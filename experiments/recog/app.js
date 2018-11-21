@@ -55,6 +55,7 @@ app.get('/*', (req, res) => {
     console.log('neither invalid nor blank id, check if repeat worker');
     // check if id is one of the researchers, if so, let them continue
     researcher_ind = _.findIndex(researchers, function(x) {return x==id});
+    console.log('researcher ind ', researcher_ind);
     if (researcher_ind>0 && !block_researcher) {
       serveFile(req, res); // serve files if client is one of the researchers and we do not want to block them
     } else {
