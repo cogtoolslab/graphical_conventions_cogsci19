@@ -39,14 +39,20 @@ try {
 }
 
 app.get('/*', (req, res) => {
-  serveFile(req, res);
 
-  // // If the database shows they've already participated, block them
-  // utils.checkPreviousParticipant(id, (exists) => {
-  //   return exists ? utils.handleDuplicate(req, res) : utils.serveFile(req, res);
-  // });
-
-
+  var id = req.query.workerId;
+    if(!id || id === 'undefined') {
+      // If no worker id supplied (e.g. for demo), allow to continue
+      return serveFile(req, res);
+    } else if(!valid_id(id)) {
+      // If invalid id, block them
+      return handleInvalidID(req, res);
+    } else {
+      // If the database shows they've already participated, block them
+      utils.checkPreviousParticipant(id, (exists) => {
+        return exists ? handleDuplicate(req, res) : serveFile(req, res);
+      });
+    }
 });
 
 io.on('connection', function (socket) {
@@ -80,12 +86,16 @@ var serveFile = function(req, res) {
 
 var handleDuplicate = function(req, res) {
   console.log("duplicate id: blocking request");
-  return res.redirect('/utils/duplicate.html');
+  return res.redirect('/duplicate.html');
+};
+
+var valid_id = function(id) {
+  return (id.length <= 15 && id.length >= 12) || id.length == 41;
 };
 
 var handleInvalidID = function(req, res) {
   console.log("invalid id: blocking request");
-  return res.redirect('/utils/invalid.html');
+  return res.redirect('/invalid.html');
 };
 
 var checkPreviousParticipant = function(workerId, callback) {
