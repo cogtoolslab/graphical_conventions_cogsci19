@@ -86,10 +86,13 @@ p {
 }
 
 #jspsych-image-button-response-sketch {
-   text-align: center;
-   padding: 10px;
-   margin: auto;   
+  text-align: center;
+  padding: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
+
 
 /*
  *
