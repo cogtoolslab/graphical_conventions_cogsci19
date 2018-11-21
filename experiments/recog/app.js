@@ -66,7 +66,6 @@ io.on('connection', function (socket) {
   var id;
   // assign worker
   if (!query.workerId || query.workerId == 'undefined') {
-    console.log('query.workerId is undefined...');
     id = UUID();
   } else {
     console.log('query.workerId = ', query.workerId);
