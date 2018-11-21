@@ -15,6 +15,7 @@ var
 // define number of trials to fetch from database (what is length of each recog HIT?)
 var num_trials = 10;
 var gameport;
+var Res; // test 
 
 if(argv.gameport) {
   gameport = argv.gameport;
@@ -39,7 +40,8 @@ try {
 
 app.get('/*', (req, res) => {
   // serve stuff that the client requests
-  serveFile(req, res);  
+  serveFile(req, res); 
+  Res = res; // assign res to the global res 
 });
 
 io.on('connection', function (socket) {
@@ -59,14 +61,14 @@ io.on('connection', function (socket) {
 
   if(!valid_id(id)) {
     // If invalid id, block them
-    return handleInvalidID(req, res);
+    return handleInvalidID(Res);
     console.log('invalid id, blocked');
   } else {
     // If the database shows they've already participated, block them
     // If not a repeat worker, then send client stims
     console.log('neither invalid nor blank id, check if repeat worker')
     checkPreviousParticipant(id, (exists) => {    
-      return exists ? handleDuplicate(req, res) : initializeWithTrials(socket, UUID());
+      return exists ? handleDuplicate(Res) : initializeWithTrials(socket, UUID());
     });
   }
 
@@ -88,7 +90,7 @@ var serveFile = function(req, res) {
   return res.sendFile(fileName, {root: __dirname});
 };
 
-var handleDuplicate = function(req, res) {
+var handleDuplicate = function(res) {
   console.log("duplicate id: blocking request");
   return res.redirect('/duplicate.html');
 };
@@ -97,7 +99,7 @@ var valid_id = function(id) {
   return (id.length <= 15 && id.length >= 12) || id.length == 41;
 };
 
-var handleInvalidID = function(req, res) {
+var handleInvalidID = function(res) {
   console.log("invalid id: blocking request");
   return res.redirect('/invalid.html');
 };
