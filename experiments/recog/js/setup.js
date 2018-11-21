@@ -46,7 +46,7 @@ function Trial () {
   this.iterationName = 'testing';
   this.prompt = "Please select the object that best matches the sketch.";
   this.numTrials = 10;
-  this.dev_mode = false;
+  this.dev_mode = true;
 };
 
 function setupGame () {
@@ -61,11 +61,12 @@ function setupGame () {
   socket.on('onConnected', function(d) {
     // pull out info from server
     var id = d.id;     
-    var num_trials = trials.length;
 
     // Bind trial data with boilerplate
     var trials = _.map(_.shuffle(d.trials), function(trialData, i) {
       return _.extend(new Trial, trialData, {
+	choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
+			    trialData.distractor2.url, trialData.distractor3.url]),
 	gameID: id,
 	trialNum : i,
 	on_finish : on_finish
@@ -75,7 +76,7 @@ function setupGame () {
     // Stick welcome trial at beginning & goodbye trial at end
     trials.unshift(welcomeTrial);
     trials.push(goodbyeTrial);
-    
+
     jsPsych.init({
       timeline: trials,
       default_iti: 1000,
