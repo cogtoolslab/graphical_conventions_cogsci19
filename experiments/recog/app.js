@@ -13,7 +13,7 @@ var
 
 
 // define number of trials to fetch from database (what is length of each recog HIT?)
-var num_trials = 56;
+var num_trials = 10;
 
 var gameport;
 
@@ -39,7 +39,20 @@ try {
 }
 
 app.get('/*', (req, res) => {
-  serveFile(req, res);
+
+  var id = req.query.workerId;
+    if(!id || id === 'undefined') {
+      // If no worker id supplied (e.g. for demo), allow to continue
+      return serveFile(req, res);
+    } else if(!valid_id(id)) {
+      // If invalid id, block them
+      return handleInvalidID(req, res);
+    } else {
+      // If the database shows they've already participated, block them
+      utils.checkPreviousParticipant(id, (exists) => {
+        return exists ? handleDuplicate(req, res) : serveFile(req, res);
+      });
+    }
 });
 
 io.on('connection', function (socket) {
@@ -71,6 +84,49 @@ var serveFile = function(req, res) {
   return res.sendFile(fileName, {root: __dirname});
 };
 
+var handleDuplicate = function(req, res) {
+  console.log("duplicate id: blocking request");
+  return res.redirect('/duplicate.html');
+};
+
+var valid_id = function(id) {
+  return (id.length <= 15 && id.length >= 12) || id.length == 41;
+};
+
+var handleInvalidID = function(req, res) {
+  console.log("invalid id: blocking request");
+  return res.redirect('/invalid.html');
+};
+
+var checkPreviousParticipant = function(workerId, callback) {
+  var p = {'workerId': workerId};
+  var postData = {
+    dbname: '3dObjects',
+    query: p,
+    projection: {'_id': 1}
+  };
+  sendPostRequest(
+    'http://localhost:6000/db/exists',
+    {json: postData},
+    (error, res, body) => {
+      try {
+        if (!error && res.statusCode === 200) {
+          console.log("success! Received data " + JSON.stringify(body));
+          callback(body);
+        } else {
+          throw `${error}`;
+         }
+          }
+      catch (err) {
+        console.log(err);
+        console.log('no database; allowing participant to continue');
+        return callback(false);
+      }
+    }
+  );
+};
+
+
 var UUID = function() {
   var baseName = (Math.floor(Math.random() * 10) + '' +
         Math.floor(Math.random() * 10) + '' +
@@ -88,7 +144,7 @@ function sendStim(socket, data) {
   sendPostRequest('http://localhost:6000/db/getstims', {
     json: {
       dbname: 'stimuli',
-      colname: 'shapenet_chairs_speaker_eval',
+      colname: 'graphical_conventions_sketches',
       numTrials: 1,
       gameid: data.gameID
     }
@@ -104,6 +160,7 @@ function sendStim(socket, data) {
     }
   });
 }
+
 
 var writeDataToMongo = function(data) {
   sendPostRequest(
