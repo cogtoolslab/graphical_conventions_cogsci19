@@ -60,14 +60,11 @@ function setupGame () {
     socket.emit('currentData', data);
   };
 
-  // onConnected validation layer -- change the below 
-
-
   // Start once server initializes us
   socket.on('onConnected', function(d) {
 
     // get workerId, etc. from URL (so that it can be sent to the server)
-    // var turkInfo = jsPsych.turk.turkInfo();    
+    var turkInfo = jsPsych.turk.turkInfo();    
   
     // pull out info from server
     var id = d.id;
@@ -87,10 +84,14 @@ function setupGame () {
     trials.unshift(welcomeTrial);
     trials.push(goodbyeTrial);
 
-    jsPsych.init({
-      timeline: trials,
-      default_iti: 1000,
-      show_progress_bar: true
-    });
+    if (!turkInfo.previewMode) {      
+      // run jsPsych init only if the person has accepted
+      jsPsych.init({
+        timeline: trials,
+        default_iti: 1000,
+        show_progress_bar: true
+      });      
+    }
+
   });
 }
