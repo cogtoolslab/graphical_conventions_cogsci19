@@ -27,7 +27,7 @@ var game_core = function(options){
   this.server = options.server ;
   this.projectName = '3dObjects';
   this.experimentName = 'graphical_conventions';
-  this.iterationName = 'run4_generalization'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_size4','run2_chairs1k_size6', 'run3_size6_waiting','run3_size4_waiting','run4_generalization']
+  this.iterationName = 'testing'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_size4','run2_chairs1k_size6', 'run3_size6_waiting','run3_size4_waiting','run4_generalization']
   this.email = 'sketchloop@gmail.com';
   console.log("color randomized");
 
@@ -511,6 +511,8 @@ game_core.prototype.server_send_update = function(){
     objects: this.objects,
     gameID: this.id
   };
+
+    console.log('state',state);
 
   _.extend(state, {players: player_packet});
   _.extend(state, {instructions: this.instructions});
