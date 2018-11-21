@@ -40,13 +40,12 @@ try {
 app.get('/*', (req, res) => {
   // // serve stuff that the client requests
   // serveFile(req, res); 
-
-  var id = req.query.workerId;
-  if(!valid_id(id)) {
+  var id = req.query.workerId;  
+  if(id && !valid_id(id)) {
     // If invalid id, block them
     return handleInvalidID(req, res);
     console.log('invalid id, blocked');
-  } else {
+  } else if (id && valid_id(id)) {
     // If the database shows they've already participated, block them
     // If not a repeat worker, then send client stims
     console.log('neither invalid nor blank id, check if repeat worker')
@@ -55,7 +54,6 @@ app.get('/*', (req, res) => {
     });
   }
   
-
 });
 
 io.on('connection', function (socket) {
