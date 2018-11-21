@@ -13,7 +13,7 @@ var
 
 
 // define number of trials to fetch from database (what is length of each recog HIT?)
-var num_trials = 56;
+var num_trials = 10;
 
 var gameport;
 
@@ -40,6 +40,13 @@ try {
 
 app.get('/*', (req, res) => {
   serveFile(req, res);
+
+  // // If the database shows they've already participated, block them
+  // utils.checkPreviousParticipant(id, (exists) => {
+  //   return exists ? utils.handleDuplicate(req, res) : utils.serveFile(req, res);
+  // });
+
+
 });
 
 io.on('connection', function (socket) {
@@ -71,6 +78,45 @@ var serveFile = function(req, res) {
   return res.sendFile(fileName, {root: __dirname});
 };
 
+var handleDuplicate = function(req, res) {
+  console.log("duplicate id: blocking request");
+  return res.redirect('/utils/duplicate.html');
+};
+
+var handleInvalidID = function(req, res) {
+  console.log("invalid id: blocking request");
+  return res.redirect('/utils/invalid.html');
+};
+
+var checkPreviousParticipant = function(workerId, callback) {
+  var p = {'workerId': workerId};
+  var postData = {
+    dbname: '3dObjects',
+    query: p,
+    projection: {'_id': 1}
+  };
+  sendPostRequest(
+    'http://localhost:6000/db/exists',
+    {json: postData},
+    (error, res, body) => {
+      try {
+        if (!error && res.statusCode === 200) {
+          console.log("success! Received data " + JSON.stringify(body));
+          callback(body);
+        } else {
+          throw `${error}`;
+         }
+          }
+      catch (err) {
+        console.log(err);
+        console.log('no database; allowing participant to continue');
+        return callback(false);
+      }
+    }
+  );
+};
+
+
 var UUID = function() {
   var baseName = (Math.floor(Math.random() * 10) + '' +
         Math.floor(Math.random() * 10) + '' +
@@ -88,7 +134,7 @@ function sendStim(socket, data) {
   sendPostRequest('http://localhost:6000/db/getstims', {
     json: {
       dbname: 'stimuli',
-      colname: 'shapenet_chairs_speaker_eval',
+      colname: 'graphical_conventions_sketches',
       numTrials: 1,
       gameid: data.gameID
     }
@@ -104,6 +150,7 @@ function sendStim(socket, data) {
     }
   });
 }
+
 
 var writeDataToMongo = function(data) {
   sendPostRequest(
