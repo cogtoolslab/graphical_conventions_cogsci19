@@ -258,7 +258,7 @@ jsPsych.plugins["image-button-response"] = (function() {
         response: response.button,
         score: score,
         correct: trial_correct,
-        wID: turkInfo.workerId,
+        workerId: turkInfo.workerId,
         hitID: turkInfo.hitId,
         aID: turkInfo.assignmentId,
         timestamp: Date.now()
