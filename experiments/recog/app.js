@@ -56,10 +56,11 @@ app.get('/*', (req, res) => {
     // check if id is one of the researchers, if so, let them continue
     researcher_ind = _.findIndex(researchers, function(x) {return x==id});
     console.log('researcher ind ', researcher_ind);
-    if (researcher_ind>0 && !block_researcher) {
-      serveFile(req, res); // serve files if client is one of the researchers and we do not want to block them
+      if (researcher_ind>-1 && !block_researcher) {
+	  console.log('serve files if client is one of the researchers and we do not want to block them');
+	  serveFile(req, res); // serve files if client is one of the researchers and we do not want to block them
     } else {
-      checkPreviousParticipant(id, (exists) => {    
+	checkPreviousParticipant(id, (exists) => {    
         return exists ? handleDuplicate(req, res) : serveFile(req, res);
       });      
     }
