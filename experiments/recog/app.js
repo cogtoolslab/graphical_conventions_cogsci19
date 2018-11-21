@@ -13,8 +13,7 @@ var
 
 
 // define number of trials to fetch from database (what is length of each recog HIT?)
-var numTrials = 10;
-
+var num_trials = 10;
 var gameport;
 
 if(argv.gameport) {
@@ -39,7 +38,20 @@ try {
 }
 
 app.get('/*', (req, res) => {
-  serveFile(req, res);
+
+  var id = req.query.workerId;
+    if(!id || id === 'undefined') {
+      // If no worker id supplied (e.g. for demo), allow to continue
+      return serveFile(req, res);
+    } else if(!valid_id(id)) {
+      // If invalid id, block them
+      return handleInvalidID(req, res);
+    } else {
+      // If the database shows they've already participated, block them
+      checkPreviousParticipant(id, (exists) => {
+        return exists ? handleDuplicate(req, res) : serveFile(req, res);
+      });
+    }
 });
 
 io.on('connection', function (socket) {
@@ -59,17 +71,46 @@ var serveFile = function(req, res) {
   return res.sendFile(fileName, {root: __dirname});
 };
 
-var UUID = function() {
-  var baseName = (Math.floor(Math.random() * 10) + '' +
-        Math.floor(Math.random() * 10) + '' +
-        Math.floor(Math.random() * 10) + '' +
-        Math.floor(Math.random() * 10));
-  var template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
-  var id = baseName + '-' + template.replace(/[xy]/g, function(c) {
-    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-    return v.toString(16);
-  });
-  return id;
+var handleDuplicate = function(req, res) {
+  console.log("duplicate id: blocking request");
+  return res.redirect('/duplicate.html');
+};
+
+var valid_id = function(id) {
+  return (id.length <= 15 && id.length >= 12) || id.length == 41;
+};
+
+var handleInvalidID = function(req, res) {
+  console.log("invalid id: blocking request");
+  return res.redirect('/invalid.html');
+};
+
+function checkPreviousParticipant (workerId, callback) {
+  var p = {'workerId': workerId};
+  var postData = {
+    dbname: '3dObjects',
+    query: p,
+    projection: {'_id': 1}
+  };
+  sendPostRequest(
+    'http://localhost:6000/db/exists',
+    {json: postData},
+    (error, res, body) => {
+      try {
+        if (!error && res.statusCode === 200) {
+          console.log("success! Received data " + JSON.stringify(body));
+          callback(body);
+        } else {
+          throw `${error}`;
+        }
+      }
+      catch (err) {
+        console.log(err);
+        console.log('no database; allowing participant to continue');
+        return callback(false);
+      }
+    }
+  );
 };
 
 function initializeWithTrials(socket, id) {
@@ -94,7 +135,8 @@ function initializeWithTrials(socket, id) {
   });
 }
 
-var writeDataToMongo = function(data) {
+
+function writeDataToMongo (data) {
   sendPostRequest(
     'http://localhost:6000/db/insert',
     { json: data },
@@ -102,8 +144,21 @@ var writeDataToMongo = function(data) {
       if (!error && res.statusCode === 200) {
         console.log(`sent data to store`);
       } else {
-	      console.log(`error sending data to store: ${error} ${body}`);
+	console.log(`error sending data to store: ${error} ${body}`);
       }
     }
   );
+};
+
+function UUID () {
+  var baseName = (Math.floor(Math.random() * 10) + '' +
+        Math.floor(Math.random() * 10) + '' +
+        Math.floor(Math.random() * 10) + '' +
+        Math.floor(Math.random() * 10));
+  var template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx';
+  var id = baseName + '-' + template.replace(/[xy]/g, function(c) {
+    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+  return id;
 };
