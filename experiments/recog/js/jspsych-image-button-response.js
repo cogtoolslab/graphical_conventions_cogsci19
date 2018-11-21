@@ -246,7 +246,9 @@ jsPsych.plugins["image-button-response"] = (function() {
       }
 
       // gather the data to store for the trial
-      console.log(trial.choices);
+      if (trial.dev_mode == true) {
+        console.log(trial.choices);
+      }
       var trial_data = _.extend(_.omit(trial, 'on_finish', 'choices'), {
         dbname: '3dObjects',
         colname: 'graphical_conventions_recog',
@@ -262,8 +264,10 @@ jsPsych.plugins["image-button-response"] = (function() {
         timestamp: Date.now()
       });
 
-      console.log('trial data: ', trial_data);
-      console.log('correct?  ', trial_correct);
+      if (trial.dev_mode == true) {
+        console.log('trial data: ', trial_data);
+        console.log('correct?  ', trial_correct);
+      }
 
       // clear the display
       display_element.innerHTML = '';
