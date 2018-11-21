@@ -115,8 +115,10 @@ jsPsych.plugins["image-button-response"] = (function() {
         var html = '<div id="prompt">' +trial.prompt + '</div>';
       }
 
+      html += '<div class="progress"><div id="progress-bar"></div></div>'
+
       // display sketch (image)
-      html += '<div><img id="jspsych-image-button-response-sketch" src="'+ trial.sketch_url +'"></img></div>';
+      html += '<div style="margin-top:20px"><img id="jspsych-image-button-response-sketch" src="'+ trial.sketch_url +'"></img></div>';
 
       html += '<div id="jspsych-image-button-response-btngroup">';
 
@@ -124,14 +126,14 @@ jsPsych.plugins["image-button-response"] = (function() {
       for (var i = 0; i < trial.choices.length; i++) {
         var str = buttons[i].replace(/%imageURL%/g, trial.choices[i]);
         var object_id = trial.choices[i].split('/').slice(-1)[0].split('.')[0]; // splice to extract only shapenetID and target_status
-        html += '<div class="jspsych-image-button-response-button" style="display: inline-block; margin :'+trial.margin_horizontal+' '+trial.margin_vertical+'" id="jspsych-image-button-response-button-' + i +'" data-choice="'+object_id+'">'+str+'</div>';
+        html += '<div class="jspsych-image-button-response-button" style="display: inline-block; margin : 0" id="jspsych-image-button-response-button-' + i +'" data-choice="'+object_id+'">'+str+'</div>'; //'+trial.margin_horizontal+' '+trial.margin_vertical+'"
       }
 
       html += '</div>';
 
       // display score earned so far
-      html += '<div id="score"> <p> bonus points earned: ' + score + '</p></div>'
-      html += '<div id="trial-counter"> <p> trial ' + trial.trialNum + ' of ' + trial.num_trials + '</p></div>'
+      html += '<div id="score"> <p2> bonus earned: ' + parseFloat(score).toFixed(3) + '</p2></div>'
+      html += '<div id="trial-counter"> <p2> trial ' + trial.trialNum + ' of ' + trial.num_trials + '</p2></div>'
 
       // display helpful info during debugging
       if (trial.dev_mode==true) {
@@ -154,25 +156,53 @@ jsPsych.plugins["image-button-response"] = (function() {
     }
 
     // wait for a little bit for data to come back from db, then show_display
-    setTimeout(function() {show_display(); }, 1500);
-
+    // setTimeout(function() { }, 1500);
+    show_display();
     // start timing
     var start_time = Date.now();
+    var progressBar = $('#progress-bar');
+    var time_bonus = 0;
+    progressBar.show();
+    // progressBar.css({
+    //   'width' : '100%',
+    //   'height' : '100%',
+    //   'background-color' : '#356ba5'
+    // })
+    var widthPct = 100
+    var milliseconds_passed = 0
+    var time_passed = 0
+    var interval = setInterval(function(){
+      milliseconds_passed += 1
+      if (milliseconds_passed % 100 == 0) {
+        time_passed += 1
+      }
+      //console.log('time passed: ' + time_passed)
+      widthPct -= 0.05;
+      progressBar.css({'width': widthPct + '%'});
+      if (widthPct <= 0) {
+          clearInterval(interval);
+      }
+    }, 10)
+    // $('.progress-bar').attr('aria-valuemax',20); // added
+    // $('.progress').show();
 
     // store response
     var response = {
       rt: null,
-      button: null
+      button: null,
+      time_bonus: null
     };
 
     // function to handle responses by the subject
     function after_response(choice) {
-
       // measure rt
       var end_time = Date.now();
+      // $element.find('.progress-bar').finish();
       var rt = end_time - start_time;
       response.button = choice;
       response.rt = rt;
+      time_bonus = (0.02 - time_passed * 0.001).toFixed(3)
+      //console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
@@ -198,7 +228,7 @@ jsPsych.plugins["image-button-response"] = (function() {
 
       // get info from mturk
       var turkInfo = jsPsych.turk.turkInfo();
-      
+
       // prettify choices list
       var prettyChoices = new Array;
       _.forEach(trial.choices, function(x) {
@@ -209,7 +239,8 @@ jsPsych.plugins["image-button-response"] = (function() {
       var trial_correct;
       if (response.button == trial.target.shapenetid) {
         trial_correct = 1;
-        score+=1; // increment score
+        increment = 0.01 + parseFloat(time_bonus)
+        score+= parseFloat(increment); // increment accuracy bonus and time bonus
       } else {
         trial_correct = 0;
       }
