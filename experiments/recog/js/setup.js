@@ -21,8 +21,9 @@ var consentHTML = {
   'str2' : '<p>We expect the average game to last approximately 2-3 minutes, including the time it takes to read instructions.</p>',
   'str3' : "<p>If you encounter a problem or error, send us an email (sketchloop@gmail.com) and we will make sure you're compensated for your time! Please pay attention and do your best! Thank you!</p><p> Note: We recommend using Chrome. We have not tested this HIT in other browsers.</p>",
   'str4' : ["<u><p id='legal'>Consenting to Participate:</p></u>",
-	    "<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b> or Noah Goodman (n goodma at stanford dot edu) You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
-};
+	    "<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b> or Noah Goodman (n goodman at stanford dot edu) You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
+}
+
 
 // add welcome page
 var instructionsHTML = {
@@ -66,20 +67,11 @@ function setupGame () {
     // Bind trial data with boilerplate
     var trials = _.map(_.shuffle(d.trials), function(trialData, i) {
       return _.extend(new Trial, trialData, {
-<<<<<<< HEAD
-	choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
-			    trialData.distractor2.url, trialData.distractor3.url]),
-	gameID: id,
-	trialNum : i,
-  num_trials : 10,
-	on_finish : on_finish
-=======
                       choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
                       		    trialData.distractor2.url, trialData.distractor3.url]),
                       gameID: id,
                       trialNum : i,
                       on_finish : on_finish
->>>>>>> 151f68e73cbff09aac1761bfff41d65d879ddaca
       });
     });
 
