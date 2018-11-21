@@ -50,7 +50,7 @@ app.get('/*', (req, res) => {
     // If not a repeat worker, then send client stims
     console.log('neither invalid nor blank id, check if repeat worker')
     checkPreviousParticipant(id, (exists) => {    
-      return exists ? handleDuplicate(req, res) : serveFile(req, res);
+      return exists ? res.redirect('/duplicate.html') : serveFile(req, res);
     });
   }
   
