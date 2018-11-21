@@ -13,7 +13,7 @@ var
 
 
 // define number of trials to fetch from database (what is length of each recog HIT?)
-var num_trials = 56;
+var numTrials = 10;
 
 var gameport;
 
@@ -43,26 +43,14 @@ app.get('/*', (req, res) => {
 });
 
 io.on('connection', function (socket) {
-
-  // write data to db upon getting current data
+  // Set up callback for writing client data to mongo
   socket.on('currentData', function(data) {
     console.log('currentData received: ' + JSON.stringify(data));
-    // Increment games list in mongo here
     writeDataToMongo(data);
   });
 
-  socket.on('getStim', function(data) {
-    sendStim(socket, data);
-  });
-
-  // upon connecting, tell the client some metainfo
-  socket.emit('onConnected', {
-    id: UUID(),
-    meta: {
-      num_trials: num_trials
-    }
-  });
-
+  // Send client stims
+  initializeWithTrials(socket, UUID());
 });
 
 var serveFile = function(req, res) {
@@ -84,23 +72,24 @@ var UUID = function() {
   return id;
 };
 
-function sendStim(socket, data) {
+function initializeWithTrials(socket, id) {
   sendPostRequest('http://localhost:6000/db/getstims', {
     json: {
       dbname: 'stimuli',
-      colname: 'shapenet_chairs_speaker_eval',
+      colname: 'graphical_conventions_sketches',
       numTrials: 1,
-      gameid: data.gameID
+      gameid: id
     }
   }, (error, res, body) => {
     if (!error && res.statusCode === 200) {
-      socket.emit('stimulus', body);
+      // send trial list (and id) to client
+      var packet = {
+	id: id,
+	trials: body
+      };      
+      socket.emit('onConnected', packet);
     } else {
       console.log(`error getting stims: ${error} ${body}`);
-      console.log(`falling back to local stimList`);
-      socket.emit('stimulus', {
-        stim: _.sampleSize(require('./shapenet_chairs_speaker_eval.js'), 1)
-      });
     }
   });
 }
