@@ -1,0 +1,1 @@
+As of October 17, 2018: Currently the "full dataset" consists of two experiment iterations: ['run3_size4_waiting','run4_generalization']. In `run3_size4_waiting`, both repeated and control items come from the same cluster. In `run4_generalization`, the control items come from a different cluster.
