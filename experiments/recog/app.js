@@ -126,7 +126,8 @@ function initializeWithTrials(socket, id) {
       // send trial list (and id) to client
       var packet = {
 	id: id,
-	trials: body
+	recogID: body.recogID,
+	trials: body.meta
       };      
       socket.emit('onConnected', packet);
     } else {
