@@ -33,6 +33,13 @@ p {
   clear:both;
 }
 
+p2 {
+  width: 80%;
+  margin: 0;
+  margin-left: 20px;
+  clear:both;
+}
+
 .very-small {
     font-size: 50%;
 }
@@ -70,18 +77,22 @@ p {
 #prompt {
    text-align: center;
    font-weight: bold;
-   margin: 4px 8px; 
+   margin: 4px 8px;
 }
 
-#jspsych-image-button-response-utterance {
+#jspsych-image-button-response-sketch {
+  padding:10px;
   text-align: center;
-  font-size: 32pt;
-  font-style: italic
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  margin-top: 3px;
 }
 
 #jspsych-image-button-response-btngroup {
   margin: auto;
-  padding: 10px;
+  margin-top: 0;
+  padding: 1px;
   text-align: center;
 }
 
@@ -141,7 +152,7 @@ button:hover {
 
 #jspsych-progressbar-container {
 	color: #777;
-	border-bottom: 2px solid #dedede;
+	border-bottom: 0px solid #dedede;
 	background-color: #f3f3f3;
 	margin-bottom: 0em;
 	text-align: center;
@@ -163,7 +174,7 @@ button:hover {
 #jspsych-progressbar-inner {
 	background-color: #aaa; /* #3EB3D7; */
 	width: 0%;
-	height: 1em;
+	height: 0.5em;
 	border-radius: 5px;
 }
 
@@ -363,4 +374,23 @@ button:hover {
    display: block;
    margin-left: auto;
    margin-right: auto;
+ }
+
+ .progress{
+     height: 1.0vw;
+     position: absolute;
+     left: 20%; right: 20%;
+     background-color: #292b29;
+     margin-bottom: 4vw;
+     z-index:100;
+     width: 60%
+ }
+
+ #progress-bar{
+     height: 100%;
+     width: 100%;
+     -webkit-transition: none !important;
+     transition: none !important;
+     z-index: 10000;
+     background-color:#356ba5;
  }
