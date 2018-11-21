@@ -87,7 +87,7 @@ function setupGame () {
                       		    trialData.distractor2.url, trialData.distractor3.url]),
                       gameID: id,
                       trialNum : i,
-                      post_trial_gap: 1500, // add 1500ms ITI between trials
+                      post_trial_gap: 1000, // add brief ITI between trials
                       on_finish : on_finish
       });
     });
