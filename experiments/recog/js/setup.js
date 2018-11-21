@@ -101,7 +101,7 @@ function setupGame () {
          
     jsPsych.init({
       timeline: trials,
-      default_iti: 1000,
+      default_iti: 2000,
       show_progress_bar: true
     });      
 
