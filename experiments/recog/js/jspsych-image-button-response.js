@@ -22,7 +22,7 @@ jsPsych.plugins["image-button-response"] = (function() {
     name: 'image-button-response',
     description: '',
     parameters: {
-      utterance: {
+      sketch: {
         type: jsPsych.plugins.parameterType.IMAGE,
         pretty_name: 'Sketch (images URL)',
         default: undefined,
@@ -48,11 +48,11 @@ jsPsych.plugins["image-button-response"] = (function() {
         default: null,
         description: 'Any content here will be displayed under the buttons.'
       },
-      utterance_duration: {
+      sketch_duration: {
         type: jsPsych.plugins.parameterType.INT,
-        pretty_name: 'utterance duration',
+        pretty_name: 'sketch duration',
         default: null,
-        description: 'How long to hide the utterance.'
+        description: 'How long to hide the sketch.'
       },
       trial_duration: {
         type: jsPsych.plugins.parameterType.INT,
@@ -88,8 +88,8 @@ jsPsych.plugins["image-button-response"] = (function() {
     if(typeof trial.choices === 'undefined'){
       console.error('Required parameter "choices" missing in image-button-response');
     }
-    if(typeof trial.utterance === 'undefined'){
-      console.error('Required parameter "utterance" missing in image-button-response');
+    if(typeof trial.sketch === 'undefined'){
+      console.error('Required parameter "sketch" missing in image-button-response');
     }
 
     // wrapper function to show everything, call this when you've waited what you
@@ -115,8 +115,8 @@ jsPsych.plugins["image-button-response"] = (function() {
         var html = '<div id="prompt">' +trial.prompt + '</div>';
       }
 
-      // display utterance (string)
-      html += '<div><p id="jspsych-image-button-response-utterance"> "'+ trial.utterance +'"</p></div>';
+      // display sketch (image)
+      html += '<div><img id="jspsych-image-button-response-sketch" src="'+ trial.sketch_url +'"></img></div>';
 
       html += '<div id="jspsych-image-button-response-btngroup">';
 
@@ -174,9 +174,9 @@ jsPsych.plugins["image-button-response"] = (function() {
       response.button = choice;
       response.rt = rt;
 
-      // after a valid response, the utterance will have the CSS class 'responded'
+      // after a valid response, the sketch will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
-      display_element.querySelector('#jspsych-image-button-response-utterance').className += ' responded';
+      display_element.querySelector('#jspsych-image-button-response-sketch').className += ' responded';
 
       // disable all the buttons after a response
       var btns = document.querySelectorAll('.jspsych-image-button-response-button button');
@@ -198,20 +198,16 @@ jsPsych.plugins["image-button-response"] = (function() {
 
       // get info from mturk
       var turkInfo = jsPsych.turk.turkInfo();
-      // workerID
-      var wID = turkInfo.workerId;
-      // hitID
-      var hitID = turkInfo.hitId;
-      // assignmentID
-      var aID = turkInfo.assignmentId;
-
+      
       // prettify choices list
-      var pretty_choices = new Array;
+      var prettyChoices = new Array;
       _.forEach(trial.choices, function(x) {
-                pretty_choices.push(x.split('/').slice(-1)[0].split('.')[0])
-                });
+        prettyChoices.push(x.split('/').slice(-1)[0].split('.')[0]);
+      });
+
       // check if response matches target, i.e., whether response is correct
-      if (response.button.split('_')[1] == 'target') {
+      var trial_correct;
+      if (response.button == trial.target.shapenetid) {
         trial_correct = 1;
         score+=1; // increment score
       } else {
@@ -219,28 +215,21 @@ jsPsych.plugins["image-button-response"] = (function() {
       }
 
       // gather the data to store for the trial
-      var trial_data = {
+      console.log(trial.choices);
+      var trial_data = _.extend(_.omit(trial, 'on_finish', 'choices'), {
         dbname: '3dObjects',
-        colname: 'shapenet_chairs_speaker_eval',
-        type: trial.type,
-        iterationName: trial.iterationName,
-        gameID: trial.gameID,
-        trialNum: trial.trialNum,
+        colname: 'graphical_conventions_recog',
+	ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
         rt: response.rt,
-        utterance: trial.utterance,
-        choices: pretty_choices,
-        condition: trial.condition,
         stim_mongo_id: trial._id,
-        family: trial.family,
         response: response.button,
-        shuffle_ind: trial.shuffle_ind,
         score: score,
         correct: trial_correct,
-        wID: wID,
-        hitID: hitID,
-        aID: aID,
+        wID: turkInfo.workerId,
+        hitID: turkInfo.hitId,
+        aID: turkInfo.assignmentId,
         timestamp: Date.now()
-      };
+      });
 
       console.log('trial data: ', trial_data);
       console.log('correct?  ', trial_correct);
@@ -255,10 +244,10 @@ jsPsych.plugins["image-button-response"] = (function() {
 
 
     // hide image if timing is set
-    if (trial.utterance_duration !== null) {
+    if (trial.sketch_duration !== null) {
       jsPsych.pluginAPI.setTimeout(function() {
-        display_element.querySelector('#jspsych-image-button-response-utterance').style.visibility = 'hidden';
-      }, trial.utterance_duration);
+        display_element.querySelector('#jspsych-image-button-response-sketch').style.visibility = 'hidden';
+      }, trial.sketch_duration);
     }
 
     // end trial if time limit is set
