@@ -37,7 +37,8 @@ var welcomeTrial = {
     consentHTML.str1, consentHTML.str2, consentHTML.str3, consentHTML.str4,
     instructionsHTML.str1, instructionsHTML.str2, instructionsHTML.str3
   ],
-  show_clickable_nav: true
+  show_clickable_nav: true,
+  allow_keys: false
 };
 
 // define trial object with boilerplate
