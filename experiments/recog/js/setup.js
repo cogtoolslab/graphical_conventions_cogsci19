@@ -87,6 +87,7 @@ function setupGame () {
                       		    trialData.distractor2.url, trialData.distractor3.url]),
                       gameID: id,
                       trialNum : i,
+                      post_trial_gap: 1500, // add 1500ms ITI between trials
                       on_finish : on_finish
       });
     });
@@ -101,7 +102,7 @@ function setupGame () {
          
     jsPsych.init({
       timeline: trials,
-      default_iti: 2000,
+      default_iti: 1000,
       show_progress_bar: true
     });      
 
