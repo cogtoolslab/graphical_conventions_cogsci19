@@ -48,10 +48,11 @@ function Trial () {
   this.iterationName = 'testing';
   this.prompt = "Please select the object that best matches the sketch.";
   this.num_trials = 10;
-  this.dev_mode = false;
+  this.dev_mode = true;
 };
 
 function setupGame () {
+
   // number of trials to fetch from database is defined in ./app.js
   var socket = io.connect();
   var on_finish = function(data) {
@@ -59,8 +60,15 @@ function setupGame () {
     socket.emit('currentData', data);
   };
 
+  // onConnected validation layer -- change the below 
+
+
   // Start once server initializes us
   socket.on('onConnected', function(d) {
+
+    // get workerId, etc. from URL (so that it can be sent to the server)
+    // var turkInfo = jsPsych.turk.turkInfo();    
+  
     // pull out info from server
     var id = d.id;
 
