@@ -24,7 +24,6 @@ var consentHTML = {
 	    "<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b> or Noah Goodman (n goodman at stanford dot edu) You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
 }
 
-
 // add welcome page
 var instructionsHTML = {
   'str1' : "<p> Here's how the game will work: On each trial, you will see a sketch appear above four images of different objects. Your goal is to select the object in the set that best matches the sketch.",
@@ -41,6 +40,18 @@ var welcomeTrial = {
   show_clickable_nav: true,
   allow_keys: false
 };
+
+var acceptHTML = {
+  'str1' : '<p> Welcome! In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. For each correct match, you will receive a bonus. </p>',  
+  'str2' : '<p> This is only a demo! If you are interested in participating, please accept the HIT in MTurk before continuing further. </p>'  
+}
+
+var previewTrial = {
+  type: 'instructions',
+  pages: [acceptHTML.str1, acceptHTML.str2],
+  show_clickable_nav: true,
+  allow_keys: false  
+}
 
 // define trial object with boilerplate
 function Trial () {
@@ -81,17 +92,18 @@ function setupGame () {
     });
 
     // Stick welcome trial at beginning & goodbye trial at end
-    trials.unshift(welcomeTrial);
-    trials.push(goodbyeTrial);
-
-    if (!turkInfo.previewMode) {      
-      // run jsPsych init only if the person has accepted
-      jsPsych.init({
-        timeline: trials,
-        default_iti: 1000,
-        show_progress_bar: true
-      });      
+    if (!turkInfo.previewMode) { 
+        trials.unshift(welcomeTrial);
+    } else {
+        trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
     }
+    trials.push(goodbyeTrial);
+         
+    jsPsych.init({
+      timeline: trials,
+      default_iti: 1000,
+      show_progress_bar: true
+    });      
 
   });
 }
