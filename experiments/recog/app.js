@@ -50,7 +50,7 @@ app.get('/*', (req, res) => {
     // If not a repeat worker, then send client stims
     console.log('neither invalid nor blank id, check if repeat worker')
     checkPreviousParticipant(id, (exists) => {    
-      return exists ? res.redirect('/duplicate.html') : serveFile(req, res);
+      return exists ? handleDuplicate(req, res) : serveFile(req, res);
     });
   }
   
@@ -91,7 +91,11 @@ var serveFile = function(req, res) {
 
 var handleDuplicate = function(req, res) {
   console.log("duplicate id: blocking request");
-  return res.redirect('/duplicate.html');
+  res.sendFile('duplicate.html', {root: __dirname});
+  console.log('trying to redirect to:')
+  console.log(__dirname + '/duplicate.html');
+  return res.redirect(__dirname + '/duplicate.html');
+
 };
 
 var valid_id = function(id) {
