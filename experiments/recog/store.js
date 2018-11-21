@@ -119,7 +119,7 @@ function serve() {
 
       checkEach(collectionList, checkCollectionForHits, query, projection, evaluateTally);
 
-  });
+    });
 
 
     app.post('/db/insert', (request, response) => {
