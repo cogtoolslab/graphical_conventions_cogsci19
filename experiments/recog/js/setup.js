@@ -29,7 +29,7 @@ var consentHTML = {
 var instructionsHTML = {
   'str1' : "<p> Here's how the game will work: On each trial, you will see a sketch appear above four images of different objects. Your goal is to select the object in the set that best matches the sketch.",
   'str2' : '<p> For each correct guess you make, you will receive an accuracy bonus of $0.01. In addition, you will receive a speed bonus (up to $0.02) based on how fast you make the correct guess. In other words, the faster you can select the correct object, the larger the bonus you will receive!',
-  'str3' : "<p> Once you are finished, the HIT will be automatically submitted for approval. If you enjoyed this HIT, please know that you are welcome to perform it multiple times. Let's begin! </p>"
+  'str3' : "<p> Once you are finished, the HIT will be automatically submitted for approval. Please know that you can only perform this HIT one time. Let's begin! </p>"
 };
 
 var welcomeTrial = {
