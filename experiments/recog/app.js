@@ -38,34 +38,48 @@ try {
 }
 
 app.get('/*', (req, res) => {
+  // serve stuff that the client requests
+  serveFile(req, res);  
+});
 
-  var id = req.query.workerId;
-  console.log('workerId requested:',id);
-  if(!id || id === 'undefined') {
-    // If no worker id supplied (e.g. for demo), allow to continue
-    console.log('no worker id suppled, allow to continue');
-    return serveFile(req, res);
-  } else if(!valid_id(id)) {
+io.on('connection', function (socket) {
+
+  // Recover query string information and set condition
+  var hs = socket.request;
+  var query = require('url').parse(hs.headers.referer, true).query;
+  var id;
+  // assign worker
+  if (!query.workerId || query.workerId == 'undefined') {
+    console.log('query.workerId is undefined...');
+    id = UUID();
+  } else {
+    console.log('query.workerId = ', query.workerId);
+    id = query.workerId;
+  }
+
+  if(!valid_id(id)) {
     // If invalid id, block them
     return handleInvalidID(req, res);
     console.log('invalid id, blocked');
   } else {
     // If the database shows they've already participated, block them
-    checkPreviousParticipant(id, (exists) => {
-      return exists ? handleDuplicate(req, res); console.log('repeat worker, blocked'); : serveFile(req, res);
+    // If not a repeat worker, then send client stims
+    console.log('neither invalid nor blank id, check if repeat worker')
+    checkPreviousParticipant(id, (exists) => {    
+      return exists ? handleDuplicate(req, res) : initializeWithTrials(socket, UUID());
     });
   }
-});
 
-io.on('connection', function (socket) {
+  // Send client stims
+  // initializeWithTrials(socket, UUID());
+
   // Set up callback for writing client data to mongo
   socket.on('currentData', function(data) {
     console.log('currentData received: ' + JSON.stringify(data));
     writeDataToMongo(data);
   });
 
-  // Send client stims
-  initializeWithTrials(socket, UUID());
+
 });
 
 var serveFile = function(req, res) {
