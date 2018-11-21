@@ -40,18 +40,21 @@ try {
 app.get('/*', (req, res) => {
 
   var id = req.query.workerId;
-    if(!id || id === 'undefined') {
-      // If no worker id supplied (e.g. for demo), allow to continue
-      return serveFile(req, res);
-    } else if(!valid_id(id)) {
-      // If invalid id, block them
-      return handleInvalidID(req, res);
-    } else {
-      // If the database shows they've already participated, block them
-      checkPreviousParticipant(id, (exists) => {
-        return exists ? handleDuplicate(req, res) : serveFile(req, res);
-      });
-    }
+  console.log('workerId requested:',id);
+  if(!id || id === 'undefined') {
+    // If no worker id supplied (e.g. for demo), allow to continue
+    console.log('no worker id suppled, allow to continue');
+    return serveFile(req, res);
+  } else if(!valid_id(id)) {
+    // If invalid id, block them
+    return handleInvalidID(req, res);
+    console.log('invalid id, blocked');
+  } else {
+    // If the database shows they've already participated, block them
+    checkPreviousParticipant(id, (exists) => {
+      return exists ? handleDuplicate(req, res); console.log('repeat worker, blocked'); : serveFile(req, res);
+    });
+  }
 });
 
 io.on('connection', function (socket) {
