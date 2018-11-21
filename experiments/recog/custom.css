@@ -84,6 +84,13 @@ p {
   padding: 10px;
   text-align: center;
 }
+
+#jspsych-image-button-response-sketch {
+   text-align: center;
+   padding: 10px;
+   margin: auto;   
+}
+
 /*
  *
  * Form elements like input fields and buttons
