@@ -37,7 +37,8 @@ var welcomeTrial = {
     consentHTML.str1, consentHTML.str2, consentHTML.str3, consentHTML.str4,
     instructionsHTML.str1, instructionsHTML.str2, instructionsHTML.str3
   ],
-  show_clickable_nav: true
+  show_clickable_nav: true,
+  allow_keys: false
 };
 
 // define trial object with boilerplate
@@ -65,12 +66,20 @@ function setupGame () {
     // Bind trial data with boilerplate
     var trials = _.map(_.shuffle(d.trials), function(trialData, i) {
       return _.extend(new Trial, trialData, {
+<<<<<<< HEAD
 	choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
 			    trialData.distractor2.url, trialData.distractor3.url]),
 	gameID: id,
 	trialNum : i,
   num_trials : 10,
 	on_finish : on_finish
+=======
+                      choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
+                      		    trialData.distractor2.url, trialData.distractor3.url]),
+                      gameID: id,
+                      trialNum : i,
+                      on_finish : on_finish
+>>>>>>> 151f68e73cbff09aac1761bfff41d65d879ddaca
       });
     });
 
