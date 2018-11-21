@@ -81,8 +81,6 @@ jsPsych.plugins["image-button-response"] = (function() {
     }
   }
 
-
-
   plugin.trial = function(display_element, trial) {
 
     if(typeof trial.choices === 'undefined'){

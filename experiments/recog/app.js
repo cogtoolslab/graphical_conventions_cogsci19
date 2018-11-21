@@ -15,6 +15,8 @@ var
 // define number of trials to fetch from database (what is length of each recog HIT?)
 var num_trials = 10;
 var gameport;
+var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK'];
+var block_researcher = false;
 
 if(argv.gameport) {
   gameport = argv.gameport;
@@ -50,10 +52,16 @@ app.get('/*', (req, res) => {
   } else {
     // If the database shows they've already participated, block them
     // If not a repeat worker, then send client stims
-    console.log('neither invalid nor blank id, check if repeat worker')
-    checkPreviousParticipant(id, (exists) => {    
-      return exists ? handleDuplicate(req, res) : serveFile(req, res);
-    });
+    console.log('neither invalid nor blank id, check if repeat worker');
+    // check if id is one of the researchers, if so, let them continue
+    researcher_ind = _.findIndex(researchers, function(x) {return x==id});
+    if (researcher_ind>0 && !block_researcher) {
+      serveFile(req, res); // serve files if client is one of the researchers and we do not want to block them
+    } else {
+      checkPreviousParticipant(id, (exists) => {    
+        return exists ? handleDuplicate(req, res) : serveFile(req, res);
+      });      
+    }
   }
   
 });
