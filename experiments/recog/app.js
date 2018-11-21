@@ -40,12 +40,14 @@ try {
 app.get('/*', (req, res) => {
   // // serve stuff that the client requests
   // serveFile(req, res); 
-  var id = req.query.workerId;  
-  if(id && !valid_id(id)) {
+  var id = req.query.workerId; 
+  if(!id || id === 'undefined') {
+    serveFile(req, res);
+  } else if(!valid_id(id)) {
     // If invalid id, block them
     return handleInvalidID(req, res);
     console.log('invalid id, blocked');
-  } else if (id && valid_id(id)) {
+  } else {
     // If the database shows they've already participated, block them
     // If not a repeat worker, then send client stims
     console.log('neither invalid nor blank id, check if repeat worker')
