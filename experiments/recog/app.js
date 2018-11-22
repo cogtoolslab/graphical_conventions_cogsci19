@@ -103,9 +103,7 @@ var serveFile = function(req, res) {
 var handleDuplicate = function(req, res) {
   console.log("duplicate id: blocking request");
   res.sendFile('duplicate.html', {root: __dirname});
-  console.log('trying to redirect to:');
-  console.log(req.baseUrl + '/duplicate.html');
-  return res.redirect(req.baseUrl + '/duplicate.html');
+  return res.redirect('/duplicate.html');
 
 };
 
