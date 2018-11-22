@@ -56,7 +56,7 @@ var previewTrial = {
 // define trial object with boilerplate
 function Trial () {
   this.type = 'image-button-response';
-  this.iterationName = 'pilot0';
+  this.iterationName = 'pilot1';
   this.prompt = "Please select the object that best matches the sketch.";
   this.num_trials = 10;
   this.dev_mode = false;
