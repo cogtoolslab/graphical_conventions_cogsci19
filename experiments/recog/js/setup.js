@@ -10,7 +10,7 @@ var goodbyeTrial = {
   type: 'instructions',
   pages: [
     '<p>Thanks for participating in our experiment! You are all done. Please \
-     click the button to submit this HIT.</p>'
+     click the button to submit this HIT. If a popup asks you if you are sure that you want to leave, please say yes.</p>'
   ],
   show_clickable_nav: true,
   on_finish: function() { sendData();}
@@ -83,12 +83,12 @@ function setupGame () {
     // Bind trial data with boilerplate
     var trials = _.map(_.shuffle(d.trials), function(trialData, i) {
       return _.extend(new Trial, trialData, {
-                      choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
-                      		    trialData.distractor2.url, trialData.distractor3.url]),
-                      gameID: id,
-                      trialNum : i,
-                      post_trial_gap: 1000, // add brief ITI between trials
-                      on_finish : on_finish
+        choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
+        		    trialData.distractor2.url, trialData.distractor3.url]),
+        gameID: id,
+        trialNum : i,
+        post_trial_gap: 1000, // add brief ITI between trials
+        on_finish : on_finish
       });
     });
 
