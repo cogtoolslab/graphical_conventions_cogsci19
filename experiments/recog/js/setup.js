@@ -41,6 +41,28 @@ var welcomeTrial = {
   allow_keys: false
 };
 
+var loopNode = {
+  timeline: [quizTrial],
+  loop_function: function(data){
+    console.log(data.values());
+    if(val1 == 'True' && val2 == 'False'){
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+var quizTrial = {
+  type: 'survey-multi-choice',
+  questions: [{prompt: "The sketch is of one of the four chairs in context.",
+	       options: ["True", "False"],
+	       required:true},
+	      {prompt: "The sketches were all drawn by different people.",
+	       options: ["True", "False"],
+	       required: false}]
+};
+
 var acceptHTML = {
   'str1' : '<p> Welcome! In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. </p>',  
   'str2' : '<p> This is only a demo! If you are interested in participating, please accept the HIT in MTurk before continuing further. </p>'  
@@ -94,9 +116,10 @@ function setupGame () {
 
     // Stick welcome trial at beginning & goodbye trial at end
     if (!turkInfo.previewMode) { 
-        trials.unshift(welcomeTrial);
+      trials.unshift(welcomeTrial);
+      trials.unshift(loopNode);
     } else {
-        trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
+      trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
     }
     trials.push(goodbyeTrial);
          
