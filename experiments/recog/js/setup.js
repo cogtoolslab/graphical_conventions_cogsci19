@@ -21,7 +21,7 @@ var consentHTML = {
   'str2' : '<p>We expect the average game to last approximately 2-3 minutes, including the time it takes to read instructions.</p>',
   'str3' : "<p>If you encounter a problem or error, send us an email (sketchloop@gmail.com) and we will make sure you're compensated for your time! Please pay attention and do your best! Thank you!</p><p> Note: We recommend using Chrome. We have not tested this HIT in other browsers.</p>",
   'str4' : ["<u><p id='legal'>Consenting to Participate:</p></u>",
-	    "<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b> or Noah Goodman (n goodman at stanford dot edu) You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
+	    "<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b>. You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
 }
 
 // add welcome page
@@ -60,7 +60,7 @@ var quizTrial = {
 	       required:true},
 	      {prompt: "The sketches were all drawn by different people.",
 	       options: ["True", "False"],
-	       required: false}]
+	       required: true}]
 };
 
 var acceptHTML = {
@@ -78,7 +78,7 @@ var previewTrial = {
 // define trial object with boilerplate
 function Trial () {
   this.type = 'image-button-response';
-  this.iterationName = 'pilot1';
+  this.iterationName = 'testing';
   this.prompt = "Please select the object that best matches the sketch.";
   this.num_trials = 10;
   this.dev_mode = false;
@@ -116,13 +116,15 @@ function setupGame () {
 
     // Stick welcome trial at beginning & goodbye trial at end
     if (!turkInfo.previewMode) { 
-      trials.unshift(welcomeTrial);
-      trials.unshift(loopNode);
+	trials.unshift(quizTrial);
+	trials.unshift(welcomeTrial);
     } else {
       trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
     }
     trials.push(goodbyeTrial);
-         
+
+    console.log(trials);
+      
     jsPsych.init({
       timeline: trials,
       default_iti: 1000,
