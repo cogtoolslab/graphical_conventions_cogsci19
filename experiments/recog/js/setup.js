@@ -18,7 +18,7 @@ var goodbyeTrial = {
 
 var consentHTML = {
   'str1' : '<p>In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. For each correct match, you will receive a bonus. </p>',
-  'str2' : '<p>We expect the average game to last approximately 2-3 minutes, including the time it takes to read instructions.</p>',
+  'str2' : '<p>We expect the average game to last approximately 10 minutes, including the time it takes to read instructions.</p>',
   'str3' : "<p>If you encounter a problem or error, send us an email (sketchloop@gmail.com) and we will make sure you're compensated for your time! Please pay attention and do your best! Thank you!</p><p> Note: We recommend using Chrome. We have not tested this HIT in other browsers.</p>",
   'str4' : ["<u><p id='legal'>Consenting to Participate:</p></u>",
 	    "<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b>. You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
@@ -27,8 +27,8 @@ var consentHTML = {
 // add welcome page
 var instructionsHTML = {
   'str1' : "<p> Here's how the game will work: On each trial, you will see a sketch appear above four images of different objects. Your goal is to select the object in the set that best matches the sketch.",
-  'str2' : '<p> For each correct guess you make, you will receive an accuracy bonus of $0.01. In addition, you will receive a speed bonus (up to $0.02) based on how fast you make the correct guess. In other words, the faster you can select the correct object, the larger the bonus you will receive!',
-  'str3' : "<p> Once you are finished, the HIT will be automatically submitted for approval. Please know that you can only perform this HIT one time. Let's begin! </p>"
+  'str2' : '<p> For each correct guess you make, you will receive an <b>accuracy bonus</b> of $0.01. <p> In addition, you will receive a <b>speed bonus</b> (up to $0.02) based on how fast you make the correct guess. In other words, the faster you can select the correct object, the larger the bonus you will receive. </p> <p> However, you <i> must select the correct object to receive any bonus at all </i>, so please pay attention and above all <b> aim to be as accurate as you can </b>! </p>',
+  'str3' : "<p> Once you are finished, the HIT will be automatically submitted for approval. Please know that you can only perform this HIT one time. Before we begin, please complete a brief questionnaire to show you understand how this HIT works.</p>"
 };
 
 var welcomeTrial = {
@@ -45,7 +45,7 @@ var loopNode = {
   timeline: [quizTrial],
   loop_function: function(data){
     console.log(data.values());
-    if(val1 == 'True' && val2 == 'False'){
+    if(val1 == 'True' && val2 == 'False' && val3 == 'False'){
       return true;
     } else {
       return false;
@@ -55,10 +55,13 @@ var loopNode = {
 
 var quizTrial = {
   type: 'survey-multi-choice',
-  questions: [{prompt: "The sketch is of one of the four chairs in context.",
+  questions: [{prompt: "The sketch is of one of the four objects in context.",
 	       options: ["True", "False"],
 	       required:true},
-	      {prompt: "The sketches were all drawn by different people.",
+	      {prompt: "It is possible to earn a speed bonus for selecting an incorrect object really quickly.",
+	       options: ["True", "False"],
+	       required: true},
+	      {prompt: "It is possible to perform this HIT more than once.",
 	       options: ["True", "False"],
 	       required: true}]
 };
