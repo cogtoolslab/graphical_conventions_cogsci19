@@ -248,19 +248,19 @@ jsPsych.plugins["image-button-response"] = (function() {
         console.log(trial.choices);
       }
       var trial_data = _.extend(_.omit(trial, 'on_finish', 'choices', 'outcome'), {
-        dbname: '3dObjects',
-        colname: 'graphical_conventions_recog',
-	      ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
-        rt: response.rt,
-        correct: trial_correct,
-        original_correct: trial.outcome,
-        stim_mongo_id: trial._id,
-        response: response.button,
-        score: score,
-        workerId: turkInfo.workerId,
-        hitID: turkInfo.hitId,
-        aID: turkInfo.assignmentId,
-        timestamp: Date.now()
+          dbname: '3dObjects',
+          colname: 'graphical_conventions_recog',
+	  ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
+          rt: response.rt,
+          correct: trial_correct,
+          original_correct: trial.outcome,
+          stim_mongo_id: trial._id,
+          response: response.button,
+          score: score,
+          workerId: turkInfo.workerId,
+          hitID: turkInfo.hitId,
+          aID: turkInfo.assignmentId,
+          timestamp: Date.now()
       });
 
       if (trial.dev_mode == true) {
