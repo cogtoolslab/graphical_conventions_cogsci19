@@ -89,7 +89,7 @@ function Trial () {
   this.iterationName = 'testing';
   this.prompt = "Please select the object that best matches the sketch.";
   this.num_trials = 10;
-  this.dev_mode = false;
+  this.dev_mode = true;
 };
 
 function setupGame () {
@@ -125,8 +125,8 @@ function setupGame () {
 
     // Stick welcome trial at beginning & goodbye trial at end
     if (!turkInfo.previewMode) { 
-	trials.unshift(loopNode);
-	trials.unshift(welcomeTrial);
+    	trials.unshift(loopNode);
+    	trials.unshift(welcomeTrial);
     } else {
       trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
     }
