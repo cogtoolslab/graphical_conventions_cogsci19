@@ -1,5 +1,6 @@
 var callback;
 var score = 0;
+var quizAttempts = 1;
 
 function sendData() {
   console.log('sending data to mturk');
@@ -63,6 +64,7 @@ var loopNode = {
       	    return false;
       	} else {
       	    alert('Please try again! One or more of your responses was incorrect.');
+            quizAttempts += 1;
             return true;
       	}
           }
@@ -96,6 +98,7 @@ function setupGame () {
   var socket = io.connect();
   var on_finish = function(data) {
     score = data.score ? data.score : score;
+    data.quizAttempts = quizAttempts;
     socket.emit('currentData', data);
   };
 
