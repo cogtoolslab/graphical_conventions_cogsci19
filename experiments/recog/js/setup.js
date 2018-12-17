@@ -43,24 +43,24 @@ var welcomeTrial = {
 };
 
 var quizTrial = {
-  type: 'survey-multi-choice',
-  questions: [{prompt: "The sketch is of one of the four objects in context.",
-	       options: ["True", "False"],
-	       required:true},
-	      {prompt: "It is possible to earn a speed bonus for selecting an incorrect object really quickly.",
-	       options: ["True", "False"],
-	       required: false},
-	      {prompt: "It is possible to perform this HIT more than once.",
-	       options: ["True", "False"],
-	       required: false}]
+    type: 'survey-multi-choice',
+    questions: [{prompt: "The sketch is of one of the four objects in context.",
+		 options: ["True", "False"],
+		 required:true},
+		{prompt: "It is possible to earn a speed bonus for selecting an incorrect object really quickly.",
+		 options: ["True", "False"],
+		 required: false},
+		{prompt: "It is possible to perform this HIT more than once.",
+		 options: ["True", "False"],
+		 required: false}]
 };
 
 var loopNode = {
     timeline: [quizTrial],
-     loop_function: function(data){
-      	console.log(data.values());
-      	resp = data.values();
-      	if ((resp[0] == 'True') && (resp[1]== 'False') && (resp[2] == 'False')){
+    loop_function: function(data){
+      	console.log(data.values()[0]['responses']);
+      	resp = JSON.parse(data.values()[0]['responses']);	 
+      	if ((resp["Q0"] == 'True') && (resp["Q1"]== 'False') && (resp["Q2"] == 'False')){
       	    return false;
       	} else {
       	    alert('Please try again! One or more of your responses was incorrect.');
