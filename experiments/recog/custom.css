@@ -74,6 +74,10 @@ p2 {
   z-index: 12;
 }
 
+#score {
+  width:15vw;
+}
+
 
 .left {
     float: left;
