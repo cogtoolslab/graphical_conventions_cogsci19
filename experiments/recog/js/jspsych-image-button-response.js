@@ -283,7 +283,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "8px solid #66B03B"
       // also bold/enlarge the score in bottom left corner 
       display_element.querySelector('#score').innerHTML = 'bonus earned: ' + parseFloat(score).toFixed(3);
-      display_element.querySelector('#score').style.fontSize = '110%';      
+      display_element.querySelector('#score').style.border = '8px solid #66B03B';      
       display_element.querySelector('#score').style.fontWeight = 'bold';
     } else {
      // draw RED box around INCORRECT response and BLACK box around TARGET
@@ -293,7 +293,7 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     // wait to screen and moving onto next trial until you show feedback
     jsPsych.pluginAPI.setTimeout(function() {
-                      clear_display_move_on(trial_data);},1500);      
+                      clear_display_move_on(trial_data);},2000);      
 
     };
 
