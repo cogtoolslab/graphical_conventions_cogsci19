@@ -38,20 +38,8 @@ var welcomeTrial = {
     instructionsHTML.str1, instructionsHTML.str2, instructionsHTML.str3
   ],
   show_clickable_nav: true,
-  allow_keys: false
+  allow_keys: true
 };
-
-var loopNode = {
-  timeline: [quizTrial],
-  loop_function: function(data){
-    console.log(data.values());
-    if(val1 == 'True' && val2 == 'False' && val3 == 'False'){
-      return true;
-    } else {
-      return false;
-    }
-  }
-}
 
 var quizTrial = {
   type: 'survey-multi-choice',
@@ -65,6 +53,20 @@ var quizTrial = {
 	       options: ["True", "False"],
 	       required: true}]
 };
+
+var loopNode = {
+    timeline: [quizTrial],
+     loop_function: function(data){
+	console.log(data.values());
+	resp = data.values();
+	if ((resp[0] == 'True') && (resp[1]== 'False') && (resp[2] == 'False')){
+	    return false;
+	} else {
+	    return true;
+	}
+    }
+}
+
 
 var acceptHTML = {
   'str1' : '<p> Welcome! In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. </p>',  
@@ -119,7 +121,7 @@ function setupGame () {
 
     // Stick welcome trial at beginning & goodbye trial at end
     if (!turkInfo.previewMode) { 
-	trials.unshift(quizTrial);
+	trials.unshift(loopNode);
 	trials.unshift(welcomeTrial);
     } else {
       trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
