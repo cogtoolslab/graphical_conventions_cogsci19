@@ -67,7 +67,7 @@ jsPsych.plugins['survey-multi-choice'] = (function() {
     var cssstr = ".jspsych-survey-multi-choice-question { margin-top: 2em; margin-bottom: 2em; text-align: left; }"+
       ".jspsych-survey-multi-choice-text span.required {color: darkred;}"+
       ".jspsych-survey-multi-choice-horizontal .jspsych-survey-multi-choice-text {  text-align: center;}"+
-      ".jspsych-survey-multi-choice-option { line-height: 2; }"+
+      ".jspsych-survey-multi-choice-option { line-height: 2; ; padding-left: 7em ;}"+
       ".jspsych-survey-multi-choice-horizontal .jspsych-survey-multi-choice-option {  display: inline-block;  margin-left: 1em;  margin-right: 1em;  vertical-align: top;}"+
       "label.jspsych-survey-multi-choice-text input[type='radio'] {margin-right: 1em;}"
 
@@ -133,7 +133,7 @@ jsPsych.plugins['survey-multi-choice'] = (function() {
       }
     }
     // add submit button
-    trial_form.innerHTML += '<input type="submit" id="'+plugin_id_name+'-next" class="'+plugin_id_name+' jspsych-btn"' + (trial.button_label ? ' value="'+trial.button_label + '"': '') + '></input>';
+    trial_form.innerHTML += '<input type="submit" style="display: block; margin: auto;" id="'+plugin_id_name+'-next" class="'+plugin_id_name+' jspsych-btn"' + (trial.button_label ? ' value="'+trial.button_label + '"': '') + '></input>';
     trial_form.addEventListener('submit', function(event) {
       event.preventDefault();
       var matches = display_element.querySelectorAll("div." + plugin_id_name + "-question");
