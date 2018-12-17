@@ -11,7 +11,7 @@
  **/
 
 var score = 0;
-var accuracy_bonus = 0.01;
+var accuracy_bonus = 0.03;
 
 jsPsych.plugins["image-button-response"] = (function() {
 
@@ -199,7 +199,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       var rt = end_time - start_time;
       response.button = choice;
       response.rt = rt;
-      time_bonus = (0.02 - time_passed * 0.001).toFixed(3)
+      time_bonus = (0.01 - time_passed * 0.0005).toFixed(3)
       //console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
@@ -250,7 +250,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       var trial_data = _.extend(_.omit(trial, 'on_finish', 'choices', 'outcome'), {
           dbname: '3dObjects',
           colname: 'graphical_conventions_recog',
-	  ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
+          ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
           rt: response.rt,
           correct: trial_correct,
           original_correct: trial.outcome,
