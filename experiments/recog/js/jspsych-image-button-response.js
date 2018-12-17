@@ -283,8 +283,8 @@ jsPsych.plugins["image-button-response"] = (function() {
       display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "8px solid #66B03B"
       // also bold/enlarge the score in bottom left corner 
       display_element.querySelector('#score').innerHTML = 'bonus earned: ' + parseFloat(score).toFixed(3);
-      display_element.querySelector('#score').style.fontSize = '120%';      
-      display_element.querySelector('#score').style.fontWeight = 'bolder';
+      display_element.querySelector('#score').style.fontSize = '110%';      
+      display_element.querySelector('#score').style.fontWeight = 'bold';
     } else {
      // draw RED box around INCORRECT response and BLACK box around TARGET
      display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "8px solid #282828"      
