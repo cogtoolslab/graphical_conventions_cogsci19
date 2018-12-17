@@ -49,10 +49,10 @@ var quizTrial = {
 	       required:true},
 	      {prompt: "It is possible to earn a speed bonus for selecting an incorrect object really quickly.",
 	       options: ["True", "False"],
-	       required: true},
+	       required: false},
 	      {prompt: "It is possible to perform this HIT more than once.",
 	       options: ["True", "False"],
-	       required: true}]
+	       required: false}]
 };
 
 var loopNode = {
