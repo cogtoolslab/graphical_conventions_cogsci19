@@ -57,14 +57,15 @@ var quizTrial = {
 var loopNode = {
     timeline: [quizTrial],
      loop_function: function(data){
-	console.log(data.values());
-	resp = data.values();
-	if ((resp[0] == 'True') && (resp[1]== 'False') && (resp[2] == 'False')){
-	    return false;
-	} else {
-	    return true;
-	}
-    }
+      	console.log(data.values());
+      	resp = data.values();
+      	if ((resp[0] == 'True') && (resp[1]== 'False') && (resp[2] == 'False')){
+      	    return false;
+      	} else {
+      	    alert('Please try again! One or more of your responses was incorrect.');
+            return true;
+      	}
+          }
 }
 
 
