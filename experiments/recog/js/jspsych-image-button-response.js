@@ -134,6 +134,9 @@ jsPsych.plugins["image-button-response"] = (function() {
       html += '<div id="score"> <p2> bonus earned: ' + parseFloat(score).toFixed(3) + '</p2></div>'
       html += '<div id="trial-counter"> <p2> trial ' + trial.trialNum + ' of ' + trial.num_trials + '</p2></div>'
 
+      // introduce occluder to make the inter-trial transitions less jarring
+      html += '<div id="occluder"> </div>'
+
       // display helpful info during debugging
       if (trial.dev_mode==true) {
         html += '<div id="repetition"> <p> repetition: ' + trial.repetition + '</p></div>'
@@ -155,8 +158,10 @@ jsPsych.plugins["image-button-response"] = (function() {
     }
 
     // wait for a little bit, then show_display
-    setTimeout(function() {show_display();}, 1000);
-      
+    // setTimeout(function() {show_display();}, 1000);
+    show_display();  
+    setTimeout(function() {$('#occluder').hide();},500);
+
     // start timing
     var start_time = Date.now();
     var progressBar = $('#progress-bar');
