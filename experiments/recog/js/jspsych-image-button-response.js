@@ -280,15 +280,15 @@ jsPsych.plugins["image-button-response"] = (function() {
     // show feedback
     if (trial_correct==true) {
      // show feedback by drawing GREEN box around TARGET if selected CORRECTLY    
-      display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "5px solid #66B03B"
+      display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "8px solid #66B03B"
       // also bold/enlarge the score in bottom left corner 
       display_element.querySelector('#score').innerHTML = 'bonus earned: ' + parseFloat(score).toFixed(3);
       display_element.querySelector('#score').style.fontSize = '120%';      
       display_element.querySelector('#score').style.fontWeight = 'bolder';
     } else {
      // draw RED box around INCORRECT response and BLACK box around TARGET
-     display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "5px solid #282828"      
-     display_element.querySelector('#jspsych-image-button-response-button-' + response_index).style.border = "5px solid #D02B16"      
+     display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "8px solid #282828"      
+     display_element.querySelector('#jspsych-image-button-response-button-' + response_index).style.border = "8px solid #D02B16"      
     }
 
     // wait to screen and moving onto next trial until you show feedback
