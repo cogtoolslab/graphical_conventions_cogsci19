@@ -71,7 +71,7 @@ p2 {
   top: 0vh; bottom: auto; left:0; right: 0;
   background: #B76836;
   position: absolute;
-  z-index: 10;
+  z-index: 12;
 }
 
 
@@ -395,7 +395,7 @@ button:hover {
      left: 20%; right: 20%;
      background-color: #292b29;
      margin-bottom: 4vw;
-     z-index:100;
+     z-index:10;
      width: 60%
  }
 
@@ -404,6 +404,6 @@ button:hover {
      width: 100%;
      -webkit-transition: none !important;
      transition: none !important;
-     z-index: 10000;
+     z-index: 11;
      background-color:#356ba5;
  }
