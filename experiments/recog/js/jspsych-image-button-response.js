@@ -161,7 +161,7 @@ jsPsych.plugins["image-button-response"] = (function() {
     show_display();
 
     // wait for a little bit, then remove the occluder, which should be safely after everything has been rendered
-    setTimeout(function() {$('#occluder').hide();},1000);
+    jsPsych.pluginAPI.setTimeout(function() {$('#occluder').hide();},1000);
 
     // start timing
     var start_time = Date.now();
@@ -215,7 +215,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       }
 
       if (trial.response_ends_trial) {
-        end_trial();
+        end_trial();  
       }
     };
 
@@ -269,6 +269,20 @@ jsPsych.plugins["image-button-response"] = (function() {
         console.log('correct?  ', trial_correct);
       }
 
+    // show feedback by drawing green box around correct answer if selected correctly
+    // black box around correct answer if incorrect
+    if (trial_correct==true) {
+      display_element.querySelector('#jspsych-image-button-response-button-1').style.border = "thick solid #6CD43B"
+    }
+
+    // wait to screen and moving onto next trial until you show feedback
+    jsPsych.pluginAPI.setTimeout(function() {
+                      clear_display_move_on(trial_data);},1000);      
+
+    };
+
+    // 
+    function clear_display_move_on(trial_data) {
       // clear the display
       display_element.innerHTML = '';
 
@@ -276,7 +290,6 @@ jsPsych.plugins["image-button-response"] = (function() {
       jsPsych.finishTrial(trial_data);
 
     };
-
 
     // hide image if timing is set
     if (trial.sketch_duration !== null) {
