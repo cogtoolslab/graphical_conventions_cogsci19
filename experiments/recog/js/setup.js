@@ -41,18 +41,6 @@ var welcomeTrial = {
   allow_keys: false
 };
 
-var loopNode = {
-  timeline: [quizTrial],
-  loop_function: function(data){
-    console.log(data.values());
-    if(val1 == 'True' && val2 == 'False'){
-      return true;
-    } else {
-      return false;
-    }
-  }
-}
-
 var quizTrial = {
   type: 'survey-multi-choice',
   questions: [{prompt: "The sketch is of one of the four chairs in context.",
@@ -60,7 +48,20 @@ var quizTrial = {
 	       required:true},
 	      {prompt: "The sketches were all drawn by different people.",
 	       options: ["True", "False"],
-	       required: false}]
+	       required: true}]
+};
+
+var quizBlock = {
+  timeline: [quizTrial],
+  loop_function: function(data) {
+    var responses = JSON.parse(data.values()[0]['responses']);
+    // Stop looping
+    if(responses.Q0 == 'True' && responses.Q1 == 'False'){
+      return false;
+    } else {
+      return true;
+    }
+  }
 };
 
 var acceptHTML = {
@@ -117,7 +118,7 @@ function setupGame () {
     // Stick welcome trial at beginning & goodbye trial at end
     if (!turkInfo.previewMode) { 
       trials.unshift(welcomeTrial);
-      trials.unshift(loopNode);
+      trials.unshift(quizBlock);
     } else {
       trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
     }
