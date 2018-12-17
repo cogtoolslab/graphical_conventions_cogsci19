@@ -269,15 +269,21 @@ jsPsych.plugins["image-button-response"] = (function() {
         console.log('correct?  ', trial_correct);
       }
 
+    // get location index of target
+    target_index = _.indexOf(prettyChoices, response.button);
+    console.log('target_index: ', target_index); 
+
     // show feedback by drawing green box around correct answer if selected correctly
     // black box around correct answer if incorrect
     if (trial_correct==true) {
-      display_element.querySelector('#jspsych-image-button-response-button-1').style.border = "thick solid #6CD43B"
+      display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "thick solid #66B03B"
+      display_element.querySelector('#score').style.fontSize = '120%';
+      display_element.querySelector('#score').style.fontWeight = 'bolder';
     }
 
     // wait to screen and moving onto next trial until you show feedback
     jsPsych.pluginAPI.setTimeout(function() {
-                      clear_display_move_on(trial_data);},1000);      
+                      clear_display_move_on(trial_data);},2000);      
 
     };
 
