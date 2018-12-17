@@ -68,7 +68,7 @@ p2 {
   height: 100vh;
   width: 100vw;
   margin: auto;
-  top: 0.5em; bottom: auto; left:0; right: 0;
+  top: 40px; bottom: auto; left:0; right: 0;
   background: #B76836;
   position: absolute;
   z-index: 12;
