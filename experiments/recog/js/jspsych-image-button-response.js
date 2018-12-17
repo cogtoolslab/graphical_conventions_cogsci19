@@ -11,6 +11,7 @@
  **/
 
 var score = 0;
+var accuracy_bonus = 0.01;
 
 jsPsych.plugins["image-button-response"] = (function() {
 
@@ -153,38 +154,32 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     }
 
-    // wait for a little bit for data to come back from db, then show_display
-    // setTimeout(function() { }, 1500);
-    show_display();
-    // start timing
-    var start_time = Date.now();
-    var progressBar = $('#progress-bar');
-    var time_bonus = 0;
-    progressBar.show();
-    // progressBar.css({
-    //   'width' : '100%',
-    //   'height' : '100%',
-    //   'background-color' : '#356ba5'
-    // })
-    var widthPct = 100
-    var milliseconds_passed = 0
-    var time_passed = 0
-    var interval = setInterval(function(){
-      milliseconds_passed += 1
-      if (milliseconds_passed % 100 == 0) {
-        time_passed += 1
-      }
-      //console.log('time passed: ' + time_passed)
-      widthPct -= 0.05;
-      progressBar.css({'width': widthPct + '%'});
-      if (widthPct <= 0) {
-          clearInterval(interval);
-      }
-    }, 10)
-    // $('.progress-bar').attr('aria-valuemax',20); // added
-    // $('.progress').show();
+      // wait for a little bit for data to come back from db, then show_display
+      // setTimeout(function() { }, 1500);
+      show_display();
+      // start timing
+      var start_time = Date.now();
+      var progressBar = $('#progress-bar');
+      var time_bonus = 0;
+      
+      progressBar.show();
+      var widthPct = 100
+      var milliseconds_passed = 0
+      var time_passed = 0
+      var interval = setInterval(function(){
+	  milliseconds_passed += 1
+	  if (milliseconds_passed % 100 == 0) {
+              time_passed += 1
+	  }
+	  //console.log('time passed: ' + time_passed)
+	  widthPct -= 0.05;
+	  progressBar.css({'width': widthPct + '%'});
+	  if (widthPct <= 0) {
+              clearInterval(interval);
+	  }
+      }, 10)
 
-    // store response
+      // store response
     var response = {
       rt: null,
       button: null,
@@ -237,7 +232,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       var trial_correct;
       if (response.button == trial.target.shapenetid) {
         trial_correct = 1;
-        increment = 0.01 + parseFloat(time_bonus)
+          increment = accuracy_bonus + parseFloat(time_bonus);
         score+= parseFloat(increment); // increment accuracy bonus and time bonus
       } else {
         trial_correct = 0;
@@ -248,19 +243,19 @@ jsPsych.plugins["image-button-response"] = (function() {
         console.log(trial.choices);
       }
       var trial_data = _.extend(_.omit(trial, 'on_finish', 'choices', 'outcome'), {
-        dbname: '3dObjects',
-        colname: 'graphical_conventions_recog',
-	      ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
-        rt: response.rt,
-        correct: trial_correct,
-        original_correct: trial.outcome,
-        stim_mongo_id: trial._id,
-        response: response.button,
-        score: score,
-        workerId: turkInfo.workerId,
-        hitID: turkInfo.hitId,
-        aID: turkInfo.assignmentId,
-        timestamp: Date.now()
+          dbname: '3dObjects',
+          colname: 'graphical_conventions_recog',
+	  ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
+          rt: response.rt,
+          correct: trial_correct,
+          original_correct: trial.outcome,
+          stim_mongo_id: trial._id,
+          response: response.button,
+          score: score,
+          workerId: turkInfo.workerId,
+          hitID: turkInfo.hitId,
+          aID: turkInfo.assignmentId,
+          timestamp: Date.now()
       });
 
       if (trial.dev_mode == true) {
