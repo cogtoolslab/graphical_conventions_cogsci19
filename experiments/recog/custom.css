@@ -65,10 +65,10 @@ p2 {
 #occluder {
   float: middle;
   border:solid 1px #333;
-  height: 150vh;
-  width: 150vh;
+  height: 100vh;
+  width: 100vw;
   margin: auto;
-  top: 0vh; bottom: auto; left:0; right: 0;
+  top: 0.5em; bottom: auto; left:0; right: 0;
   background: #B76836;
   position: absolute;
   z-index: 12;
