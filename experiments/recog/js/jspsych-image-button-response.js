@@ -160,7 +160,7 @@ jsPsych.plugins["image-button-response"] = (function() {
     // wait for a little bit, then show_display
     // setTimeout(function() {show_display();}, 1000);
     show_display();  
-    setTimeout(function() {$('#occluder').hide();},500);
+    setTimeout(function() {$('#occluder').hide();},1000);
 
     // start timing
     var start_time = Date.now();
