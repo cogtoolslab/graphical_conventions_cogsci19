@@ -64,12 +64,12 @@ p2 {
 
 #occluder {
   float: middle;
-  border:solid 1px #333;
+  border:solid 1px #7F7F7F;
   height: 100vh;
   width: 100vw;
   margin: auto;
   top: 40px; bottom: auto; left:0; right: 0;
-  background: #B76836;
+  background: #7F7F7F;
   position: absolute;
   z-index: 12;
 }
