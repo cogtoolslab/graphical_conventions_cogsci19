@@ -154,19 +154,19 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     }
 
-      // wait for a little bit for data to come back from db, then show_display
-      // setTimeout(function() { }, 1500);
-      show_display();
-      // start timing
-      var start_time = Date.now();
-      var progressBar = $('#progress-bar');
-      var time_bonus = 0;
+    // wait for a little bit, then show_display
+    setTimeout(function() {show_display();}, 1000);
       
-      progressBar.show();
-      var widthPct = 100
-      var milliseconds_passed = 0
-      var time_passed = 0
-      var interval = setInterval(function(){
+    // start timing
+    var start_time = Date.now();
+    var progressBar = $('#progress-bar');
+    var time_bonus = 0;
+    
+    progressBar.show();
+    var widthPct = 100
+    var milliseconds_passed = 0
+    var time_passed = 0
+    var interval = setInterval(function(){
 	  milliseconds_passed += 1
 	  if (milliseconds_passed % 100 == 0) {
               time_passed += 1
