@@ -282,6 +282,7 @@ jsPsych.plugins["image-button-response"] = (function() {
      // show feedback by drawing GREEN box around TARGET if selected CORRECTLY    
       display_element.querySelector('#jspsych-image-button-response-button-' + target_index).style.border = "5px solid #66B03B"
       // also bold/enlarge the score in bottom left corner 
+      display_element.querySelector('#score').innerHTML = score;
       display_element.querySelector('#score').style.fontSize = '120%';      
       display_element.querySelector('#score').style.fontWeight = 'bolder';
     } else {
