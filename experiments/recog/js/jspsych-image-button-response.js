@@ -157,9 +157,10 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     }
 
-    // wait for a little bit, then show_display
-    // setTimeout(function() {show_display();}, 1000);
-    show_display();  
+    // call show_display now, which includes a massive occluder that covers everything up
+    show_display();
+
+    // wait for a little bit, then remove the occluder, which should be safely after everything has been rendered
     setTimeout(function() {$('#occluder').hide();},1000);
 
     // start timing
@@ -168,7 +169,7 @@ jsPsych.plugins["image-button-response"] = (function() {
     var time_bonus = 0;
     
     progressBar.show();
-    var widthPct = 100
+    var widthPct = 105
     var milliseconds_passed = 0
     var time_passed = 0
     var interval = setInterval(function(){
