@@ -89,7 +89,7 @@ function Trial () {
   this.iterationName = 'testing';
   this.prompt = "Please select the object that best matches the sketch.";
   this.num_trials = 10;
-  this.dev_mode = false;
+  this.dev_mode = true;
 };
 
 function setupGame () {
