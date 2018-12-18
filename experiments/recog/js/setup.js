@@ -1,6 +1,8 @@
 var callback;
 var score = 0;
 var quizAttempts = 1;
+var numTrials = 40;
+var numInserted = 0;
 
 function sendData() {
   console.log('sending data to mturk');
@@ -88,9 +90,10 @@ function Trial () {
   this.type = 'image-button-response';
   this.iterationName = 'testing';
   this.prompt = "Please select the object that best matches the sketch.";
-  this.num_trials = 40;
+  this.num_trials = numTrials;
   this.dev_mode = true;
 };
+
 
 function setupGame () {
 
@@ -111,18 +114,37 @@ function setupGame () {
     // pull out info from server
     var id = d.id;
 
-    // Bind trial data with boilerplate
-    var trials = _.map(_.shuffle(d.trials), function(trialData, i) {
-      return _.extend(new Trial, trialData, {
-        choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
-        		    trialData.distractor2.url, trialData.distractor3.url]),
-        gameID: id,
-        trialNum : i,
-        post_trial_gap: 1000, // add brief ITI between trials
-        on_finish : on_finish
-      });
+    // insert one catch trial per block of 8
+    var catchTrialIndices = _.map(_.range(Math.floor(numTrials/8)), i => {
+      return i*8 + _.random(0, 7);
     });
 
+    var additionalInfo = {
+      gameID: id,	
+      post_trial_gap: 1000, // add brief ITI between trials
+      on_finish : on_finish
+    };
+    
+    // Bind trial data with boilerplate
+    var trials = _.flaten(_.map(_.shuffle(d.trials), function(trialData, i) {
+      var trial = _.extend(new Trial, trialData, additionalInfo, {
+        choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
+        		    trialData.distractor2.url, trialData.distractor3.url]),
+        trialNum : i + numInserted
+      });
+      if(_.includes(catchTrialIndices, i)) {
+	var catchTrial = _.extend(new Trial, catchInfo, additionalInfo, {
+	  choices: _.shuffle([catchInfo.target.url, catchInfo.distractor1.url,
+			      catchInfo.distractor2.url, catchInfo.distractor3.url]),
+	  trialNum: i + numInserted + 1
+	});
+	numInserted += 1;
+	return [trial, catchTrial];
+      } else {
+	return trial;
+      }
+    }));
+    
     // Stick welcome trial at beginning & goodbye trial at end
     if (!turkInfo.previewMode) { 
     	trials.unshift(loopNode);
