@@ -88,7 +88,7 @@ function Trial () {
   this.type = 'image-button-response';
   this.iterationName = 'testing';
   this.prompt = "Please select the object that best matches the sketch.";
-  this.num_trials = 10;
+  this.num_trials = 40;
   this.dev_mode = true;
 };
 
