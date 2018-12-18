@@ -90,7 +90,6 @@ function Trial () {
   this.type = 'image-button-response';
   this.iterationName = 'testing';
   this.prompt = "Please select the object that best matches the sketch.";
-  this.num_trials = numTrials;
   this.dev_mode = true;
 };
 
@@ -122,11 +121,12 @@ function setupGame () {
     var additionalInfo = {
       gameID: id,	
       post_trial_gap: 1000, // add brief ITI between trials
+      num_trials : numTrials + catchTrialIndices.length,
       on_finish : on_finish
     };
     
     // Bind trial data with boilerplate
-    var trials = _.flaten(_.map(_.shuffle(d.trials), function(trialData, i) {
+    var trials = _.flatten(_.map(_.shuffle(d.trials), function(trialData, i) {
       var trial = _.extend(new Trial, trialData, additionalInfo, {
         choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
         		    trialData.distractor2.url, trialData.distractor3.url]),
