@@ -148,7 +148,7 @@ function initializeWithTrials(socket, id) {
   sendPostRequest('http://localhost:6003/db/getstims', {
     json: {
       dbname: 'stimuli',
-      colname: 'graphical_conventions_sketches_scrambled40_dev',
+      colname: 'graphical_conventions_sketches_yoked_dev',
       numTrials: 1,
       gameid: id
     }
