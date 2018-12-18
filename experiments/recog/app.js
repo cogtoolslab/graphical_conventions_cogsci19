@@ -91,7 +91,6 @@ io.on('connection', function (socket) {
     writeDataToMongo(data);
   });
 
-
 });
 
 var serveFile = function(req, res) {
