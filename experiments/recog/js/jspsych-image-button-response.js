@@ -151,9 +151,11 @@ jsPsych.plugins["image-button-response"] = (function() {
       // actually assign html to display_element.innerHTML
       display_element.innerHTML = html;
 
+
+
       // add click event listener to the image response buttons
       for (var i = 0; i < trial.choices.length; i++) {
-        display_element.querySelector('#jspsych-image-button-response-button-' + i).addEventListener('click', function(e){
+        display_element.querySelector('#jspsych-image-button-response-button-' + i).addEventListener('click', function clicked(e){
           var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
           after_response(choice);
         });
@@ -207,7 +209,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       response.button = choice;
       response.rt = rt;
       time_bonus = (max_time_bonus - time_passed * decrement_per_sec).toFixed(3) //time_passed in units of seconds
-      //console.log("response time bonus: " + time_bonus)
+      console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
@@ -222,12 +224,13 @@ jsPsych.plugins["image-button-response"] = (function() {
 
       // disable all the buttons after a response
       for (var i = 0; i < trial.choices.length; i++) {
-        display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click', end_trial());
+        console.log('disabling button ', i);
+        display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click', clicked);
       }      
 
-      // if (trial.response_ends_trial) {
-      //   end_trial();  
-      // }
+      if (trial.response_ends_trial) {
+        end_trial();  
+      }
     };
 
     // function to end trial when it is time
