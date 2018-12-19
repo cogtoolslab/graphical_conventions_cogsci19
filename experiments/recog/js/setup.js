@@ -13,7 +13,7 @@ function sendData() {
 var goodbyeTrial = {
   type: 'instructions',
   pages: [
-    '<p>Thanks for participating in our experiment! You earned a bonus of $' + parseFloat(score).toFixed(2) + '! Please \
+    '<p>Thanks for participating in our experiment! You are all done. Please \
      click the button to submit this HIT. When the popup asks you if you want to leave, please say YES to submit the HIT.</p>'
   ],
   show_clickable_nav: true,
