@@ -81,6 +81,8 @@ p2 {
 #example_screen{
   border: solid 3px #323232;
   width: 60vw;
+  display:block;
+  margin:auto;  
 }
 
 .left {
