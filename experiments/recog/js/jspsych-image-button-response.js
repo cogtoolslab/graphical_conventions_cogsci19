@@ -245,7 +245,7 @@ jsPsych.plugins["image-button-response"] = (function() {
         trial_correct = 1;
         increment = accuracy_bonus + parseFloat(time_bonus);
         score+= parseFloat(increment); // increment accuracy bonus and time bonus
-        numCorrect += 1; increment num correct by one
+        numCorrect += 1; // increment num correct by one
       } else {
         trial_correct = 0;
       }
