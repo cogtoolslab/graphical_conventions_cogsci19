@@ -47,14 +47,21 @@ var welcomeTrial = {
 var quizTrial = {
     type: 'survey-multi-choice',
     questions: [{prompt: "The sketch is of one of the four objects in context.",
-		 options: ["True", "False"],
-		 required:true},
-		{prompt: "It is possible to earn a speed bonus for selecting an incorrect object really quickly.",
-		 options: ["True", "False"],
-		 required: false},
-		{prompt: "It is possible to perform this HIT more than once.",
-		 options: ["True", "False"],
-		 required: false}]
+            		 options: ["True", "False"],
+            		 required:true},
+            		{prompt: "It is possible to earn a speed bonus for selecting an incorrect object really quickly.",
+            		 options: ["True", "False"],
+            		 required: false},
+            		{prompt: "There are 200 trials in this HIT.",
+            		 options: ["True", "False"],
+            		 required: false},
+                {prompt: "Responding accurately is more important than responding quickly in this HIT.",
+                 options: ["True", "False"],
+                 required: false},
+                {prompt: "It is possible to perform this HIT more than once.",
+                 options: ["True", "False"],
+                 required: false}                 
+                ]
 };
 
 var loopNode = {
@@ -62,7 +69,7 @@ var loopNode = {
     loop_function: function(data){
       	console.log(data.values()[0]['responses']);
       	resp = JSON.parse(data.values()[0]['responses']);	 
-      	if ((resp["Q0"] == 'True') && (resp["Q1"]== 'False') && (resp["Q2"] == 'False')){
+      	if ((resp["Q0"] == 'True') && (resp["Q1"]== 'False') && (resp["Q2"] == 'False') && (resp["Q3"] == 'True') && (resp["Q4"] == 'False')){
       	    return false;
       	} else {
       	    alert('Please try again! One or more of your responses was incorrect.');
