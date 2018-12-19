@@ -42,7 +42,7 @@ var welcomeTrial = {
     instructionsHTML.str1, instructionsHTML.str2, instructionsHTML.str3
   ],
   show_clickable_nav: true,
-  allow_keys: true
+  allow_keys: false
 };
 
 var quizTrial = {
@@ -96,9 +96,9 @@ var previewTrial = {
 // define trial object with boilerplate
 function Trial () {
   this.type = 'image-button-response';
-  this.iterationName = 'testing';
+  this.iterationName = 'testing2';
   this.prompt = "Please select the object that best matches the sketch.";
-  this.dev_mode = true;
+  this.dev_mode = false;
 };
 
 
