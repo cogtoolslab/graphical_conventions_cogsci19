@@ -207,7 +207,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       var rt = end_time - start_time;
       response.button = choice;
       response.rt = rt;
-      time_bonus = (max_time_bonus - time_passed * decrement_per_sec).toFixed(3) //time_passed in units of seconds
+      time_bonus = (max_time_bonus - time_passed * decrement_per_sec); //time_passed in units of seconds
       console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
