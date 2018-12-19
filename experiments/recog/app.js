@@ -73,17 +73,9 @@ io.on('connection', function (socket) {
   // Recover query string information and set condition
   var hs = socket.request;
   var query = require('url').parse(hs.headers.referer, true).query;
-  var id;
-  // assign worker
-  if (!query.workerId || query.workerId == 'undefined') {
-    id = UUID();
-  } else {
-    console.log('query.workerId = ', query.workerId);
-    id = query.workerId;
-  }
 
   // Send client stims
-  initializeWithTrials(socket, UUID());
+  initializeWithTrials(socket);
 
   // Set up callback for writing client data to mongo
   socket.on('currentData', function(data) {
@@ -143,7 +135,8 @@ function checkPreviousParticipant (workerId, callback) {
   );
 };
 
-function initializeWithTrials(socket, id) {
+function initializeWithTrials(socket) {
+  var gameid = UUID();
   var colname = (recogVersion == 'yoked' ? 'graphical_conventions_sketches_yoked_dev' :
 		 recogVersion == 'scrambled40' ? 'graphical_conventions_sketches_scrambled40_dev' :
 		 recogVersion == 'scrambled10' ? 'graphical_conventions_sketches_scrambled10_dev' :
@@ -153,13 +146,13 @@ function initializeWithTrials(socket, id) {
       dbname: 'stimuli',
       colname: colname,
       numTrials: 1,
-      gameid: id
+      gameid: gameid
     }
   }, (error, res, body) => {
     if (!error && res.statusCode === 200) {
       // send trial list (and id) to client
       var packet = {
-	id: id,
+	gameid: gameid,
 	recogID: body.recogID,
 	trials: body.meta
       };      
