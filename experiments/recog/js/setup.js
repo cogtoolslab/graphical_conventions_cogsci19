@@ -121,9 +121,9 @@ function setupGame () {
     // pull out info from server
     var id = d.id;
 
-    // insert one catch trial per block of 8, add 2 b/c first 2 trials are instructions
+    // insert one catch trial per block of 8 // assigns indices only within the experimental trials, excludes instructions trials
     var catchTrialIndices = _.map(_.range(Math.floor(numTrials/8)), i => {
-      return i*8 + _.random(0, 7) + 2;
+      return i*8 + _.random(0, 7) ;
     });
 
     // extra information to bind to trial list
@@ -146,17 +146,17 @@ function setupGame () {
         		    trialData.distractor2.url, trialData.distractor3.url]),
         trialNum : i + numInserted
       });
-    if(_.includes(catchTrialIndices, i)) {
-      	var catchTrial = _.extend(new Trial, catchInfo, additionalInfo, catchTrialTrue, {
-      	  choices: _.shuffle([catchInfo.target.url, catchInfo.distractor1.url,
-      			      catchInfo.distractor2.url, catchInfo.distractor3.url]),
-      	  trialNum: i + numInserted + 1
-      	});
-        numInserted += 1;
-        return [trial, catchTrial];
-            } else {
-        return trial;
-          }
+      if(_.includes(catchTrialIndices, i)) {
+        	var catchTrial = _.extend(new Trial, catchInfo, additionalInfo, catchTrialTrue, {
+          	  choices: _.shuffle([catchInfo.target.url, catchInfo.distractor1.url,
+          			      catchInfo.distractor2.url, catchInfo.distractor3.url]),
+          	  trialNum: i + numInserted + 1
+          	});
+            numInserted += 1;
+            return [trial, catchTrial];
+      } else {
+            return trial;
+            }
     }));
     
     // Stick welcome trial at beginning & goodbye trial at end
