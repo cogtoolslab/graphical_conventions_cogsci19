@@ -29,7 +29,7 @@ var consentHTML = {
 
 // add welcome page
 var instructionsHTML = {
-  'str1' : "<p> Here's how the game will work: On each trial, you will see a sketch appear above four images of different objects. Your goal is to select the object in the set that best matches the sketch.",
+  'str1' : "<p> Here's how the game will work: On each trial, you will see a sketch appear above four images of different objects. Your goal is to select the object in the set that best matches the sketch. <div><img src='../images/recog_screen_cap.png'></div>",
   'str2' : '<p> For each correct guess you make, you will receive an <b>accuracy bonus</b> of $0.015. <p> In addition, you will receive a <b>speed bonus</b> (up to $0.005) based on how fast you make the correct guess. In other words, the faster you can select the correct object, the larger the bonus you will receive. </p> <p> However, you <i> must select the correct object to receive any bonus at all </i>, so please pay attention and above all <b> aim to be as accurate as you can </b>! </p>',
   'str3' : "<p> There are 45 trials in this HIT. Once you are finished, the HIT will be automatically submitted for approval. Please know that you can only perform this HIT one time. Before we begin, please complete a brief questionnaire to show you understand how this HIT works.</p>"
 };
