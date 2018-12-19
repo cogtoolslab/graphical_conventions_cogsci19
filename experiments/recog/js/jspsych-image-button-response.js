@@ -199,6 +199,7 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     // function to handle responses by the subject
     function after_response(choice) {
+      console.log('after response function called');
       // measure rt
       var end_time = Date.now();
       // $element.find('.progress-bar').finish();
@@ -221,12 +222,12 @@ jsPsych.plugins["image-button-response"] = (function() {
 
       // disable all the buttons after a response
       for (var i = 0; i < trial.choices.length; i++) {
-        display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click');
+        display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click', end_trial());
       }      
 
-      if (trial.response_ends_trial) {
-        end_trial();  
-      }
+      // if (trial.response_ends_trial) {
+      //   end_trial();  
+      // }
     };
 
     // function to end trial when it is time
