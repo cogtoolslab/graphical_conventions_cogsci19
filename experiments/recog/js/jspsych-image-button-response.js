@@ -152,18 +152,21 @@ jsPsych.plugins["image-button-response"] = (function() {
       display_element.innerHTML = html;
 
 
-
       // add click event listener to the image response buttons
       for (var i = 0; i < trial.choices.length; i++) {
-        display_element.querySelector('#jspsych-image-button-response-button-' + i).addEventListener('click', function clicked(e){
-          display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click', clicked);
-          var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
-          after_response(choice);
-        });
+        display_element.querySelector('#jspsych-image-button-response-button-' + i).addEventListener('click', clicked(e));
+          // var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
+          // after_response(choice);        
       }
 
 
     }
+
+    // event triggered upon click of iamge button
+    function clicked(e) {
+      var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
+      after_response(choice);
+    }    
 
     // call show_display now, which includes a massive occluder that covers everything up
     show_display();
@@ -223,11 +226,11 @@ jsPsych.plugins["image-button-response"] = (function() {
       //   btns[i].setAttribute('disabled', 'disabled');
       // }
 
-      // // disable all the buttons after a response
-      // for (var i = 0; i < trial.choices.length; i++) {
-      //   console.log('disabling button ', i);
-      //   display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click', clicked);
-      // }      
+      // disable all the buttons after a response
+      for (var i = 0; i < trial.choices.length; i++) {
+        console.log('disabling button ', i);
+        display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click', clicked);
+      }      
 
       if (trial.response_ends_trial) {
         end_trial();  
