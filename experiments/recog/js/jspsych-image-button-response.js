@@ -181,7 +181,7 @@ jsPsych.plugins["image-button-response"] = (function() {
     var interval = setInterval(function(){
 	  milliseconds_passed += 1
 	  if (milliseconds_passed % 1000 == 0) {
-              time_passed += 1
+          time_passed += 1
 	  }
 	  //console.log('time passed: ' + time_passed)
 	  widthPct -= pct_per_sec; // goes down by 5% each second
@@ -208,6 +208,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       response.button = choice;
       response.rt = rt;
       time_bonus = (max_time_bonus - time_passed * decrement_per_sec); //time_passed in units of seconds
+      console.log('time passed: ', time_passed);
       console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
