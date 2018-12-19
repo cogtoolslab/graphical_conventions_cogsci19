@@ -153,12 +153,19 @@ jsPsych.plugins["image-button-response"] = (function() {
 
 
       // add click event listener to the image response buttons
+      // for (var i = 0; i < trial.choices.length; i++) {
+      //   display_element.querySelector('#jspsych-image-button-response-button-' + i).addEventListener('click', function(e) {
+      //     var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
+      //     after_response(choice);
+      //   });      
+      // }
+
       for (var i = 0; i < trial.choices.length; i++) {
-        display_element.querySelector('#jspsych-image-button-response-button-' + i).addEventListener('click', function(e) {
+        display_element.querySelector('#jspsych-image-button-response-button-' + i).on('click', function(e) {
           var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
           after_response(choice);
         });      
-      }
+      }      
 
 
     }
