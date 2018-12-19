@@ -11,6 +11,7 @@
  **/
 
 var score = 0; // initial score set to 0
+var numCorrect = 0; // initial num correct set to 0
 var accuracy_bonus = 0.015; // max accuracy bonus
 var max_time_bonus = 0.005; // max speed bonus
 var time_limit = 20; // time limit in seconds
@@ -242,8 +243,9 @@ jsPsych.plugins["image-button-response"] = (function() {
       var trial_correct;
       if (response.button == trial.target.shapenetid) {
         trial_correct = 1;
-          increment = accuracy_bonus + parseFloat(time_bonus);
+        increment = accuracy_bonus + parseFloat(time_bonus);
         score+= parseFloat(increment); // increment accuracy bonus and time bonus
+        numCorrect += 1; increment num correct by one
       } else {
         trial_correct = 0;
       }
@@ -258,6 +260,7 @@ jsPsych.plugins["image-button-response"] = (function() {
           ordering: _.zipObject(prettyChoices, _.range(prettyChoices.length)),
           rt: response.rt,
           correct: trial_correct,
+          numCorrectSoFar: numCorrect,
           original_correct: trial.outcome,
           stim_mongo_id: trial._id,
           response: response.button,
