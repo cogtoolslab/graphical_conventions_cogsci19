@@ -134,7 +134,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       }
 
       html += '</div>';
-
+      
       // display score earned so far
       html += '<div id="score"> <p2> bonus earned: ' + parseFloat(score).toFixed(3) + '</p2></div>'
       html += '<div id="trial-counter"> <p2> trial ' + trial.trialNum + ' of ' + trial.num_trials + '</p2></div>'
@@ -176,22 +176,17 @@ jsPsych.plugins["image-button-response"] = (function() {
     
     progressBar.show();
     var widthPct = 105 // starts at 105% b/c of the 1000ms delay above before occluder disappears
-    var milliseconds_passed = 0
-    var time_passed = 0
+    var seconds_passed = 0;
     var interval = setInterval(function(){
-	  milliseconds_passed += 1
-	  if (milliseconds_passed % 1000 == 0) {
-          time_passed += 1
-	  }
-	  //console.log('time passed: ' + time_passed)
-	  widthPct -= pct_per_sec; // goes down by 5% each second
-	  progressBar.css({'width': widthPct + '%'});
-	  if (widthPct <= 0) {
-              clearInterval(interval);
-	  }
-      }, 10)
+      seconds_passed += 1;
+      widthPct -= pct_per_sec; // goes down by 5% each second
+      progressBar.animate({ width: widthPct + '%' }, 1000, "linear");
+      if (widthPct <= 0) {
+        clearInterval(interval);
+      }
+    }, 1000);
 
-      // store response
+    // store response
     var response = {
       rt: null,
       button: null,
@@ -207,8 +202,8 @@ jsPsych.plugins["image-button-response"] = (function() {
       var rt = end_time - start_time;
       response.button = choice;
       response.rt = rt;
-      time_bonus = (max_time_bonus - time_passed * decrement_per_sec); //time_passed in units of seconds
-      console.log('time passed: ', time_passed);
+      time_bonus = (max_time_bonus - seconds_passed * decrement_per_sec); //time_passed in units of seconds
+      console.log('time passed: ', seconds_passed);
       console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
