@@ -121,9 +121,9 @@ function setupGame () {
     // pull out info from server
     var id = d.id;
 
-    // insert one catch trial per block of 8
+    // insert one catch trial per block of 8, add 2 b/c first 2 trials are instructions
     var catchTrialIndices = _.map(_.range(Math.floor(numTrials/8)), i => {
-      return i*8 + _.random(0, 7);
+      return i*8 + _.random(0, 7) + 2;
     });
 
     // extra information to bind to trial list
