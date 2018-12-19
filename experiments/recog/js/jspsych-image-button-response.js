@@ -161,7 +161,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       // }
 
       for (var i = 0; i < trial.choices.length; i++) {
-        display_element.querySelector('#jspsych-image-button-response-button-' + i).on('click', function(e) {
+        $('#jspsych-image-button-response-button-' + i).on('click', function(e) {
           var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
           after_response(choice);
         });      
