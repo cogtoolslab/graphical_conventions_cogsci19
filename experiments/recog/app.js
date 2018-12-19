@@ -13,10 +13,10 @@ var
 
 
 // define number of trials to fetch from database (what is length of each recog HIT?)
-var num_trials = 10;
 var gameport;
+var recogVersion;
 var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK'];
-var block_researcher = false;
+var blockResearcher = false;
 
 if(argv.gameport) {
   gameport = argv.gameport;
@@ -24,6 +24,14 @@ if(argv.gameport) {
 } else {
   gameport = 8886;
   console.log('no gameport specified: using 8886\nUse the --gameport flag to change');
+}
+
+if(argv.recogVersion) {
+  recogVersion = argv.recogVersion;
+  console.log('running version ' + recogVersion);
+} else {
+  recogVersion = 'yoked';
+  console.log('no version specified: running yoked\nUse the --recogVersion flag to change');
 }
 
 try {
@@ -39,11 +47,12 @@ try {
       io          = require('socket.io')(server);
 }
 
+// serve stuff that the client requests
 app.get('/*', (req, res) => {
-  // // serve stuff that the client requests
-  // serveFile(req, res); 
-  var id = req.query.workerId; 
-  if(!id || id === 'undefined') {
+  var id = req.query.workerId;
+  // Let them through if researcher, or in 'testing' mode
+  var isResearcher = _.includes(researchers, id);
+  if(!id || id === 'undefined' || (isResearcher && !blockResearcher)) {
     serveFile(req, res);
   } else if(!valid_id(id)) {
     // If invalid id, block them
@@ -53,19 +62,10 @@ app.get('/*', (req, res) => {
     // If the database shows they've already participated, block them
     // If not a repeat worker, then send client stims
     console.log('neither invalid nor blank id, check if repeat worker');
-    // check if id is one of the researchers, if so, let them continue
-    researcher_ind = _.findIndex(researchers, function(x) {return x==id});
-    console.log('researcher ind ', researcher_ind);
-      if (researcher_ind>-1 && !block_researcher) {
-	  console.log('serve files if client is one of the researchers and we do not want to block them');
-	  serveFile(req, res); // serve files if client is one of the researchers and we do not want to block them
-    } else {
-	checkPreviousParticipant(id, (exists) => {    
-        return exists ? handleDuplicate(req, res) : serveFile(req, res);
-      });      
-    }
+    checkPreviousParticipant(id, (exists) => {    
+      return exists ? handleDuplicate(req, res) : serveFile(req, res);
+    });      
   }
-  
 });
 
 io.on('connection', function (socket) {
@@ -144,10 +144,14 @@ function checkPreviousParticipant (workerId, callback) {
 };
 
 function initializeWithTrials(socket, id) {
+  var colname = (recogVersion == 'yoked' ? 'graphical_conventions_sketches_yoked_dev' :
+		 recogVersion == 'scrambled40' ? 'graphical_conventions_sketches_scrambled40_dev' :
+		 recogVersion == 'scrambled10' ? 'graphical_conventions_sketches_scrambled10_dev' :
+		 console.error('unknown version: ' + recogVersion));
   sendPostRequest('http://localhost:6003/db/getstims', {
     json: {
       dbname: 'stimuli',
-      colname: 'graphical_conventions_sketches_yoked_dev',
+      colname: colname,
       numTrials: 1,
       gameid: id
     }
