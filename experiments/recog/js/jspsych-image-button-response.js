@@ -212,12 +212,17 @@ jsPsych.plugins["image-button-response"] = (function() {
       // which can be used to provide visual feedback that a response was recorded
       display_element.querySelector('#jspsych-image-button-response-sketch').className += ' responded';
 
+      // // disable all the buttons after a response
+      // var btns = document.querySelectorAll('.jspsych-image-button-response-button button');
+      // for(var i=0; i<btns.length; i++){
+      //   //btns[i].removeEventListener('click');
+      //   btns[i].setAttribute('disabled', 'disabled');
+      // }
+
       // disable all the buttons after a response
-      var btns = document.querySelectorAll('.jspsych-image-button-response-button button');
-      for(var i=0; i<btns.length; i++){
-        //btns[i].removeEventListener('click');
-        btns[i].setAttribute('disabled', 'disabled');
-      }
+      for (var i = 0; i < trial.choices.length; i++) {
+        display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click');
+      }      
 
       if (trial.response_ends_trial) {
         end_trial();  
