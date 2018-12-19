@@ -15,7 +15,7 @@ var numCorrect = 0; // initial num correct set to 0
 var accuracy_bonus = 0.015; // max accuracy bonus
 var max_time_bonus = 0.005; // max speed bonus
 var time_limit = 20; // time limit in seconds
-var pct_per_sec = 1/time_limit; // if time_limit==20, that means that progress bar goes down by 5% each unit time
+var pct_per_sec = (1/time_limit) * 100; // if time_limit==20, that means that progress bar goes down by 5% each unit time
 var decrement_per_sec = max_time_bonus/time_limit; // how much time bonus goes down per second
 
 jsPsych.plugins["image-button-response"] = (function() {
@@ -175,7 +175,7 @@ jsPsych.plugins["image-button-response"] = (function() {
     var time_bonus = 0;
     
     progressBar.show();
-    var widthPct = 105 // starts at 105% b/c of the 1000ms delay above before occluder disappears
+    var widthPct = 100 // starts at 105% b/c of the 1000ms delay above before occluder disappears
     var seconds_passed = 0;
     var interval = setInterval(function(){
       seconds_passed += 1;
@@ -196,9 +196,13 @@ jsPsych.plugins["image-button-response"] = (function() {
     // function to handle responses by the subject
     function after_response(choice) {
       console.log('after response function called');
+      
+      // End timer
+      clearInterval(interval);
+      progressBar.stop();
+      
       // measure rt
       var end_time = Date.now();
-      // $element.find('.progress-bar').finish();
       var rt = end_time - start_time;
       response.button = choice;
       response.rt = rt;
