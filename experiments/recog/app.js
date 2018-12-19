@@ -153,6 +153,7 @@ function initializeWithTrials(socket) {
       // send trial list (and id) to client
       var packet = {
 	gameid: gameid,
+	version: recogVersion,	
 	recogID: body.recogID,
 	trials: body.meta
       };      
