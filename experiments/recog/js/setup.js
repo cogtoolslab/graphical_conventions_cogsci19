@@ -3,6 +3,7 @@ var score = 0;
 var quizAttempts = 1;
 var numTrials = 40;
 var numInserted = 0;
+var shuffleTrials = false; // set to False to preserve order in db (scrambled40, yoked); set to True if you want to shuffle trials from db (scrambled10)
 
 function sendData() {
   console.log('sending data to mturk');
@@ -133,23 +134,24 @@ function setupGame () {
     };
     
     // Bind trial data with boilerplate
-    var trials = _.flatten(_.map(_.shuffle(d.trials), function(trialData, i) {
+    var rawTrialList = shuffleTrials ? _.shuffle(d.trials); : d.trials;
+    var trials = _.flatten(_.map(rawTrialList, function(trialData, i) {
       var trial = _.extend(new Trial, trialData, additionalInfo, {
         choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
         		    trialData.distractor2.url, trialData.distractor3.url]),
         trialNum : i + numInserted
       });
-      if(_.includes(catchTrialIndices, i)) {
-	var catchTrial = _.extend(new Trial, catchInfo, additionalInfo, {
-	  choices: _.shuffle([catchInfo.target.url, catchInfo.distractor1.url,
-			      catchInfo.distractor2.url, catchInfo.distractor3.url]),
-	  trialNum: i + numInserted + 1
-	});
-	numInserted += 1;
-	return [trial, catchTrial];
-      } else {
-	return trial;
-      }
+    if(_.includes(catchTrialIndices, i)) {
+      	var catchTrial = _.extend(new Trial, catchInfo, additionalInfo, {
+      	  choices: _.shuffle([catchInfo.target.url, catchInfo.distractor1.url,
+      			      catchInfo.distractor2.url, catchInfo.distractor3.url]),
+      	  trialNum: i + numInserted + 1
+      	});
+      numInserted += 1;
+      return [trial, catchTrial];
+          } else {
+      return trial;
+          }
     }));
     
     // Stick welcome trial at beginning & goodbye trial at end
@@ -161,6 +163,7 @@ function setupGame () {
     }
     trials.push(goodbyeTrial);
 
+    // print out trial list    
     console.log(trials);
       
     jsPsych.init({
