@@ -134,7 +134,7 @@ function setupGame () {
       on_finish : on_finish
     };
 
-    // define catch trial indicator to also bind to trial list
+    // define catch trial indicator to also bind to trial list // complements condition label of catch for this trial tyle
     var catchTrialTrue = {catch_trial: true};
     var catchTrialFalse = {catch_trial: false};
     
