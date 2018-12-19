@@ -23,23 +23,23 @@ var goodbyeTrial = {
 var consentHTML = {
   'str1' : '<p>In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. For each correct match, you will receive a bonus. </p>',
   'str2' : '<p>We expect the average game to last approximately 10 minutes, including the time it takes to read instructions.</p>',
-  'str3' : "<p>If you encounter a problem or error, send us an email (sketchloop@gmail.com) and we will make sure you're compensated for your time! Please pay attention and do your best! Thank you!</p><p> Note: We recommend using Chrome. We have not tested this HIT in other browsers.</p>",
-  'str4' : ["<u><p id='legal'>Consenting to Participate:</p></u>",
+  'str3' : ["<u><p id='legal'>Consenting to Participate:</p></u>",
 	    "<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b>. You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
 }
 
 // add welcome page
 var instructionsHTML = {
   'str1' : "<p> Here's how the game will work: On each trial, you will see a sketch appear above four images of different objects. Your goal is to select the object in the set that best matches the sketch. <div><img src='../images/recog_screen_cap.png' id='example_screen'></div>",
-  'str2' : '<p> For each correct guess you make, you will receive an <b>accuracy bonus</b> of 1.5 cents. <p> In addition, you will receive a <b>speed bonus</b> (up to 0.5 cents) based on how fast you make the correct guess. In other words, the faster you can select the correct object, the larger the bonus you will receive. </p> <p> However, you <i> must select the correct object to receive any bonus at all</i>, so please pay attention and above all <b> aim to be as accurate as you can </b>! </p>',
-  'str3' : "<p> There are 45 trials in this HIT. Once you are finished, the HIT will be automatically submitted for approval. Please know that you can only perform this HIT one time. Before we begin, please complete a brief questionnaire to show you understand how this HIT works.</p>"
+  'str2' : '<p> There are 45 trials in this HIT. For each correct guess you make, you will receive an <b>accuracy bonus</b> of 1.5 cents. <p> In addition, you will receive a <b>speed bonus</b> (up to 0.5 cents) based on how fast you make the correct guess. In other words, the faster you can select the correct object, the larger the bonus you will receive. </p> <p> However, you <i> must select the correct object to receive any bonus at all</i>, so please pay attention and above all <b> aim to be as accurate as you can </b>! </p>',
+  'str3' : "<p>If you encounter a problem or error, send us an email (sketchloop@gmail.com) and we will make sure you're compensated for your time! Please pay attention and do your best! </p><p> Note: We recommend using Chrome. We have not tested this HIT in other browsers.</p>",  
+  'str4' : "<p> Once you are finished, the HIT will be automatically submitted for approval. Please know that you can only perform this HIT one time. Before we begin, please complete a brief questionnaire to show you understand how this HIT works.</p>"
 };
 
 var welcomeTrial = {
   type: 'instructions',
   pages: [
-    consentHTML.str1, consentHTML.str2, consentHTML.str3, consentHTML.str4,
-    instructionsHTML.str1, instructionsHTML.str2, instructionsHTML.str3
+    consentHTML.str1, consentHTML.str2, consentHTML.str3, 
+    instructionsHTML.str1, instructionsHTML.str2, instructionsHTML.str3, instructionsHTML.str4
   ],
   show_clickable_nav: true,
   allow_keys: false
