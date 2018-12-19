@@ -56,7 +56,7 @@ var quizTrial = {
             		{prompt: "There are 200 trials in this HIT.",
             		 options: ["True", "False"],
             		 required: false},
-                {prompt: "Responding accurately is more important than responding quickly in this HIT.",
+                {prompt: "On each trial, one must select the correct object in order to earn any bonus at all.",
                  options: ["True", "False"],
                  required: false},
                 {prompt: "It is possible to perform this HIT more than once.",
