@@ -139,7 +139,7 @@ function setupGame () {
     var catchTrialFalse = {catch_trial: false};
     
     // Bind trial data with boilerplate
-    var rawTrialList = shuffleTrials ? _.shuffle(d.trials); : d.trials;
+    var rawTrialList = shuffleTrials ? _.shuffle(d.trials) : d.trials;
     var trials = _.flatten(_.map(rawTrialList, function(trialData, i) {
       var trial = _.extend(new Trial, trialData, additionalInfo, catchTrialFalse, {
         choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
