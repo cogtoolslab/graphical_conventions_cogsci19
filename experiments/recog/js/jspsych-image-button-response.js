@@ -151,15 +151,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       // actually assign html to display_element.innerHTML
       display_element.innerHTML = html;
 
-
       // add click event listener to the image response buttons
-      // for (var i = 0; i < trial.choices.length; i++) {
-      //   display_element.querySelector('#jspsych-image-button-response-button-' + i).addEventListener('click', function(e) {
-      //     var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
-      //     after_response(choice);
-      //   });      
-      // }
-
       for (var i = 0; i < trial.choices.length; i++) {
         $('#jspsych-image-button-response-button-' + i).on('click', function(e) {
           var choice = e.currentTarget.getAttribute('data-choice'); // don't use dataset for jsdom compatibility
@@ -222,18 +214,9 @@ jsPsych.plugins["image-button-response"] = (function() {
       // which can be used to provide visual feedback that a response was recorded
       display_element.querySelector('#jspsych-image-button-response-sketch').className += ' responded';
 
-      // // disable all the buttons after a response
-      // var btns = document.querySelectorAll('.jspsych-image-button-response-button button');
-      // for(var i=0; i<btns.length; i++){
-      //   //btns[i].removeEventListener('click');
-      //   btns[i].setAttribute('disabled', 'disabled');
-      // }
-
       // disable all the buttons after a response
       for (var i = 0; i < trial.choices.length; i++) {
-        console.log('disabling button ', i);
         $('#jspsych-image-button-response-button-' + i).off('click');
-        // display_element.querySelector('#jspsych-image-button-response-button-' + i).removeEventListener('click', clicked);
       }      
 
       if (trial.response_ends_trial) {
