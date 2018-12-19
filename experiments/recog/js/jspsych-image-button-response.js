@@ -137,7 +137,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       
       // display score earned so far
       html += '<div id="score"> <p2> bonus earned: ' + parseFloat(score).toFixed(3) + '</p2></div>'
-      html += '<div id="trial-counter"> <p2> trial ' + trial.trialNum + ' of ' + trial.num_trials + '</p2></div>'
+      html += '<div id="trial-counter"> <p2> trial ' + parseInt(trial.trialNum)+1 + ' of ' + trial.num_trials + '</p2></div>'
 
       // introduce occluder to make the inter-trial transitions less jarring
       html += '<div id="occluder"> </div>'
