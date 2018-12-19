@@ -126,31 +126,36 @@ function setupGame () {
       return i*8 + _.random(0, 7);
     });
 
+    // extra information to bind to trial list
     var additionalInfo = {
       gameID: id,	
       post_trial_gap: 1000, // add brief ITI between trials
       num_trials : numTrials + catchTrialIndices.length,
       on_finish : on_finish
     };
+
+    // define catch trial indicator to also bind to trial list
+    var catchTrialTrue = {catch_trial: true};
+    var catchTrialFalse = {catch_trial: false};
     
     // Bind trial data with boilerplate
     var rawTrialList = shuffleTrials ? _.shuffle(d.trials); : d.trials;
     var trials = _.flatten(_.map(rawTrialList, function(trialData, i) {
-      var trial = _.extend(new Trial, trialData, additionalInfo, {
+      var trial = _.extend(new Trial, trialData, additionalInfo, catchTrialFalse, {
         choices: _.shuffle([trialData.target.url, trialData.distractor1.url,
         		    trialData.distractor2.url, trialData.distractor3.url]),
         trialNum : i + numInserted
       });
     if(_.includes(catchTrialIndices, i)) {
-      	var catchTrial = _.extend(new Trial, catchInfo, additionalInfo, {
+      	var catchTrial = _.extend(new Trial, catchInfo, additionalInfo, catchTrialTrue, {
       	  choices: _.shuffle([catchInfo.target.url, catchInfo.distractor1.url,
       			      catchInfo.distractor2.url, catchInfo.distractor3.url]),
       	  trialNum: i + numInserted + 1
       	});
-      numInserted += 1;
-      return [trial, catchTrial];
-          } else {
-      return trial;
+        numInserted += 1;
+        return [trial, catchTrial];
+            } else {
+        return trial;
           }
     }));
     
