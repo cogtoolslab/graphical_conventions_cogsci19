@@ -10,8 +10,12 @@
  * to present a sketch (produced in graphical conventions reference game) and record a mouse click on an image as response
  **/
 
-var score = 0;
-var accuracy_bonus = 0.03;
+var score = 0; // initial score set to 0
+var accuracy_bonus = 0.015; // max accuracy bonus
+var max_time_bonus = 0.005; // max speed bonus
+var time_limit = 20; // time limit in seconds
+var pct_per_sec = 1/time_limit; // if time_limit==20, that means that progress bar goes down by 5% each unit time
+var decrement_per_sec = max_time_bonus/time_limit; // how much time bonus goes down per second
 
 jsPsych.plugins["image-button-response"] = (function() {
 
@@ -169,16 +173,16 @@ jsPsych.plugins["image-button-response"] = (function() {
     var time_bonus = 0;
     
     progressBar.show();
-    var widthPct = 105
+    var widthPct = 105 // starts at 105% b/c of the 1000ms delay above before occluder disappears
     var milliseconds_passed = 0
     var time_passed = 0
     var interval = setInterval(function(){
 	  milliseconds_passed += 1
-	  if (milliseconds_passed % 100 == 0) {
+	  if (milliseconds_passed % 1000 == 0) {
               time_passed += 1
 	  }
 	  //console.log('time passed: ' + time_passed)
-	  widthPct -= 0.05;
+	  widthPct -= pct_per_sec; // goes down by 5% each second
 	  progressBar.css({'width': widthPct + '%'});
 	  if (widthPct <= 0) {
               clearInterval(interval);
@@ -200,7 +204,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       var rt = end_time - start_time;
       response.button = choice;
       response.rt = rt;
-      time_bonus = (0.01 - time_passed * 0.0005).toFixed(3)
+      time_bonus = (max_time_bonus - time_passed * decrement_per_sec).toFixed(3) //time_passed in units of seconds
       //console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
