@@ -195,7 +195,7 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     // function to handle responses by the subject
     function after_response(choice) {
-      console.log('after response function called');
+      // console.log('after response function called');
       
       // End timer
       clearInterval(interval);
@@ -207,8 +207,8 @@ jsPsych.plugins["image-button-response"] = (function() {
       response.button = choice;
       response.rt = rt;
       time_bonus = (max_time_bonus - seconds_passed * decrement_per_sec); //time_passed in units of seconds
-      console.log('time passed: ', seconds_passed);
-      console.log("response time bonus: " + time_bonus)
+      // console.log('time passed: ', seconds_passed);
+      // console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
