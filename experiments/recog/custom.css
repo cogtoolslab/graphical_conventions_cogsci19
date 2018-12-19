@@ -79,7 +79,7 @@ p2 {
 }
 
 #example_screen{
-  border: solid 5px #FFF;
+  box-shadow: 10px 5px 5px gray;
 }
 
 .left {
