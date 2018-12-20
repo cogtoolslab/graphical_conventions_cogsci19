@@ -95,7 +95,7 @@ var previewTrial = {
 // define trial object with boilerplate
 function Trial () {
   this.type = 'image-button-response';
-  this.iterationName = 'pilot2';
+  this.iterationName = 'testing3';
   this.prompt = "Please select the object that best matches the sketch.";
   this.dev_mode = false;
 };
@@ -117,10 +117,6 @@ function setupGame () {
     // get workerId, etc. from URL (so that it can be sent to the server)
     var turkInfo = jsPsych.turk.turkInfo();    
   
-    // pull out info from server
-    var id = d.id;
-    var version = d.version;
-
     // insert one catch trial per block of 8 // assigns indices only within the experimental trials, excludes instructions trials
     var catchTrialIndices = _.map(_.range(Math.floor(numTrials/8)), i => {
       return i*8 + _.random(0, 7) ;
@@ -128,8 +124,8 @@ function setupGame () {
 
     // extra information to bind to trial list
     var additionalInfo = {
-      gameID: id,	
-      version: version, // dataset version: yoked, scrambled40, scrambled10
+      gameID: d.gameid,
+      version: d.version, // dataset version: yoked, scrambled40, scrambled10
       post_trial_gap: 1000, // add brief ITI between trials
       num_trials : numTrials + catchTrialIndices.length,
       on_finish : on_finish
@@ -162,8 +158,8 @@ function setupGame () {
     
     // Stick welcome trial at beginning & goodbye trial at end
     if (!turkInfo.previewMode) { 
-    	trials.unshift(loopNode);
-    	trials.unshift(welcomeTrial);
+      trials.unshift(loopNode);
+      trials.unshift(welcomeTrial);
     } else {
       trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
     }
