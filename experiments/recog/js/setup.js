@@ -118,9 +118,6 @@ function setupGame () {
     // get workerId, etc. from URL (so that it can be sent to the server)
     var turkInfo = jsPsych.turk.turkInfo();    
   
-    // pull out info from server
-    var id = d.id;
-
     // insert one catch trial per block of 8 // assigns indices only within the experimental trials, excludes instructions trials
     var catchTrialIndices = _.map(_.range(Math.floor(numTrials/8)), i => {
       return i*8 + _.random(0, 7) ;
@@ -128,7 +125,8 @@ function setupGame () {
 
     // extra information to bind to trial list
     var additionalInfo = {
-      gameID: id,	
+      gameID: d.gameid,
+      version: d.version,
       post_trial_gap: 1000, // add brief ITI between trials
       num_trials : numTrials + catchTrialIndices.length,
       on_finish : on_finish
@@ -161,8 +159,8 @@ function setupGame () {
     
     // Stick welcome trial at beginning & goodbye trial at end
     if (!turkInfo.previewMode) { 
-    	trials.unshift(loopNode);
-    	trials.unshift(welcomeTrial);
+      trials.unshift(loopNode);
+      trials.unshift(welcomeTrial);
     } else {
       trials.unshift(previewTrial); // if still in preview mode, tell them to accept first.
     }
