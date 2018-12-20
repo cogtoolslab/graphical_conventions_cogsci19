@@ -95,7 +95,7 @@ var previewTrial = {
 // define trial object with boilerplate
 function Trial () {
   this.type = 'image-button-response';
-  this.iterationName = 'testing';
+  this.iterationName = 'pilot2';
   this.prompt = "Please select the object that best matches the sketch.";
   this.dev_mode = false;
 };
