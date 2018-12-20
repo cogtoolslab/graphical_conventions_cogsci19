@@ -152,10 +152,10 @@ function initializeWithTrials(socket) {
     if (!error && res.statusCode === 200) {
       // send trial list (and id) to client
       var packet = {
-	gameid: gameid,
-	version: recogVersion,	
-	recogID: body.recogID,
-	trials: body.meta
+      	gameid: gameid,
+      	version: recogVersion,	
+      	recogID: body.recogID,
+      	trials: body.meta
       };      
       socket.emit('onConnected', packet);
     } else {
