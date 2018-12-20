@@ -162,7 +162,6 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     }
 
-
     // call show_display now, which includes a massive occluder that covers everything up
     show_display();
 
