@@ -83,7 +83,7 @@ var loopNode = {
 
 var acceptHTML = {
   'str1' : '<p> Welcome! In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. </p>',  
-  'str2' : '<p> STOP! If you are interested in learning more about this HIT, <b>please first accept the HIT in MTurk before continuing further</b>. </p>'  
+  'str2' : '<p> <b> STOP! If you are interested in learning more about this HIT, please first accept the HIT in MTurk before continuing further</b>. </p>'  
 }
 
 var previewTrial = {
