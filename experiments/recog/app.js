@@ -15,7 +15,7 @@ var
 // define number of trials to fetch from database (what is length of each recog HIT?)
 var gameport;
 var recogVersion;
-var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK'];
+var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK', 'A1MMCS8S8CTWKU'];
 var blockResearcher = false;
 
 if(argv.gameport) {
@@ -152,10 +152,10 @@ function initializeWithTrials(socket) {
     if (!error && res.statusCode === 200) {
       // send trial list (and id) to client
       var packet = {
-	gameid: gameid,
-	version: recogVersion,	
-	recogID: body.recogID,
-	trials: body.meta
+      	gameid: gameid,
+      	version: recogVersion,	
+      	recogID: body.recogID,
+      	trials: body.meta
       };      
       socket.emit('onConnected', packet);
     } else {

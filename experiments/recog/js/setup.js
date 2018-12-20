@@ -13,7 +13,7 @@ function sendData() {
 var goodbyeTrial = {
   type: 'instructions',
   pages: [
-    '<p>Thanks for participating in our experiment! You earned a bonus of $' + parseFloat(score).toFixed(2) + '! Please \
+    '<p>Thanks for participating in our experiment! You are all done. Please \
      click the button to submit this HIT. When the popup asks you if you want to leave, please say YES to submit the HIT.</p>'
   ],
   show_clickable_nav: true,
@@ -23,23 +23,23 @@ var goodbyeTrial = {
 var consentHTML = {
   'str1' : '<p>In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. For each correct match, you will receive a bonus. </p>',
   'str2' : '<p>We expect the average game to last approximately 10 minutes, including the time it takes to read instructions.</p>',
-  'str3' : "<p>If you encounter a problem or error, send us an email (sketchloop@gmail.com) and we will make sure you're compensated for your time! Please pay attention and do your best! Thank you!</p><p> Note: We recommend using Chrome. We have not tested this HIT in other browsers.</p>",
-  'str4' : ["<u><p id='legal'>Consenting to Participate:</p></u>",
+  'str3' : ["<u><p id='legal'>Consenting to Participate:</p></u>",
 	    "<p id='legal'>By completing this HIT, you are participating in a study being performed by cognitive scientists in the Stanford Department of Psychology. If you have questions about this research, please contact the <b>Sketchloop Admin</b> at <b><a href='mailto://sketchloop@gmail.com'>sketchloop@gmail.com</a> </b>. You must be at least 18 years old to participate. Your participation in this research is voluntary. You may decline to answer any or all of the following questions. You may decline further participation, at any time, without adverse consequences. Your anonymity is assured; the researchers who have requested your participation will not receive any personal information about you.</p>"].join(' ')
 }
 
 // add welcome page
 var instructionsHTML = {
   'str1' : "<p> Here's how the game will work: On each trial, you will see a sketch appear above four images of different objects. Your goal is to select the object in the set that best matches the sketch. <div><img src='../images/recog_screen_cap.png' id='example_screen'></div>",
-  'str2' : '<p> For each correct guess you make, you will receive an <b>accuracy bonus</b> of 1.5 cents. <p> In addition, you will receive a <b>speed bonus</b> (up to 0.5 cents) based on how fast you make the correct guess. In other words, the faster you can select the correct object, the larger the bonus you will receive. </p> <p> However, you <i> must select the correct object to receive any bonus at all</i>, so please pay attention and above all <b> aim to be as accurate as you can </b>! </p>',
-  'str3' : "<p> There are 45 trials in this HIT. Once you are finished, the HIT will be automatically submitted for approval. Please know that you can only perform this HIT one time. Before we begin, please complete a brief questionnaire to show you understand how this HIT works.</p>"
+  'str2' : '<p> There are 45 trials in this HIT. For each correct response you make, you will receive an <b>accuracy bonus</b> of 1.5 cents. <p> In addition, you will receive a <b>speed bonus</b> (up to 0.5 cents) based on how fast you make the correct response. In other words, the faster you can select the correct object, the larger the bonus you will receive. </p> <p> However, you <i> must select the correct object to receive any bonus at all</i>, so please pay attention and above all <b> aim to be as accurate as you can</b>!</p>',
+  'str3' : "<p>If you encounter a problem or error, send us an email (sketchloop@gmail.com) and we will make sure you're compensated for your time! Please pay attention and do your best! </p><p> Note: We recommend using Chrome. We have not tested this HIT in other browsers.</p>",  
+  'str4' : "<p> Once you are finished, the HIT will be automatically submitted for approval. Please know that you can only perform this HIT one time. Before we begin, please complete a brief questionnaire to show you understand how this HIT works.</p>"
 };
 
 var welcomeTrial = {
   type: 'instructions',
   pages: [
-    consentHTML.str1, consentHTML.str2, consentHTML.str3, consentHTML.str4,
-    instructionsHTML.str1, instructionsHTML.str2, instructionsHTML.str3
+    consentHTML.str1, consentHTML.str2, consentHTML.str3, 
+    instructionsHTML.str1, instructionsHTML.str2, instructionsHTML.str3, instructionsHTML.str4
   ],
   show_clickable_nav: true,
   allow_keys: false
@@ -56,7 +56,7 @@ var quizTrial = {
             		{prompt: "There are 200 trials in this HIT.",
             		 options: ["True", "False"],
             		 required: false},
-                {prompt: "Responding accurately is more important than responding quickly in this HIT.",
+                {prompt: "On each trial, one must select the correct object in order to earn any bonus at all.",
                  options: ["True", "False"],
                  required: false},
                 {prompt: "It is possible to perform this HIT more than once.",
@@ -68,7 +68,7 @@ var quizTrial = {
 var loopNode = {
     timeline: [quizTrial],
     loop_function: function(data){
-      	console.log(data.values()[0]['responses']);
+      	// console.log(data.values()[0]['responses']);
       	resp = JSON.parse(data.values()[0]['responses']);	 
       	if ((resp["Q0"] == 'True') && (resp["Q1"]== 'False') && (resp["Q2"] == 'False') && (resp["Q3"] == 'True') && (resp["Q4"] == 'False')){
       	    return false;
@@ -82,21 +82,20 @@ var loopNode = {
 
 
 var acceptHTML = {
-  'str1' : '<p> Welcome! In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. </p>',  
-  'str2' : '<p> This is only a demo! If you are interested in participating, please accept the HIT in MTurk before continuing further. </p>'  
+  'str1' : '<p> Welcome! In this HIT, you will see some sketches of objects. For each sketch, you will try to guess which of the objects is the best match. </p> <p> <b> If you are interested in learning more about this HIT, please first accept the HIT in MTurk before continuing further</b>. </p>'  
 }
 
 var previewTrial = {
   type: 'instructions',
-  pages: [acceptHTML.str1, acceptHTML.str2],
-  show_clickable_nav: true,
+  pages: [acceptHTML.str1],
+  show_clickable_nav: false,
   allow_keys: false  
 }
 
 // define trial object with boilerplate
 function Trial () {
   this.type = 'image-button-response';
-  this.iterationName = 'testing2';
+  this.iterationName = 'testing3';
   this.prompt = "Please select the object that best matches the sketch.";
   this.dev_mode = false;
 };
@@ -126,7 +125,7 @@ function setupGame () {
     // extra information to bind to trial list
     var additionalInfo = {
       gameID: d.gameid,
-      version: d.version,
+      version: d.version, // dataset version: yoked, scrambled40, scrambled10
       post_trial_gap: 1000, // add brief ITI between trials
       num_trials : numTrials + catchTrialIndices.length,
       on_finish : on_finish
