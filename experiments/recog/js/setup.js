@@ -68,7 +68,7 @@ var quizTrial = {
 var loopNode = {
     timeline: [quizTrial],
     loop_function: function(data){
-      	console.log(data.values()[0]['responses']);
+      	// console.log(data.values()[0]['responses']);
       	resp = JSON.parse(data.values()[0]['responses']);	 
       	if ((resp["Q0"] == 'True') && (resp["Q1"]== 'False') && (resp["Q2"] == 'False') && (resp["Q3"] == 'True') && (resp["Q4"] == 'False')){
       	    return false;
@@ -120,6 +120,7 @@ function setupGame () {
   
     // pull out info from server
     var id = d.id;
+    var version = d.version;
 
     // insert one catch trial per block of 8 // assigns indices only within the experimental trials, excludes instructions trials
     var catchTrialIndices = _.map(_.range(Math.floor(numTrials/8)), i => {
@@ -129,6 +130,7 @@ function setupGame () {
     // extra information to bind to trial list
     var additionalInfo = {
       gameID: id,	
+      version: version, // dataset version: yoked, scrambled40, scrambled10
       post_trial_gap: 1000, // add brief ITI between trials
       num_trials : numTrials + catchTrialIndices.length,
       on_finish : on_finish
@@ -169,7 +171,7 @@ function setupGame () {
     trials.push(goodbyeTrial);
 
     // print out trial list    
-    console.log(trials);
+    // console.log(trials);
       
     jsPsych.init({
       timeline: trials,
