@@ -137,7 +137,7 @@ jsPsych.plugins["image-button-response"] = (function() {
       
       // display score earned so far
       html += '<div id="score"> <p2> bonus earned: ' + parseFloat(score).toFixed(3) + '</p2></div>'
-      html += '<div id="trial-counter"> <p2> trial ' + trial.trialNum + ' of ' + trial.num_trials + '</p2></div>'
+      html += '<div id="trial-counter"> <p2> trial ' + (parseInt(trial.trialNum)+parseInt(1)).toString() + ' of ' + trial.num_trials + '</p2></div>'
 
       // introduce occluder to make the inter-trial transitions less jarring
       html += '<div id="occluder"> </div>'
@@ -161,7 +161,6 @@ jsPsych.plugins["image-button-response"] = (function() {
 
 
     }
-
 
     // call show_display now, which includes a massive occluder that covers everything up
     show_display();
@@ -195,7 +194,7 @@ jsPsych.plugins["image-button-response"] = (function() {
 
     // function to handle responses by the subject
     function after_response(choice) {
-      console.log('after response function called');
+      // console.log('after response function called');
       
       // End timer
       clearInterval(interval);
@@ -207,8 +206,8 @@ jsPsych.plugins["image-button-response"] = (function() {
       response.button = choice;
       response.rt = rt;
       time_bonus = (max_time_bonus - seconds_passed * decrement_per_sec); //time_passed in units of seconds
-      console.log('time passed: ', seconds_passed);
-      console.log("response time bonus: " + time_bonus)
+      // console.log('time passed: ', seconds_passed);
+      // console.log("response time bonus: " + time_bonus)
 
       // after a valid response, the sketch will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
