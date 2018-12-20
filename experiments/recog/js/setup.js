@@ -171,7 +171,7 @@ function setupGame () {
     trials.push(goodbyeTrial);
 
     // print out trial list    
-    // console.log(trials);
+    console.log(trials);
       
     jsPsych.init({
       timeline: trials,
