@@ -14,7 +14,7 @@ var goodbyeTrial = {
   type: 'instructions',
   pages: [
     '<p>Thanks for participating in our experiment! You are all done. Please \
-     click the button to submit this HIT. When the popup asks you if you want to leave, please say YES to submit the HIT.</p>'
+     click the button to submit this HIT. <b> When the popup asks you if you want to leave, please say YES to LEAVE THIS PAGE and submit the HIT.</b></p>'
   ],
   show_clickable_nav: true,
   on_finish: function() { sendData();}
