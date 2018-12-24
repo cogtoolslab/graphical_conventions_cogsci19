@@ -132,8 +132,7 @@ xyhtml , body {
   font-weight:lighter;
 }
 
-#dimScreen
-{
+#dimScreen {
     position:fixed;
     padding:0;
     margin:0;
@@ -261,7 +260,7 @@ xyhtml , body {
 }
 
 #startbutton {
-    z-index: 20;
+    z-index: 40;
     position: absolute;
     margin: auto;
     top: 76%;
@@ -282,6 +281,7 @@ xyhtml , body {
 }
 
 #startbutton:hover {
+    z-index: 40;
     background-color: #2e2f30;
     color: white;
 }
@@ -291,6 +291,7 @@ xyhtml , body {
     z-index: 20;
     position: absolute;
     margin: auto;
+    width: 12vh;
     top: 95%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -316,8 +317,8 @@ xyhtml , body {
 
 
 
-  /* #startbutton:active {
-      z-index: 10;
+  /* #startbutton:active { */
+      /* z-index: 10;
       height: 6vh;
       width: 12vw;
       float: left;
@@ -336,9 +337,27 @@ xyhtml , body {
       transform: translateY(1vh);
   } */
 
-/* #submitbutton {
-	z-index: 10;
-	height: 6vh;
+#submitbutton {
+  z-index: 20;
+  position: absolute;
+  margin: auto;
+  width: 12vh;
+  top: 95%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  background-color: white;
+  color: black;
+  font-size: 15px;
+  padding: 10px 10px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: black;
+  cursor: pointer;
+  border-radius: 20px;
+  text-align: center;
+  font-weight: bold;
+	/* height: 6vh;
 	width: 12vw;
 	float: left;
 	margin-left: 10%;
@@ -352,13 +371,19 @@ xyhtml , body {
 	font-weight: normal;
 	border-radius: 100%;
 	border: none; */
+}
+
+#submitbutton:hover {
+    background-color: #2e2f30;
+    color: white;
+}
 
 
 /*trying to change around attributes of click button reduces the clickable area
 ALOT...don't understand how to adjust that.*/
 
 /* #submitbutton:active {
-    z-index: 10;
+    z-index: 60;
     height: 6vh;
     width: 12vw;
     float: left;
@@ -425,6 +450,40 @@ ALOT...don't understand how to adjust that.*/
     margin: auto;
     background: #ffffff;
     border: solid 1px #999;
+}
+
+#loading {
+    height: 300px;
+    width: 300px;
+    position: absolute;
+    top: 12vh;
+    right:0;left:0;
+    float: top;
+    margin: auto;
+    background: #999999;
+    border: solid 1px #999;
+}
+
+#loading-message {
+  margin-top: 12vh;
+  font-size: 3vh;
+  display: inline-block;
+  width: 80%;
+  text-align: center;
+}
+
+.loader {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @keyframes ellipsis {
