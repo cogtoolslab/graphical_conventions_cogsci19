@@ -4,7 +4,7 @@
     <title> Guess My Sketch </title>
 
     <!-- Load style sheet -->
-    <link href="/lib/css/shared.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="/draw_chairs/lib/css/shared.css" media="screen" rel="stylesheet" type="text/css">
     <link href="custom.css" media="screen" rel="stylesheet" type="text/css">
 
     <!-- Notice the URL, this is handled by socket.io on the server automatically, via express -->
@@ -69,8 +69,9 @@
       <span>
       <canvas id="sketchpad" tabindex=1 height='500px' width='500px'></canvas>
             <canvas id="viewport"> </canvas>
-
+      <div id='loading' style="display: none"><div id="loading-message">The Sketcher is still drawing...</div></div>
       <div id='occluder' style="display: none"> </div>
+      <button id="submitbutton" style="display:none">Submit</button>
       <button id="confirmbutton" style="display:none">Confirm</button>
     </div>
 

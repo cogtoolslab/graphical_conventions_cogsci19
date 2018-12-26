@@ -100,13 +100,13 @@ var onMessage = function(client,message) {
     target.visible = message_parts[1];
     break;
 
-  // case 'doneDrawing' : // sketcher has declared that drawing is finished
-  //   drawing_status = message_parts[1];
-  //   console.log('drawing submitted: ', drawing_status);
-  //     _.map(all, function(p){
-  //       p.player.instance.emit('mutualDoneDrawing', {user: client.userid} );
-  //     });
-  //     break;
+  case 'doneDrawing' : // sketcher has declared that drawing is finished
+    drawing_status = message_parts[1];
+    console.log('drawing submitted: ', drawing_status);
+      _.map(all, function(p){
+        p.player.instance.emit('mutualDoneDrawing', {user: client.userid} );
+      });
+      break;
 
   case 'startGame' :
    gc.newRound();

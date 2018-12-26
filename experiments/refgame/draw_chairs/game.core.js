@@ -139,6 +139,9 @@ var game_core = function(options){
   // Just using waiting chairs? - set TRUE for just waiting, set FALSE for just dining
   this.waiting = false;
 
+  // Use submit button
+  this.useSubmitButton = true;
+
   if(this.server) {
     console.log('sent server update bc satisfied this.server')
     // If we're initializing the server game copy, pre-create the list of trials
