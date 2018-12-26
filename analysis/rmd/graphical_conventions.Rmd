@@ -115,10 +115,26 @@ d.recog.boot %>%
   scale_x_continuous(breaks=seq(0,7,by=1)) + 
   theme_minimal() 
 ```
-### mixed-effects modeling
+### mixed-effects modeling on accuracy
 ```{r}
 summary(glmer(correct ~ version * repetition + (1 + repetition | gameID) + (1 + repetition | target), family = binomial, 
               data = d.recog %>% filter(version %in% c('yoked', 'scrambled40'))))
 
 #str(d.recog)
+```
+
+### plotting BIS (balancing accuracy vs. drawDuration) from refgame, yoked, and scrambled40 experiments
+
+```{r}
+## TODO 12/26/2018
+
+
+```
+
+### mixed-effects modeling of BIS (balancing accuracy vs. drawDuration) from refgame, yoked, and scrambled40 experiments
+
+```{r}
+## TODO 12/26/2018
+
+
 ```
