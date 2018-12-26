@@ -27,6 +27,9 @@ var selecting;
 // variable to store whether an object has just been clicked
 var objClicked = false;
 
+// variable to store whether the sketcher has clicked the submit button
+var submitted = false;
+
 
 /*
  Note: If you add some new variable to your game that must be shared
@@ -228,7 +231,16 @@ var client_addnewround = function(game) {
 var customSetup = function(game) {
   game.sketchpad = new Sketchpad();
 
-  $(document).ready(function() {
+  $(document).ready(function() { // added back submit button
+    $("#submitbutton").click(function(){
+      if (globalGame.currStrokeNum > 0) { // only allow submit button to be pressed if at least one stroke made
+        var finished = ['doneDrawing',1];
+        globalGame.socket.send(finished.join('.'));
+        $('#feedback').html("");
+      } else {
+        $('#feedback').html("Please make your sketch.");
+      }
+    });
 
     // get workerId, etc. from URL
     var urlParams;
@@ -247,6 +259,20 @@ var customSetup = function(game) {
 
   });
 
+
+  game.socket.on('mutualDoneDrawing', function(role) {
+    globalGame.doneDrawing = true;
+    globalGame.drawingAllowed = false;
+    submitted = true;
+    if (globalGame.my_role === globalGame.playerRoleNames.role1) {
+      $('#feedback').html(" ");
+      setTimeout(function(){$('#turnIndicator').html("Your partner's turn to guess the target!");},globalGame.feedbackDelay);
+    } else if (globalGame.my_role === globalGame.playerRoleNames.role2) {
+      $("#loading").fadeOut('fast');
+      setTimeout(function(){$('#turnIndicator').html('Your turn: Select the target!');},globalGame.feedbackDelay);
+    }
+  });
+
   // Set up new round on client's browsers after submit round button is pressed.
   // This means clear the canvas, update round number, and update score on screen
   game.socket.on('newRoundUpdate', function(data){
@@ -256,11 +282,16 @@ var customSetup = function(game) {
     globalGame.doneDrawing = false;
     game.strokeMade = false;
     globalGame.path = [];
+    submitted = false;
 
     // reset clicked obj flag
     objClicked = false;
     if(globalGame.my_role === globalGame.playerRoleNames.role2) {
       globalGame.viewport.addEventListener("click", responseListener, false); // added
+      if (globalGame.useSubmitButton) {
+        $("#loading").show();
+        $("#loading-message").html("The Sketcher is still drawing...");
+      }
     }
     // Reset stroke counter
     globalGame.currStrokeNum = 0;
@@ -341,6 +372,9 @@ var customSetup = function(game) {
       $element.find('.progress-bar').animate({ width: progressBarWidth }, timeleft == timetotal ? 0 : 1000, "linear");
       $('.progress-bar').attr('aria-valuemax',globalGame.timeLimit);
       $('.progress').show();
+      if (globalGame.useSubmitButton) {
+        $("#loading-message").html("The Sketcher is still drawing...");
+      }
   });
 
   game.socket.on('timeOut', function(timeleft) {
@@ -397,13 +431,18 @@ var client_onjoingame = function(num_players, role) {
     txt = "target";
     $('#instructs').html("<p>You have 30 seconds to make a sketch of the target (white) so that your partner can tell which it is. You will receive </p>" +
       "<p> a bonus ONLY if the Viewer selects the correct object (plus small additional speed bonus). Draw the object as you see it, and DO NOT include letters, arrows, or surrounding context. Please do not resize browser window or change zoom during the game. </p>");
-      // $("#submitbutton").show();
+      if (globalGame.useSubmitButton) {
+        $("#submitbutton").show();
+      }
   } else if (role === globalGame.playerRoleNames.role2) {
 
     $('#instructs').html("<p>Your partner has 30 seconds to draw one of these four objects. When you are sure which it is, click on the object </p>" +
       "<p> you think they're drawing. If you are correct, you will both receive a bonus (plus small additional speed bonus).</p>" +
       "<p> Please do not resize browser window or change zoom during the game.</p>");
-    // $("#loading").show();
+    if (globalGame.useSubmitButton) {
+      $("#loading").show();
+      $("#loading-message").html("");
+    }
   }
 
   if(num_players == 1) {
@@ -430,8 +469,10 @@ var client_onjoingame = function(num_players, role) {
     $('#confirmbutton').click(function start() {
       if(globalGame.packet) {
         if (globalGame.strokeMade || globalGame.doneDrawing) { // change
-          $('#confirmbutton').hide();
-          globalGame.socket.send(globalGame.packet.join('.'));
+          if (!globalGame.useSubmitButton || submitted) {
+            $('#confirmbutton').hide();
+            globalGame.socket.send(globalGame.packet.join('.'));
+          }
         }
       }
     });
