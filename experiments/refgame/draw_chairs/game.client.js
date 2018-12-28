@@ -238,7 +238,9 @@ var customSetup = function(game) {
         globalGame.socket.send(finished.join('.'));
         $('#feedback').html("");
       } else {
-        $('#feedback').html("Please make your sketch.");
+        if (!globalGame.useSubmitButton || !globalGame.doneDrawing) {
+          $('#feedback').html("Please make your sketch.");
+        }
       }
     });
 
@@ -380,12 +382,16 @@ var customSetup = function(game) {
   game.socket.on('timeOut', function(timeleft) {
     globalGame.doneDrawing = true;
     globalGame.drawingAllowed = false;
+    submitted = true;
     if (globalGame.my_role === globalGame.playerRoleNames.role1 && !objClicked) {
       $('#feedback').html(" ");
       $('#scoreupdate').html(" ");
       setTimeout(function(){$('#turnIndicator').html("Time's up! Now your partner has to guess which object you were drawing!");},globalGame.feedbackDelay);
     } else if (globalGame.my_role === globalGame.playerRoleNames.role2 && !objClicked) {
       setTimeout(function(){$('#turnIndicator').html("Time's up! Make a selection!");},globalGame.feedbackDelay);
+      if (globalGame.useSubmitButton) {
+        $("#loading").fadeOut('fast');
+      }
     }
   });
 
