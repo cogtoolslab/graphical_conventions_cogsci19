@@ -2,7 +2,9 @@ Recognition task (`/experiments/recog/`)
 - Input: Sketches from communication task and 3D objects
 - Output: Sketch recognizability in context
 
-### 1.2: stimuli from `graphical_conventions_sketches_scrambled40` collection
+### 1.2:
+
+##### stimuli from `graphical_conventions_sketches_scrambled40` collection
 
 December 21, 2018
 
@@ -11,7 +13,9 @@ December 21, 2018
   - Each experiment has 40 trials (each repetition has 4 trials, each trial from a different refgame `gameID`)
   - Preserved temporal structure of repetitions
 
-### 1.1: stimuli from `graphical_conventions_sketches_yoked` collection
+### 1.1:
+
+##### stimuli from `graphical_conventions_sketches_yoked` collection
 
 December 21, 2018
 
@@ -20,7 +24,9 @@ December 21, 2018
   - Each experiment has 40 trials (all from the same refgame `gameID`)
   - Preserved temporal structure of trials
 
-### 1.0: stimuli from `graphical_conventions_sketches_scrambled10` collection
+### 1.0:
+
+##### stimuli from `graphical_conventions_sketches_scrambled10` collection
 
 November 20, 2018  
 
@@ -47,7 +53,7 @@ December 24, 2018
 
 July 26, 2018
 
-### 1.2.0: `iterationName`s : `run3_size4_waiting`, `run4_generalization`
+##### 1.2.0: `iterationName`s : `run3_size4_waiting`, `run4_generalization`
 
 - What's new:
   - Context size changed back to 4
