@@ -409,7 +409,7 @@ game_core.prototype.getRandomizedConditions = function() {
 
   for (var i = 0; i < session.length; i++) {
     trial = session[i];
-    console.log("trial" + i + ": " + JSON.stringify(trial, null, 3));
+    // console.log("trial" + i + ": " + JSON.stringify(trial, null, 3));
   }
   return session;
 
