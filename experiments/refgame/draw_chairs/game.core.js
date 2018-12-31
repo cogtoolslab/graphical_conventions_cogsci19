@@ -27,9 +27,9 @@ var game_core = function(options){
   this.server = options.server ;
   this.projectName = '3dObjects';
   this.experimentName = 'graphical_conventions';
-  this.iterationName = 'testing'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_size4','run2_chairs1k_size6', 'run3_size6_waiting','run3_size4_waiting','run4_generalization']
+  this.iterationName = 'testing_v2'; // ['run0_bonusmeter','run1_chairsOnly','run2_chairs1k_size4','run2_chairs1k_size6', 'run3_size6_waiting','run3_size4_waiting','run4_generalization']
   this.email = 'sketchloop@gmail.com';
-  console.log("color randomized");
+  // console.log("color randomized");
 
   // save data to the following locations (allowed: 'csv', 'mongo')
   this.dataStore = ['csv', 'mongo'];
@@ -444,7 +444,7 @@ game_core.prototype.makeTrialList = function () {
   //for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number ---- commented out
     // sample four object images that are unique and follow the condition constraints
 
-    var objList = sampleTrial(currentSetSize, trial.category,trial.object,trial.pose,trial.target,trial.condition,trial.phase,trial.repetition, trial.repeatedColor);
+    var objList = sampleTrial(currentSetSize, trial.category,trial.object,trial.pose,trial.target,trial.condition,trial.phase,trial.repetition,trial.repeatedColor, trial.subset);
     //console.log('objList',objList);
 
     // sample locations for those objects
@@ -538,7 +538,7 @@ var filterStimList = function(stimList, numObjs) {
   return filteredList;
 }
 
-var sampleTrial = function(currentSetSize,category,object,pose,target,condition,phase,repetition, repeatedColor) {
+var sampleTrial = function(currentSetSize,category,object,pose,target,condition,phase,repetition,repeatedColor,subset) {
   filteredList = filterStimList(stimList, currentSetSize*2);
   if (currentSetSize == 4) {
 
@@ -563,10 +563,30 @@ var sampleTrial = function(currentSetSize,category,object,pose,target,condition,
     var thirdDistractor = im_all[notTargs[2]];
     _target_status = ["distractor","distractor","distractor","distractor"];
     var target_status = _target_status[index] = "target"; // changed thisTarget to index
-    _.extend(targetObj,{target_status: "target", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    _.extend(firstDistractor,{target_status: "distr1", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    _.extend(secondDistractor,{target_status: "distr2", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    _.extend(thirdDistractor,{target_status: "distr3", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
+    _.extend(targetObj,{target_status: "target", 
+                        condition: condition, 
+                        phase: phase, 
+                        repetition: repetition, 
+                        repeatedColor: repeatedColor,
+                        subset: subset});
+    _.extend(firstDistractor,{target_status: "distr1", 
+                              condition: condition, 
+                              phase: phase, 
+                              repetition: repetition, 
+                              repeatedColor: repeatedColor,
+                              subset: subset});
+    _.extend(secondDistractor,{target_status: "distr2", 
+                              condition: condition, 
+                              phase: phase, 
+                              repetition: repetition, 
+                              repeatedColor: repeatedColor, 
+                              subset: subset});
+    _.extend(thirdDistractor,{target_status: "distr3", 
+                              condition: condition, 
+                              phase: phase, 
+                              repetition: repetition, 
+                              repeatedColor: repeatedColor, 
+                              subset: subset});
     return [targetObj, firstDistractor, secondDistractor, thirdDistractor];
 
   } else {
