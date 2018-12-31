@@ -208,7 +208,7 @@ function endStroke(event) {
       (globalGame.data.subject_information.bonus_score.toString()).replace(/\./g,'~~~'),
       globalGame.startStrokeTime,
       globalGame.endStrokeTime].join('.'); //
-    globalGame.socket.send(packet);
+      globalGame.socket.send(packet);
 
     // var array = ['stroke',
 		//   globalGame.currStrokeNum,
