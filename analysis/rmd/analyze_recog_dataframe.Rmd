@@ -1,0 +1,67 @@
+---
+title: "analyze_recog_dataframe"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggthemes)
+library(lme4)
+library(lmerTest)
+library(brms)
+#library(Rmisc)
+library(tidyboot)
+```
+
+# Recognition timecourse analyses 
+
+```{r}
+
+d.recog <- read_csv('../../results/graphical_conventions_recog_data.csv') %>%
+  mutate(version = factor(version))
+
+```
+
+### get bootstrapped accuracy x repetition, broken out by version
+```{r}
+d.recog.boot = d.recog %>%
+  group_by(version,repetition) %>%
+  tidyboot_mean(col=correct)
+```
+### plot it
+```{r}
+d.recog.boot %>%  
+  ggplot(aes(x = repetition, y = empirical_stat, color = version, fill = version)) +
+  geom_line() +
+  # geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper, width = 0)) +
+  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.2, color = NA) +
+  ylim(0,1) +
+  ylab('accuracy') +
+  geom_hline(aes(yintercept=0.25),linetype='dashed') +
+  scale_x_continuous(breaks=seq(0,7,by=1)) + 
+  theme_minimal() 
+```
+### mixed-effects modeling on accuracy
+```{r}
+summary(glmer(correct ~ version * repetition + (1 + repetition | gameID) + (1 + repetition | target), family = binomial, 
+              data = d.recog %>% filter(version %in% c('yoked', 'scrambled40'))))
+
+#str(d.recog)
+```
+
+### plotting BIS (balancing accuracy vs. drawDuration) from refgame, yoked, and scrambled40 experiments
+
+```{r}
+## TODO 12/26/2018
+
+
+```
+
+### mixed-effects modeling of BIS (balancing accuracy vs. drawDuration) from refgame, yoked, and scrambled40 experiments
+
+```{r}
+## TODO 12/26/2018
+
+
+```
