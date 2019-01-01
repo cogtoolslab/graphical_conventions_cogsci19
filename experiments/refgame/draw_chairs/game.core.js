@@ -315,12 +315,12 @@ game_core.prototype.getRandomizedConditions = function() {
     target = repeatedObjs[i];
     trial =
     {
-      'object': repeatedObjs,
+      'objectIDs': repeatedObjs,
       'category': repeatedCat,
       'subset': sampledSubsetRepeated,      
       'pose': 35,
       'condition':'repeated',
-      'target': target,
+      'targetID': target,
       'phase': 'pre',
       'repetition': 0,
       'repeatedColor':repeatedColor
@@ -331,12 +331,12 @@ game_core.prototype.getRandomizedConditions = function() {
     target = controlObjs[i];
     trial =
     {
-      'object': controlObjs,
+      'objectIDs': controlObjs,
       'category': controlCat,
       'subset': sampledSubsetControl,      
       'pose': 35,
       'condition':'control',
-      'target': target,
+      'targetID': target,
       'phase': 'pre',
       'repetition': 0,
       'repeatedColor':repeatedColor
@@ -354,12 +354,12 @@ game_core.prototype.getRandomizedConditions = function() {
       target = repeatedObjs[i];
       trial =
       {
-        'object': repeatedObjs,
+        'objectIDs': repeatedObjs,
         'category': repeatedCat,
         'subset': sampledSubsetRepeated,      
         'pose': 35,
         'condition':'repeated',
-        'target': target,
+        'targetID': target,
         'phase': 'repeated',
         'repetition': rep,
         'repeatedColor':repeatedColor
@@ -376,12 +376,12 @@ game_core.prototype.getRandomizedConditions = function() {
     target = repeatedObjs[i];
     trial =
     {
-      'object': repeatedObjs,
+      'objectIDs': repeatedObjs,
       'category': repeatedCat,
       'subset': sampledSubsetRepeated,            
       'pose': 35,
       'condition':'repeated',
-      'target': target,
+      'targetID': target,
       'phase': 'post',
       'repetition': this.numReps+1,
       'repeatedColor':repeatedColor
@@ -392,12 +392,12 @@ game_core.prototype.getRandomizedConditions = function() {
     target = controlObjs[i];
     trial =
     {
-      'object': controlObjs,
+      'objectIDs': controlObjs,
       'category': controlCat,
       'subset': sampledSubsetControl,            
       'pose': 35,
       'condition':'control',
-      'target': target,
+      'targetID': target,
       'phase': 'post',
       'repetition': 1,
       'repeatedColor':repeatedColor
@@ -418,6 +418,26 @@ game_core.prototype.getRandomizedConditions = function() {
   return session; // design_dict
 
 };
+
+// filter stimList according to numObjs (setSize * 2) 
+// as of 12/31/18: as long as you're pulling from stimList_subord_v2.js, this doesn't do anything.
+var filterStimList = function(stimList, numObjs) {
+  return _.filter(stimList, ({object}) => object < numObjs); 
+}
+
+game_core.prototype.sampleTrial = function(trialInfo, currentSetSize) {
+  var filteredList = filterStimList(this.stimList, currentSetSize*2);
+  var miniTrialInfo = _.pick(trialInfo, ['condition', 'phase', 'repetition', 'repeatedColor', 'subset'])
+  var distractorLabels = ['distr1', 'distr2', 'distr3']
+
+  // Pull objects specified in trialInfo out of stimlist 
+  return _.map(trialInfo.objectIDs, objID => {
+    var objFromList = _.find(filteredList, {'basic' : trialInfo.category, 'object' : objID});
+    var targetStatus = objID == trialInfo.targetID ? 'target' : distractorLabels.pop();
+    return _.extend({}, objFromList, miniTrialInfo, {target_status: targetStatus});
+  })
+};
+
 
 game_core.prototype.sampleStimulusLocs = function() {
   var listenerLocs = _.shuffle([[1,1], [2,1], [3,1], [4,1]]); // added [5,1],[6,1]
@@ -445,7 +465,7 @@ game_core.prototype.makeTrialList = function () {
     // for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number ---- commented out
     // sample four object images that are unique and follow the condition constraints
 
-    var objList = this.sampleTrial(currentSetSize, trialInfo);
+    var objList = this.sampleTrial(trialInfo, currentSetSize);
     console.log('objList',objList);
 
     // sample locations for those objects
@@ -519,107 +539,6 @@ game_core.prototype.server_send_update = function(){
     p.player.instance.emit( 'onserverupdate', state);});
 };
 
-var getObjectSubset = function(basicCat) {
-  return _.map(_.shuffle(_.filter(_objectList, function(x){
-    return x.basic == basicCat;
-  })), _.clone);
-};
-
-var getRemainingTargets = function(earlierTargets) {
-  var criticalObjs = getObjectSubset("target");
-  return _.filter(criticalObjs, function(x) {
-    return !_.contains(earlierTargets, x.name );
-  });
-};
-
-// filter stimList according to numObjs (setSize * 2) 
-// as of 12/31/18: as long as you're pulling from stimList_subord_v2.js, this doesn't do anything.
-var filterStimList = function(stimList, numObjs) {
-  return _.filter(stimList, ({object}) => object < numObjs); 
-}
-
-game_core.prototype.sampleTrial = function(trialInfo, currentSetSize) {
-  var filteredList = filterStimList(this.stimList, currentSetSize*2);
-  var miniTrialInfo = _.pick(trialInfo, ['condition', 'phase', 'repetition', 'repeatedColor', 'subset'])
-  var distractorLabels = ['distr1', 'distr2', 'distr3']
-
-  // Pull objects specified in trialInfo out of stimlist 
-  return _.map(trialInfo.object, objNumber => {
-    var objFromList = _.find(filteredList, {'basic' : trialInfo.category, 'object' : objNumber})
-    var targetStatus = objNumber == trialInfo.target ? 'target' : distractorLabels.pop();
-    return _.extend({}, objFromList, miniTrialInfo, {target_status: targetStatus})
-  })
-};
-
-var sampleObjects = function(condition, earlierTargets) {
-  var samplingInfo = {
-    1 : {class: getObjectSubset("birds"),
-   selector: firstClassSelector},
-    2 : {class: getObjectSubset("birds"),
-   selector: secondClassSelector},
-    3 : {class: getObjectSubset("birds"),
-   selector: thirdClassSelector}
-  };
-
-  var conditionParams = condition.slice(-2).split("");
-  var firstDistrInfo = samplingInfo[conditionParams[0]];
-  var secondDistrInfo = samplingInfo[conditionParams[1]];
-  var remainingTargets = getRemainingTargets(earlierTargets);
-
-  var target = _.sample(remainingTargets);
-  var firstDistractor = firstDistrInfo.selector(target, firstDistrInfo.class);
-  var secondDistractor = secondDistrInfo.selector(target, secondDistrInfo.class);
-  if(checkItem(condition,target,firstDistractor,secondDistractor)) {
-    // attach "condition" to each stimulus object
-    return _.map([target, firstDistractor, secondDistractor], function(x) {
-      return _.extend(x, {condition: condition});
-    });
-  } else { // Try again if something is wrong
-    return sampleObjects(condition, earlierTargets);
-  }
-};
-
-
-
-
-
-// NOT NECESSARY FOR SKETCHPAD TASK??
-var checkItem = function(condition, target, firstDistractor, secondDistractor) {
-  var f = 5; // floor difference
-  var t = 20; // threshold
-  var targetVsDistr1 = utils.colorDiff(target.color, firstDistractor.color);
-  var targetVsDistr2 = utils.colorDiff(target.color, secondDistractor.color);
-  var distr1VsDistr2 = utils.colorDiff(firstDistractor.color, secondDistractor.color);
-  if(targetVsDistr1 < f || targetVsDistr2 < f || distr1VsDistr2 < f) {
-    return false;
-  } else if(condition === "equal") {
-    return targetVsDistr1 > t && targetVsDistr2 > t && distr1VsDistr2 > t;
-  } else if (condition === "closer") {
-    return targetVsDistr1 < t && targetVsDistr2 < t && distr1VsDistr2 < t;
-  } else if (condition === "further") {
-    return targetVsDistr1 < t && targetVsDistr2 > t && distr1VsDistr2 > t;
-  } else {
-    throw "condition name (" + condition + ") not known";
-  }
-};
-
-var firstClassSelector = function(target, list) {
-  return _.sample(_.filter(list, function(x) {
-    return target.basic === x.basiclevel;
-  }));
-};
-
-var secondClassSelector = function(target, list) {
-  return _.sample(_.filter(list, function(x) {
-    return target.superdomain === x.superdomain;
-  }));
-};
-
-var thirdClassSelector = function(target, list) {
-  return _.extend(_.sample(list),{targetStatus : "distrClass3"});
-};
-
-
 // maps a grid location to the exact pixel coordinates
 // for x = 1,2,3,4; y = 1,2,3,4
 game_core.prototype.getPixelFromCell = function (x, y) {
@@ -642,17 +561,3 @@ game_core.prototype.getCellFromPixel = function (mx, my) {
   var cellY = Math.floor((my - this.cellPadding / 2) / this.cellDimensions.height) + 1;
   return [cellX, cellY];
 };
-
-
-
-// // readjusts trueX and trueY values based on the objLocation and width and height of image (objImage)
-// game_core.prototype.getTrueCoords = function (coord, objLocation, objImage) {
-//   var trueX = this.getPixelFromCell(objLocation.gridX, objLocation.gridY).centerX - objImage.width/2;
-//   var trueY = this.getPixelFromCell(objLocation.gridX, objLocation.gridY).centerY - objImage.height/2;
-//   if (coord == "xCoord") {
-//     return trueX;
-//   }
-//   if (coord == "yCoord") {
-//     return trueY;
-//   }
-// };
