@@ -176,7 +176,8 @@ var dataOutput = function() {
       phase : message_data[5],
       repetition : message_data[6],
       previous_score : message_data[7],
-      previous_bonus_score: message_data[8].replace(/~~~/g, '.')
+      previous_bonus_score: message_data[8].replace(/~~~/g, '.'),
+      subset : message_data[9]
       }
     );
     console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
