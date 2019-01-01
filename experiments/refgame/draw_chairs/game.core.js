@@ -149,6 +149,8 @@ var game_core = function(options){
     console.log('sent server update bc satisfied this.server')
     // If we're initializing the server game copy, pre-create the list of trials
     // we'll use, make a player object, and tell the player who they are
+    this.stimList = _.map(require('./stimList_subord_v2', _.clone));
+
     this.id = options.id;
     this.expName = options.expName;
     this.player_count = options.player_count;
@@ -192,7 +194,6 @@ var game_player = function( game_instance, player_instance) {
 // server side we set some classes to global types, so that
 // we can use them in other files (specifically, game.server.js)
 if('undefined' != typeof global) {  
-  var stimList = _.map(require('./stimList_subord_v2', _.clone));
   module.exports = {game_core, game_player};
 }
 
@@ -300,9 +301,9 @@ game_core.prototype.getRandomizedConditions = function() {
     // independent random sampling to decide whether to use subset "A" or subset "B" within each cluster
     var sampledSubsetRepeated = _.sample(["A","B"]);
     var sampledSubsetControl = _.sample(["A","B"]);    
-    _r = _.filter(stimList, ({subset,basic}) => subset == sampledSubsetRepeated && basic == repeatedCat);
+    _r = _.filter(this.stimList, ({subset,basic}) => subset == sampledSubsetRepeated && basic == repeatedCat);
     var repeatedObjs = _.values(_.mapValues(_r, ({object}) => object));
-    _c = _.filter(stimList, ({subset,basic}) => subset == sampledSubsetControl && basic == controlCat);
+    _c = _.filter(this.stimList, ({subset,basic}) => subset == sampledSubsetControl && basic == controlCat);
     var controlObjs = _.values(_.mapValues(_c, ({object}) => object));    
   }
 
@@ -314,12 +315,12 @@ game_core.prototype.getRandomizedConditions = function() {
     target = repeatedObjs[i];
     trial =
     {
-      'object': repeatedObjs,
+      'objectIDs': repeatedObjs,
       'category': repeatedCat,
       'subset': sampledSubsetRepeated,      
       'pose': 35,
       'condition':'repeated',
-      'target': target,
+      'targetID': target,
       'phase': 'pre',
       'repetition': 0,
       'repeatedColor':repeatedColor
@@ -330,12 +331,12 @@ game_core.prototype.getRandomizedConditions = function() {
     target = controlObjs[i];
     trial =
     {
-      'object': controlObjs,
+      'objectIDs': controlObjs,
       'category': controlCat,
       'subset': sampledSubsetControl,      
       'pose': 35,
       'condition':'control',
-      'target': target,
+      'targetID': target,
       'phase': 'pre',
       'repetition': 0,
       'repeatedColor':repeatedColor
@@ -353,12 +354,12 @@ game_core.prototype.getRandomizedConditions = function() {
       target = repeatedObjs[i];
       trial =
       {
-        'object': repeatedObjs,
+        'objectIDs': repeatedObjs,
         'category': repeatedCat,
         'subset': sampledSubsetRepeated,      
         'pose': 35,
         'condition':'repeated',
-        'target': target,
+        'targetID': target,
         'phase': 'repeated',
         'repetition': rep,
         'repeatedColor':repeatedColor
@@ -375,12 +376,12 @@ game_core.prototype.getRandomizedConditions = function() {
     target = repeatedObjs[i];
     trial =
     {
-      'object': repeatedObjs,
+      'objectIDs': repeatedObjs,
       'category': repeatedCat,
       'subset': sampledSubsetRepeated,            
       'pose': 35,
       'condition':'repeated',
-      'target': target,
+      'targetID': target,
       'phase': 'post',
       'repetition': this.numReps+1,
       'repeatedColor':repeatedColor
@@ -391,12 +392,12 @@ game_core.prototype.getRandomizedConditions = function() {
     target = controlObjs[i];
     trial =
     {
-      'object': controlObjs,
+      'objectIDs': controlObjs,
       'category': controlCat,
       'subset': sampledSubsetControl,            
       'pose': 35,
       'condition':'control',
-      'target': target,
+      'targetID': target,
       'phase': 'post',
       'repetition': 1,
       'repeatedColor':repeatedColor
@@ -417,6 +418,26 @@ game_core.prototype.getRandomizedConditions = function() {
   return session; // design_dict
 
 };
+
+// filter stimList according to numObjs (setSize * 2) 
+// as of 12/31/18: as long as you're pulling from stimList_subord_v2.js, this doesn't do anything.
+var filterStimList = function(stimList, numObjs) {
+  return _.filter(stimList, ({object}) => object < numObjs); 
+}
+
+game_core.prototype.sampleTrial = function(trialInfo, currentSetSize) {
+  var filteredList = filterStimList(this.stimList, currentSetSize*2);
+  var miniTrialInfo = _.pick(trialInfo, ['condition', 'phase', 'repetition', 'repeatedColor', 'subset'])
+  var distractorLabels = ['distr1', 'distr2', 'distr3']
+
+  // Pull objects specified in trialInfo out of stimlist 
+  return _.map(trialInfo.objectIDs, objID => {
+    var objFromList = _.find(filteredList, {'basic' : trialInfo.category, 'object' : objID});
+    var targetStatus = objID == trialInfo.targetID ? 'target' : distractorLabels.pop();
+    return _.extend({}, objFromList, miniTrialInfo, {target_status: targetStatus});
+  })
+};
+
 
 game_core.prototype.sampleStimulusLocs = function() {
   var listenerLocs = _.shuffle([[1,1], [2,1], [3,1], [4,1]]); // added [5,1],[6,1]
@@ -440,12 +461,12 @@ game_core.prototype.makeTrialList = function () {
   var trialList = [];
   var currentSetSize = this.setSize;
   for (var i = 0; i < session.length; i++) {
-    var trial = session[i]
-  //for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number ---- commented out
+    var trialInfo = session[i]
+    // for (var i = 0; i < categoryList.length; i++) { // "i" indexes round number ---- commented out
     // sample four object images that are unique and follow the condition constraints
 
-    var objList = sampleTrial(currentSetSize, trial.category,trial.object,trial.pose,trial.target,trial.condition,trial.phase,trial.repetition,trial.repeatedColor, trial.subset);
-    //console.log('objList',objList);
+    var objList = this.sampleTrial(trialInfo, currentSetSize);
+    console.log('objList',objList);
 
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
@@ -518,187 +539,6 @@ game_core.prototype.server_send_update = function(){
     p.player.instance.emit( 'onserverupdate', state);});
 };
 
-var getObjectSubset = function(basicCat) {
-  return _.map(_.shuffle(_.filter(_objectList, function(x){
-    return x.basic == basicCat;
-  })), _.clone);
-};
-
-var getRemainingTargets = function(earlierTargets) {
-  var criticalObjs = getObjectSubset("target");
-  return _.filter(criticalObjs, function(x) {
-    return !_.contains(earlierTargets, x.name );
-  });
-};
-
-// filter stimList according to numObjs (setSize * 2) 
-// as of 12/31/18: as long as you're pulling from stimList_subord_v2.js, this doesn't do anything.
-var filterStimList = function(stimList, numObjs) {
-  filteredList = _.filter(stimList, ({object}) => object < numObjs); 
-  return filteredList;
-}
-
-var sampleTrial = function(currentSetSize,category,object,pose,target,condition,phase,repetition,repeatedColor,subset) {
-  filteredList = filterStimList(stimList, currentSetSize*2);
-  if (currentSetSize == 4) {
-
-    var im0 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[0]) && (s['pose']==pose) ) })[0];
-    //console.log("im0: " + "cluster: " + category[0] + "object: " + object[0] + "pose: " + pose);
-    var im1 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[1]) && (s['pose']==pose) ) })[0];
-    //console.log("im1: " + "cluster: " + category[1] + "object: " + object[1] + "pose: " + pose);
-    var im2 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[2]) && (s['pose']==pose) ) })[0];
-    //console.log("im2: " + "cluster: " + category[2] + "object: " + object[2] + "pose: " + pose);
-    var im3 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[3]) && (s['pose']==pose) ) })[0];
-    //console.log("im3: " + "cluster: " + category[3] + "object: " + object[3] + "pose: " + pose);
-
-    var im_all = [im0,im1,im2,im3];
-    //console.log("this target:" + target);
-
-    var index = object.indexOf(target);
-    var targetObj = im_all[index]; // actual target on this trial
-
-    var notTargs = _.filter(_.range(currentSetSize), function(x) { return x!=index});
-    var firstDistractor = im_all[notTargs[0]];
-    var secondDistractor = im_all[notTargs[1]];
-    var thirdDistractor = im_all[notTargs[2]];
-    _target_status = ["distractor","distractor","distractor","distractor"];
-    var target_status = _target_status[index] = "target"; // changed thisTarget to index
-    _.extend(targetObj,{target_status: "target", 
-                        condition: condition, 
-                        phase: phase, 
-                        repetition: repetition, 
-                        repeatedColor: repeatedColor,
-                        subset: subset});
-    _.extend(firstDistractor,{target_status: "distr1", 
-                              condition: condition, 
-                              phase: phase, 
-                              repetition: repetition, 
-                              repeatedColor: repeatedColor,
-                              subset: subset});
-    _.extend(secondDistractor,{target_status: "distr2", 
-                              condition: condition, 
-                              phase: phase, 
-                              repetition: repetition, 
-                              repeatedColor: repeatedColor, 
-                              subset: subset});
-    _.extend(thirdDistractor,{target_status: "distr3", 
-                              condition: condition, 
-                              phase: phase, 
-                              repetition: repetition, 
-                              repeatedColor: repeatedColor, 
-                              subset: subset});
-    return [targetObj, firstDistractor, secondDistractor, thirdDistractor];
-
-  } else {
-
-    var im0 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[0]) && (s['pose']==pose) ) })[0];
-    //console.log("im0: " + "cluster: " + category[0] + "object: " + object[0] + "pose: " + pose);
-    var im1 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[1]) && (s['pose']==pose) ) })[0];
-    //console.log("im1: " + "cluster: " + category[1] + "object: " + object[1] + "pose: " + pose);
-    var im2 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[2]) && (s['pose']==pose) ) })[0];
-    //console.log("im2: " + "cluster: " + category[2] + "object: " + object[2] + "pose: " + pose);
-    var im3 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[3]) && (s['pose']==pose) ) })[0];
-    //console.log("im3: " + "cluster: " + category[3] + "object: " + object[3] + "pose: " + pose);
-    var im4 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[4]) && (s['pose']==pose) ) })[0];
-    //console.log("im4: " + "cluster: " + category[4] + "object: " + object[4] + "pose: " + pose);
-    var im5 = _.filter(filteredList, function(s){ return ( (s['basic']==category) && (s['object']==object[5]) && (s['pose']==pose) ) })[0];
-    //console.log("im5: " + "cluster: " + category[5] + "object: " + object[5] + "pose: " + pose);
-
-    var im_all = [im0,im1,im2,im3,im4,im5];
-    //console.log("this target:" + target);
-
-    var index = object.indexOf(target);
-    //console.log("index: " + index);
-    var targetObj = im_all[index]; // actual target on this trial
-
-    var notTargs = _.filter(_.range(6), function(x) { return x!=index});
-    var firstDistractor = im_all[notTargs[0]];
-    var secondDistractor = im_all[notTargs[1]];
-    var thirdDistractor = im_all[notTargs[2]];
-    var fourthDistractor = im_all[notTargs[3]];
-    var fifthDistractor = im_all[notTargs[4]];
-    _target_status = ["distractor","distractor","distractor","distractor","distractor","distractor"];
-    var target_status = _target_status[index] = "target"; // changed thisTarget to index
-    _.extend(targetObj,{target_status: "target", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    _.extend(firstDistractor,{target_status: "distr1", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    _.extend(secondDistractor,{target_status: "distr2", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    _.extend(thirdDistractor,{target_status: "distr3", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    _.extend(fourthDistractor,{target_status: "distr4", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    _.extend(fifthDistractor,{target_status: "distr5", condition: condition, phase: phase, repetition: repetition, repeatedColor: repeatedColor});
-    return [targetObj, firstDistractor, secondDistractor, thirdDistractor, fourthDistractor, fifthDistractor];
-
-  }
-};
-
-var sampleObjects = function(condition, earlierTargets) {
-  var samplingInfo = {
-    1 : {class: getObjectSubset("birds"),
-   selector: firstClassSelector},
-    2 : {class: getObjectSubset("birds"),
-   selector: secondClassSelector},
-    3 : {class: getObjectSubset("birds"),
-   selector: thirdClassSelector}
-  };
-
-  var conditionParams = condition.slice(-2).split("");
-  var firstDistrInfo = samplingInfo[conditionParams[0]];
-  var secondDistrInfo = samplingInfo[conditionParams[1]];
-  var remainingTargets = getRemainingTargets(earlierTargets);
-
-  var target = _.sample(remainingTargets);
-  var firstDistractor = firstDistrInfo.selector(target, firstDistrInfo.class);
-  var secondDistractor = secondDistrInfo.selector(target, secondDistrInfo.class);
-  if(checkItem(condition,target,firstDistractor,secondDistractor)) {
-    // attach "condition" to each stimulus object
-    return _.map([target, firstDistractor, secondDistractor], function(x) {
-      return _.extend(x, {condition: condition});
-    });
-  } else { // Try again if something is wrong
-    return sampleObjects(condition, earlierTargets);
-  }
-};
-
-
-
-
-
-// NOT NECESSARY FOR SKETCHPAD TASK??
-var checkItem = function(condition, target, firstDistractor, secondDistractor) {
-  var f = 5; // floor difference
-  var t = 20; // threshold
-  var targetVsDistr1 = utils.colorDiff(target.color, firstDistractor.color);
-  var targetVsDistr2 = utils.colorDiff(target.color, secondDistractor.color);
-  var distr1VsDistr2 = utils.colorDiff(firstDistractor.color, secondDistractor.color);
-  if(targetVsDistr1 < f || targetVsDistr2 < f || distr1VsDistr2 < f) {
-    return false;
-  } else if(condition === "equal") {
-    return targetVsDistr1 > t && targetVsDistr2 > t && distr1VsDistr2 > t;
-  } else if (condition === "closer") {
-    return targetVsDistr1 < t && targetVsDistr2 < t && distr1VsDistr2 < t;
-  } else if (condition === "further") {
-    return targetVsDistr1 < t && targetVsDistr2 > t && distr1VsDistr2 > t;
-  } else {
-    throw "condition name (" + condition + ") not known";
-  }
-};
-
-var firstClassSelector = function(target, list) {
-  return _.sample(_.filter(list, function(x) {
-    return target.basic === x.basiclevel;
-  }));
-};
-
-var secondClassSelector = function(target, list) {
-  return _.sample(_.filter(list, function(x) {
-    return target.superdomain === x.superdomain;
-  }));
-};
-
-var thirdClassSelector = function(target, list) {
-  return _.extend(_.sample(list),{targetStatus : "distrClass3"});
-};
-
-
 // maps a grid location to the exact pixel coordinates
 // for x = 1,2,3,4; y = 1,2,3,4
 game_core.prototype.getPixelFromCell = function (x, y) {
@@ -721,17 +561,3 @@ game_core.prototype.getCellFromPixel = function (mx, my) {
   var cellY = Math.floor((my - this.cellPadding / 2) / this.cellDimensions.height) + 1;
   return [cellX, cellY];
 };
-
-
-
-// // readjusts trueX and trueY values based on the objLocation and width and height of image (objImage)
-// game_core.prototype.getTrueCoords = function (coord, objLocation, objImage) {
-//   var trueX = this.getPixelFromCell(objLocation.gridX, objLocation.gridY).centerX - objImage.width/2;
-//   var trueY = this.getPixelFromCell(objLocation.gridX, objLocation.gridY).centerY - objImage.height/2;
-//   if (coord == "xCoord") {
-//     return trueX;
-//   }
-//   if (coord == "yCoord") {
-//     return trueY;
-//   }
-// };
