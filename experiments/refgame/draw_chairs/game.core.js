@@ -311,15 +311,13 @@ game_core.prototype.getRandomizedConditions = function() {
     var controlObjs = _.values(_.mapValues(_c, ({object}) => object));    
   }
 
-  // Construct the full trial sequence
+  // define common trialInfo for each condition (omits: targetID, phase, repetition -- these are 
+  // added iteratively)
   commonRepeatedTrialInfo = {'objectIDs': repeatedObjs,
                             'category': repeatedCat,
                             'subset': sampledSubsetRepeated,      
                             'pose': 35,
                             'condition':'repeated',
-                            // 'targetID': target,
-                            // 'phase': 'pre',
-                            // 'repetition': 0,
                             'repeatedColor':repeatedColor
                             }
 
@@ -328,12 +326,8 @@ game_core.prototype.getRandomizedConditions = function() {
                             'subset': sampledSubsetControl,      
                             'pose': 35,
                             'condition':'control',
-                            // 'targetID': target,
-                            // 'phase': 'pre',
-                            // 'repetition': 0,
                             'repeatedColor':repeatedColor
                             }
-
 
   // pre phase 
   var pre = _.shuffle(_.concat(_.map(repeatedObjs, curObj => {
@@ -344,7 +338,7 @@ game_core.prototype.getRandomizedConditions = function() {
                     })));
 
   // repeated phase
-  var repeated = _.flatMap(_.range(0,this.numReps), curRep => {
+  var repeated = _.flatMap(_.range(0,numReps), curRep => {
                   return _.map(_.shuffle(repeatedObjs), curObj => {
                     return _.extend({}, commonRepeatedTrialInfo, {'phase':'repeated','repetition':curRep, 'targetID': curObj});
                   })
