@@ -312,114 +312,57 @@ game_core.prototype.getRandomizedConditions = function() {
   }
 
   // Construct the full trial sequence
+  commonRepeatedTrialInfo = {'objectIDs': repeatedObjs,
+                            'category': repeatedCat,
+                            'subset': sampledSubsetRepeated,      
+                            'pose': 35,
+                            'condition':'repeated',
+                            // 'targetID': target,
+                            // 'phase': 'pre',
+                            // 'repetition': 0,
+                            'repeatedColor':repeatedColor
+                            }
 
-  // pre
-  pre = new Array;
-  for (var i=0; i<setSize; i++) {
-    target = repeatedObjs[i];
-    trial =
-    {
-      'objectIDs': repeatedObjs,
-      'category': repeatedCat,
-      'subset': sampledSubsetRepeated,      
-      'pose': 35,
-      'condition':'repeated',
-      'targetID': target,
-      'phase': 'pre',
-      'repetition': 0,
-      'repeatedColor':repeatedColor
-    }
-    pre.push(trial);
-  }
-  for (var i=0; i<setSize; i++) {
-    target = controlObjs[i];
-    trial =
-    {
-      'objectIDs': controlObjs,
-      'category': controlCat,
-      'subset': sampledSubsetControl,      
-      'pose': 35,
-      'condition':'control',
-      'targetID': target,
-      'phase': 'pre',
-      'repetition': 0,
-      'repeatedColor':repeatedColor
-    }
-    pre.push(trial);
-  }
-  pre = _.shuffle(pre);
+  commonControlTrialInfo = {'objectIDs': controlObjs,
+                            'category': controlCat,
+                            'subset': sampledSubsetControl,      
+                            'pose': 35,
+                            'condition':'control',
+                            // 'targetID': target,
+                            // 'phase': 'pre',
+                            // 'repetition': 0,
+                            'repeatedColor':repeatedColor
+                            }
 
-  // repeated
-  repeated = new Array;
-  numReps = this.numReps;
-  for (var rep=1; rep<numReps+1; rep++) {
-    repeatedObjs = _.shuffle(repeatedObjs);
-    for (var i=0; i<setSize; i++){
-      target = repeatedObjs[i];
-      trial =
-      {
-        'objectIDs': repeatedObjs,
-        'category': repeatedCat,
-        'subset': sampledSubsetRepeated,      
-        'pose': 35,
-        'condition':'repeated',
-        'targetID': target,
-        'phase': 'repeated',
-        'repetition': rep,
-        'repeatedColor':repeatedColor
-      }
-      repeated.push(trial);
-    }
-  }
 
-  // post
-  repeatedObjs = _.shuffle(repeatedObjs);
-  controlObjs = _.shuffle(controlObjs);
-  post = new Array;
-  for (var i=0; i<setSize; i++) {
-    target = repeatedObjs[i];
-    trial =
-    {
-      'objectIDs': repeatedObjs,
-      'category': repeatedCat,
-      'subset': sampledSubsetRepeated,            
-      'pose': 35,
-      'condition':'repeated',
-      'targetID': target,
-      'phase': 'post',
-      'repetition': this.numReps+1,
-      'repeatedColor':repeatedColor
-    }
-    post.push(trial);
-  }
-  for (var i=0; i<setSize; i++) {
-    target = controlObjs[i];
-    trial =
-    {
-      'objectIDs': controlObjs,
-      'category': controlCat,
-      'subset': sampledSubsetControl,            
-      'pose': 35,
-      'condition':'control',
-      'targetID': target,
-      'phase': 'post',
-      'repetition': 1,
-      'repeatedColor':repeatedColor
-    }
-    post.push(trial);
-  }
-  post = _.shuffle(post);
+  // pre phase 
+  var pre = _.shuffle(_.concat(_.map(repeatedObjs, curObj => {
+                    return _.extend({}, commonRepeatedTrialInfo, {'phase':'pre','repetition':0, 'targetID': curObj});
+                    }), 
+                               _.map(controlObjs, curObj => {
+                    return _.extend({}, commonControlTrialInfo, {'phase':'pre','repetition':0, 'targetID': curObj});
+                    })));
 
-  session = pre.concat(repeated).concat(post);
+  // repeated phase
+  var repeated = _.flatMap(_.range(0,this.numReps), curRep => {
+                  return _.map(_.shuffle(repeatedObjs), curObj => {
+                    return _.extend({}, commonRepeatedTrialInfo, {'phase':'repeated','repetition':curRep, 'targetID': curObj});
+                  })
+                 });
 
-  for (var i = 0; i < session.length; i++) {
-    trial = session[i];
-    // console.log("trial" + i + ": " + JSON.stringify(trial, null, 3));
-  }
+  // post phase
+  var post = _.shuffle(_.concat(_.map(repeatedObjs, curObj => {
+                    return _.extend({}, commonRepeatedTrialInfo, {'phase':'post','repetition':this.numReps+1, 'targetID': curObj});
+                    }), 
+                               _.map(controlObjs, curObj => {
+                    return _.extend({}, commonControlTrialInfo, {'phase':'post','repetition':1, 'targetID': curObj});
+                    })));  
+
+  // build session by concatenating pre, repeated, and post phases
+  var session = _.concat(pre, repeated, post);
+
+  // this is the design dictionary
   return session;
-
-  //console.log(session);
-  return session; // design_dict
 
 };
 
