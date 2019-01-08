@@ -1,41 +1,3 @@
-# Recognition task
-
-##### `/experiments/recog/`
-- Input: Sketches from communication task and 3D objects
-- Output: Sketch recognizability in context
-
-### 1.2
-
-##### stimuli from `graphical_conventions_sketches_scrambled40` collection
-
-December 21, 2018
-
-- What's different:
-  - 1 recog experiment per refgame `gameID`
-  - Each experiment has 40 trials (each repetition has 4 trials, each trial from a different refgame `gameID`)
-  - Preserved temporal structure of repetitions
-
-### 1.1
-
-##### stimuli from `graphical_conventions_sketches_yoked` collection
-
-December 21, 2018
-
-- What's different:
-  - 1 recog experiment per refgame `gameID`
-  - Each experiment has 40 trials (all from the same refgame `gameID`)
-  - Preserved temporal structure of trials
-
-### 1.0
-
-##### stimuli from `graphical_conventions_sketches_scrambled10` collection
-
-November 20, 2018  
-
-- What's different:
-  - 4 recog experiments per refgame `gameID`
-  - Each experiment has 10 trials (8 sketches from repeated condition, 2 from control condition with each sketch coming from a different refgame `gameID`)
-
 # Communication task
 
 #####  `/experiments/refgame/draw_chairs/`
@@ -43,6 +5,8 @@ November 20, 2018
 - Output: Human sketches and viewer decisions over time, communication efficiency timecourse
 
 ### 2.0
+
+##### 1.2.0: `iterationName` : `run5_submitButton`, 
 
 December 24, 2018
 
@@ -104,3 +68,42 @@ June 30, 2018
       to make a correct guess. Additional bonus only given to correct guesses made under 30s (which should be more than enough for a Viewer to select an object based on the Sketcher's current sketch, but makes time cost more salient.)
     - All correct guesses receive a minimum bonus of $0.01. In the first 30s, the additional bonus players can receive       decreases from $0.03 to $0.00 -- in other words, the total bonus players an receive decreases from $0.04 to $0.01. Incorrect guesses do not receive a speed bonus, so the total bonus (accuracy bonus + speed bonus) is $0.00.
     - Two bonusmeter interfaces (progress bar and numerical feedback) were designed and the progress bar design was chosen
+
+
+# Recognition task
+
+##### `/experiments/recog/`
+- Input: Sketches from communication task and 3D objects
+- Output: Sketch recognizability in context
+
+### 1.2
+
+##### stimuli from `graphical_conventions_sketches_scrambled40` collection
+
+December 21, 2018
+
+- What's different:
+  - 1 recog experiment per refgame `gameID`
+  - Each experiment has 40 trials (each repetition has 4 trials, each trial from a different refgame `gameID`)
+  - Preserved temporal structure of repetitions
+
+### 1.1
+
+##### stimuli from `graphical_conventions_sketches_yoked` collection
+
+December 21, 2018
+
+- What's different:
+  - 1 recog experiment per refgame `gameID`
+  - Each experiment has 40 trials (all from the same refgame `gameID`)
+  - Preserved temporal structure of trials
+
+### 1.0
+
+##### stimuli from `graphical_conventions_sketches_scrambled10` collection
+
+November 20, 2018  
+
+- What's different:
+  - 4 recog experiments per refgame `gameID`
+  - Each experiment has 10 trials (8 sketches from repeated condition, 2 from control condition with each sketch coming from a different refgame `gameID`)
