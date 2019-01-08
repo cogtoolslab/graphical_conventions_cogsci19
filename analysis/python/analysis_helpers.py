@@ -805,28 +805,28 @@ def get_confusion_matrix_on_rep(D, category, set_size, repetition):
 
 ###############################################################################################
 
-def plot_between_interaction_similarity(M):
+def plot_between_interaction_similarity(M, F, rep_name):
     ### computing average of upper triangle of RDM and plotting across repetitions
     new_df = pd.DataFrame()
     for targ in M['target'].unique():
         M_targ = M[M['target'] == targ]
-        M_targ.sort_values(by=['repetition'])
+        M_targ.sort_values(by=[rep_name])
         for rep in range(8):
-            M_targ_rep = M_targ[M_targ['repetition'] == str(int(rep))]
+            M_targ_rep = M_targ[M_targ[rep_name] == int(rep)]
             inds_to_compare = M_targ_rep['feature_ind']
             features_to_compare = F[inds_to_compare, :]
             CORRMAT = np.corrcoef(features_to_compare)
             avr = np.mean(np.tril(CORRMAT)) # only upper triangle
-            df_to_add = pd.DataFrame([[rep, targ, avr]], columns=['repetition', 'target', 'average_similarity'])
+            df_to_add = pd.DataFrame([[rep, targ, avr]], columns=[rep_name, 'target', 'average_similarity'])
             new_df = new_df.append(df_to_add)
     sns.set_context('paper')
     plt.figure(figsize=(8,5))
-    sns.lineplot(data=new_df, x='repetition', y='average_similarity', estimator = np.mean)
+    sns.lineplot(data=new_df, x=rep_name, y='average_similarity', estimator = np.mean)
     plt.xlim(-0.5, 7.5)
 
 ###############################################################################################
 
-def scramble_df_within_target_rep(M):
+def scramble_df_across_gameID_within_target_and_rep(M):
     M_pseudo = pd.DataFrame()
     for target in M['target'].unique():
         M_targ = M[M['target'] == target]
@@ -836,6 +836,20 @@ def scramble_df_within_target_rep(M):
             np.random.shuffle(gameIDs)
             M_targ_rep['pseudo_gameID'] = list(gameIDs)
             M_pseudo = M_pseudo.append(M_targ_rep)
+    return M_pseudo
+
+###############################################################################################
+
+def scramble_df_across_repetition_within_target_and_gameID(M):
+    M_pseudo = pd.DataFrame()
+    for target in M['target'].unique():
+        M_targ = M[M['target'] == target]
+        for gameID in M_targ['gameID'].unique():
+            M_targ_game = M_targ[M_targ['gameID'] == gameID]
+            repetitions = np.array(M_targ_game['repetition'])
+            np.random.shuffle(repetitions)
+            M_targ_game['pseudo_repetition'] = list(repetitions)
+            M_pseudo = M_pseudo.append(M_targ_game)
     return M_pseudo
 
 ###############################################################################################

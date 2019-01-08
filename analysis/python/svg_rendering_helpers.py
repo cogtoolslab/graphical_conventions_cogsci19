@@ -37,38 +37,37 @@ def make_svg_list(stroke_recs):
     svg_list = []
     for single_stroke in stroke_recs:
         svg_string = single_stroke['svgData']
-        svg_list.append(svg_string)  
-        
+        svg_list.append(svg_string)
     return svg_list
-    
+
 def render_svg(paths,
                stroke_width = 5,
                stroke_linecap = 'round',
-               stroke_color = 'black',  
+               stroke_color = 'black',
                fill_mode = 'none',
                viewbox=[0, 0, 300, 300],
                base_dir = './',
                out_dir = 'svg',
                out_fname= 'tmp.svg'):
-    
+
     '''
     see docs for wsvg: https://www.pydoc.io/pypi/svgpathtools-1.3.3/autoapi/paths2svg/index.html?highlight=wsvg#paths2svg.wsvg
     wsvg(paths=None, colors=None, filename=join, stroke_widths=None, nodes=None, node_colors=None, node_radii=None, openinbrowser=False, timestamp=False, margin_size=0.1, mindim=600, dimensions=None, viewbox=None, text=None, text_path=None, font_size=None, attributes=None, svg_attributes=None)
     '''
-    
+
     ## render out to svg file
-    print('Rendering out to {}'.format(os.path.join(out_dir,out_fname)))
+    #print('Rendering out to {}'.format(os.path.join(out_dir,out_fname)))
     if not os.path.exists(out_dir):
-        os.makedirs(out_dir)        
+        os.makedirs(out_dir)
     wsvg(paths,
          attributes=[{'stroke-width':stroke_width,\
                       'stroke-linecap':stroke_linecap,\
                       'stroke':stroke_color,\
                       'fill':fill_mode}]*len(paths),
          viewbox=viewbox,
-         filename=os.path.join(base_dir,out_dir,out_fname))    
+         filename=os.path.join(base_dir,out_dir,out_fname))
 
-def generate_svg_path_list(svg_dir):    
+def generate_svg_path_list(svg_dir):
     svg_paths = list_files(svg_dir, ext='svg')
     svg_paths = [i for i in svg_paths if i != '.DS_Store']
     return svg_paths
@@ -81,18 +80,19 @@ def svg_to_png(svg_paths,
     '''
     if not os.path.exists(os.path.join(base_dir,out_dir)):
         os.makedirs(os.path.join(base_dir,out_dir))
-    for path in svg_paths: 
+    for path in svg_paths:
         out_path = os.path.join(base_dir,out_dir,'{}.png'.format(path.split('/')[-1].split('.')[0]))
+        ## running ImageMagick command 'convert' to convert svgs to pngs
         cmd_string = 'convert {} {}'.format(path,out_path)
         print(cmd_string)
-        os.system(cmd_string) 
+        os.system(cmd_string)
         clear_output(wait=True)
-    
-    
+
+
 
 # ######## below functions are deprecated, remove when safe ########
 # def polysegment_pathmaker(segment):
-#     x = []    
+#     x = []
 #     y = []
 #     codes = []
 #     for i,pair in enumerate(segment):
@@ -104,7 +104,7 @@ def svg_to_png(svg_paths,
 #                     codes.append(Path.MOVETO)
 #                 else:
 #                     codes.append(Path.CURVE4) # remaining control and endpoints for each spline
-#         else:      
+#         else:
 #             for _i, _l in enumerate(pair[1]):
 #                 x.append(_l[0])
 #                 y.append(_l[1])
@@ -126,18 +126,18 @@ def svg_to_png(svg_paths,
 #         patch = patches.PathPatch(path, facecolor='none', edgecolor='black',lw=2)
 #         ax.add_patch(patch)
 #         ax.set_xlim(0,500)
-#         ax.set_ylim(0,500) 
+#         ax.set_ylim(0,500)
 #         ax.axis('off')
 #         plt.gca().invert_yaxis() # y values increase as you go down in image
 #         plt.show()
 #     else:
 #         ax.set_xlim(0,500)
-#         ax.set_ylim(0,500)        
+#         ax.set_ylim(0,500)
 #         ax.axis('off')
 #         plt.show()
 # #     plt.savefig('./')
 #     plt.close()
-    
+
 # def get_verts_and_codes(svg_list):
 #     segment = []
 #     Verts = []
@@ -150,9 +150,9 @@ def svg_to_png(svg_paths,
 #         for i, p in enumerate(parsed):
 #             if len(p) == 4:
 #                 x.append(p.start.real)
-#                 y.append(p.start.imag)  
+#                 y.append(p.start.imag)
 #                 x.append(p.control1.real)
-#                 y.append(p.control1.imag) 
+#                 y.append(p.control1.imag)
 #                 x.append(p.control2.real)
 #                 y.append(p.control2.imag)
 #                 x.append(p.end.real)
@@ -160,7 +160,7 @@ def svg_to_png(svg_paths,
 #                 segment.append(["curve", zip(x,y)])
 #             else:
 #                 assert len(p) == 2
-                
+
 #                 if i != len(parsed) - 1:  # last line segment
 #                     if (p.start.real != p.end.real or p.start.imag != p.end.imag):
 #                         x.append(p.start.real)
@@ -177,9 +177,9 @@ def svg_to_png(svg_paths,
 #                 segment.append(["line", zip(x,y)])
 #         verts, codes = polysegment_pathmaker(segment)
 #         Verts.append(verts)
-#         Codes.append(codes)     
-#     return Verts, Codes 
-    
+#         Codes.append(codes)
+#     return Verts, Codes
+
 # def render_and_save(Verts,
 #                     Codes,
 #                     line_width=5,
@@ -188,16 +188,16 @@ def svg_to_png(svg_paths,
 #                     game_id='GAME_ID',
 #                     trial_num='TRIAL_NUM',
 #                     category='CATEGORY'):
-    
+
 #     '''
-#     input: 
+#     input:
 #         line_width: how wide of strokes do we want? (int)
-#         imsize: how big of a picture do we want? (setting the size of the figure) 
+#         imsize: how big of a picture do we want? (setting the size of the figure)
 #         canvas_size: original canvas size on tablet?
-#         out_path: where do you want to save your images? currently hardcoded below.        
+#         out_path: where do you want to save your images? currently hardcoded below.
 #     output:
 #         rendered sketches into nested directories
-    
+
 #     '''
 #     ## where do you want to save your cumulative drawings?
 #     out_path = os.path.join('./cumulative_drawings','{}'.format(game_id),'{}_{}'.format(trial_num,category))
@@ -210,7 +210,7 @@ def svg_to_png(svg_paths,
 #     codes = Codes[0]
 #     for i,verts in enumerate(Verts):
 #         codes = Codes[i]
-#         fig = plt.figure(figsize=(imsize,imsize))    
+#         fig = plt.figure(figsize=(imsize,imsize))
 #         ax = plt.subplot(111)
 #         ax.axis('off')
 #         ax.set_xlim(0,canvas_size)
@@ -224,7 +224,7 @@ def svg_to_png(svg_paths,
 # #             plt.show()
 
 
-#         ## save out as png 
+#         ## save out as png
 #         ## maybe to make it not render every single thing, use plt.ioff
 #         if not os.path.exists(out_path):
 #             os.makedirs(out_path)
