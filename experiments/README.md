@@ -6,9 +6,9 @@
 
 ### 2.0
 
-##### 1.2.0: `iterationName` : `run5_submitButton`, 
+##### 1.2.0: `iterationName` : `run5_submitButton`
 
-December 24, 2018
+January 8, 2019
 
 - What's new:
   - Added `useSubmitButton` flag in `game.core.js`
