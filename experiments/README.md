@@ -50,7 +50,7 @@ December 24, 2018
   - Added `useSubmitButton` flag in `game.core.js`
     - When set to `true`, the Sketcher must click the Submit button when they are done drawing for the Viewer to be able to see their drawing, so that the Viewer is not able to interrupt the Sketcher's drawing.
     - 30-second time limit in the speed bonus system still applies to the time taken since the Sketcher begins drawing until the Viewer selects an object 
-  - Minimize context variability & increase sampling density within context: The same sets of 4 dining and 4 waiting items are used across pairs. Assignment of repeated and control condition labels to each of these sets is randomized across pairs. Thus approx. half of pairs will see dining repeatedly (with waiting items as control), and half of pairs will see waiting repeatedly (with dining as control).
+  - Minimize context variability & increase sampling density within context: There are 8 versions of this experiment. Each of the chair categories: `['dining', 'waiting']` is evenly divided into two, fixed subsets: `['A','B']`. The assignment of ['repeated', 'control'] to each of the chair categories is randomized across pairs, and the repeated and control subsets are always from different chair categories. Thus approx. half of pairs will see dining repeatedly (with waiting items as control), and half of pairs will see waiting repeatedly (with dining as control). 
 
 ### 1.2
 
