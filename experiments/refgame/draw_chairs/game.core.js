@@ -44,7 +44,7 @@ var game_core = function(options){
 
   // How many objects do we have in a context?
   this.setSize = 4; // many things depend on this
-  console.log("actual setSize:" + this.setSize);
+  // console.log("actual setSize:" + this.setSize);
 
   //Dimensions of world in pixels and number of cells to be divided into;
   this.numHorizontalCells = this.setSize;
@@ -407,7 +407,7 @@ game_core.prototype.makeTrialList = function () {
     // sample four object images that are unique and follow the condition constraints
 
     var objList = this.sampleTrial(trialInfo, currentSetSize);
-    console.log('objList',objList);
+    // console.log('objList',objList);
 
     // sample locations for those objects
     var locs = this.sampleStimulusLocs();
@@ -465,7 +465,7 @@ game_core.prototype.server_send_update = function(){
     gameID: this.id
   };
 
-    console.log('state',state);
+    // console.log('state',state);
 
   _.extend(state, {players: player_packet});
   _.extend(state, {instructions: this.instructions});
