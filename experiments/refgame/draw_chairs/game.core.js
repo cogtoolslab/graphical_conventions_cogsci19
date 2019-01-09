@@ -338,7 +338,7 @@ game_core.prototype.getRandomizedConditions = function() {
                     })));
 
   // repeated phase
-  var repeated = _.flatMap(_.range(0,numReps), curRep => {
+  var repeated = _.flatMap(_.range(0,this.numReps), curRep => {
                   return _.map(_.shuffle(repeatedObjs), curObj => {
                     return _.extend({}, commonRepeatedTrialInfo, {'phase':'repeated','repetition':curRep, 'targetID': curObj});
                   })
