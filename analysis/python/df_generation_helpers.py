@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import seaborn as sns
 import re
+from IPython.display import clear_output
 
 sns.set_context('poster')
 colors = sns.color_palette("cubehelix", 5)
@@ -104,6 +105,7 @@ def get_complete_and_valid_games(games,
     for i, game in enumerate(games):
         #clear_output(wait=True)
         print('{} | {}'.format(i,game))
+        clear_output(wait=True)
         num_clicks = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'},{'iterationName':iterationName}]}).count()
         ## check to make sure there were two real mturk workers participating who were not researchers
         real_workers = False
@@ -149,8 +151,11 @@ def get_complete_and_valid_games(games,
 
 def generate_dataframe(coll, complete_games, iterationName, results_dir):
 
+    # new field in run5_submitButton to keep track of which subset of dining/waiting chairs used
+    if iterationName == 'run5_submitButton':
+        Subset = []
+    
     # preprocessing
-
     TrialNum = []
     GameID = []
     Condition = []
@@ -179,6 +184,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     _complete_games= [item for item in complete_games if item not in y]
     for i,g in enumerate(_complete_games):
             print( 'Analyzing game {} | {} of {} '.format(g, i, len(_complete_games)))
+            clear_output(wait=True)
 
             # collection of all clickedObj events in a particular game
             X = coll.find({ '$and': [{'gameid': g}, {'eventType': 'clickedObj'}]}).sort('time')
@@ -193,6 +199,8 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
                 distractors = [t['object2Name'],t['object3Name'],t['object4Name']]
                 full_list = [t['intendedName'],t['object2Name'],t['object3Name'],t['object4Name']]
                 png.append(t['pngString'])
+                if iterationName == 'run5_submitButton':
+                    Subset.append(t['subset'])
 
                 #for each stroke event with same trial number as this particular clickedObj event
                 y = coll.find({ '$and': [{'gameid': g}, {'eventType': 'stroke'}, {'trialNum': t['trialNum']}]}).sort('time')
@@ -276,6 +284,10 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     _D = pd.DataFrame([GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity, numCurvesPerSketch, numCurvesPerStroke, timedOut, png,svgString],
                      index = ['gameID','trialNum','condition', 'target', 'category', 'repetition', 'phase', 'Generalization', 'drawDuration', 'outcome', 'response', 'numStrokes', 'meanPixelIntensity', 'numCurvesPerSketch', 'numCurvesPerStroke', 'timedOut', 'png','svgString'])
     _D = _D.transpose()
+    
+    # if run5_submitButton, add the subset column
+    if iterationName == 'run5_submitButton':
+        _D = _D.assign(subset=pd.Series(Subset))
 
     # filter out crazy games (low accuracy and timeouts)
     accuracy_list = []
@@ -305,7 +317,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
 
     #D_dining_repeated = D[(D['category'] == 'dining')& (D['condition'] == 'repeated')]
     # Just look at one game
-
+    print 'Done!'
     return D
 
 ###############################################################################################
