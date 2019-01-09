@@ -183,15 +183,16 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     y = ['3601-5426f18c-ab9f-40c9-b627-e4d09ce1679a'] ## game where trial 4 was repeated
     _complete_games= [item for item in complete_games if item not in y]
     for i,g in enumerate(_complete_games):
-            print( 'Analyzing game {} | {} of {} '.format(g, i, len(_complete_games)))
-            clear_output(wait=True)
 
             # collection of all clickedObj events in a particular game
             X = coll.find({ '$and': [{'gameid': g}, {'eventType': 'clickedObj'}]}).sort('time')
             # collection of all stroke events in a particular game
             Y = coll.find({ '$and': [{'gameid': g}, {'eventType': 'stroke'}]}).sort('time')
-
+            counter = 0
             for t in X: # for each clickedObj event
+                print( 'Analyzing game {} | {} of {} | trial {}'.format(g, i, len(_complete_games),counter))
+                clear_output(wait=True)                                
+                counter += 1
                 targetname = t['intendedName']
                 category = OBJECT_TO_CATEGORY_run2[targetname]
                 Phase.append(t['phase'])
