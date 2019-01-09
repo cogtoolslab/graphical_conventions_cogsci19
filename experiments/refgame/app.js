@@ -32,7 +32,7 @@ if(argv.expname) {
   var exp = argv.expname.replace(/\/$/, "");
   var gameServer = new Server(exp);
 } else {
-  console.log('no expname specified; using the default expname, "draw"')
+  console.log('no expname specified; using the default expname, "draw_chairs"')
   var exp = 'draw_chairs';
   var gameServer = new Server(exp);
 }
