@@ -180,7 +180,7 @@ var dataOutput = function() {
       subset : message_data[9]
       }
     );
-    console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','score','bonus_score']), null, 3));
+    console.log(JSON.stringify(_.pick(output, ['trialNum','intendedName','clickedName','correct','previous_score','previous_bonus_score','subset']), null, 3));
     return output;
   };
 
