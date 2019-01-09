@@ -86,8 +86,7 @@ function serve() {
 
       // hardcoded for now (TODO: get list of collections in db)
       var collectionList = ['sketchpad_basic','sketchpad_repeated',
-          'chatbox_basic', 'graphical_conventions', //'chairs_chatbox',
-          'artificialLanguage']; 
+          'graphical_conventions', 'graphical_conventions_recog']; 
 
       function checkCollectionForHits(collectionName, query, projection, callback) {
         const collection = database.collection(collectionName);        
