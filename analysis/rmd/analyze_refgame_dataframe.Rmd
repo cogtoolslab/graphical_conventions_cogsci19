@@ -35,10 +35,6 @@ d %>%
 ```
 
 ```{r}
-print(d.bis.drawDuration )
-```
-
-```{r}
 # generate "baseline" bis dataframe that computes pre-phase BIS, grouped by condition and gameID
 bbis <-d.bis.drawDuration %>%
       filter(repetition==0) %>%
@@ -81,12 +77,17 @@ ggsave('../../writing/cogsci19/figures/bis_score.pdf', width=14, height = 14, un
 ## Mixed-effects model for BIS (on drawDuration)
 
 ```{r}
-#lmer model for interaction between repetition and condition for bis (right syntax but doesn't converge)
-interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | gameID) + (1 + phase*condition | target), 
+# preferred model definition for interaction between repetition and condition for bis -- has right syntax but doesn't converge
+# interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target) + (1 + phase*condition | gameID)
+
+# alternative model definition (removing game-wise random effects for phase*condition interaction)
+interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target), 
                         data = d.bis.drawDuration %>%
                                 filter(repetition == 0 | repetition == 7) %>% 
                                 mutate(phase = ifelse(repetition == 0, 'pre', 'post'))) 
-coef(summary(interaction_lmm))
+
+print(summary(interaction_lmm))
+#print(coef(summary(interaction_lmm)))
 ```
 
 ## Within-interaction convergence
