@@ -34,6 +34,8 @@ d %>%
   group_by(numStrokes) %>% ggplot(aes(x = numStrokes)) + geom_histogram()
 ```
 
+## Behavioral Results: BIS analysis (on drawDuration)
+
 ```{r}
 # generate "baseline" bis dataframe that computes pre-phase BIS, grouped by condition and gameID
 bbis <-d.bis.drawDuration %>%
@@ -45,12 +47,6 @@ bbis <-d.bis.drawDuration %>%
 d.bis.drawDuration <- inner_join(d.bis.drawDuration, bbis, by = c('condition','gameID'), suffix = c("","_baseline")) %>%
                       mutate(bis_score_relative = bis_score - bis_score_baseline)
 ```
-
-
-```{r}
-
-```
-## Behavioral Results: BIS analysis (on drawDuration)
 
 ```{r}
 d.bootstrap <- d.bis.drawDuration %>% group_by(condition, repetition) %>% tidyboot_mean(column=bis_score_relative)
