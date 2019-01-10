@@ -17,10 +17,8 @@ library(tidyboot)
 # Recognition timecourse analyses 
 
 ```{r}
-
 d.recog <- read_csv('../../results/graphical_conventions_recog_data.csv') %>%
   mutate(version = factor(version))
-
 ```
 
 ### get bootstrapped accuracy x repetition, broken out by version
