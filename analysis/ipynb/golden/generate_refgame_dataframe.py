@@ -34,7 +34,7 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 '''
 To generate main dataframe from pymongo database, run, e.g.:
 
-python generate_dataframe.py
+python generate_refgame_dataframe.py
 
 '''
 
@@ -65,7 +65,6 @@ if not os.path.exists(csv_dir):
 import df_generation_helpers as h
 if sys.version_info[0]>=3:
     from importlib import reload
-reload(h)
 
 # set vars
 auth = pd.read_csv('auth.txt', header = None) # this auth.txt file contains the password for the sketchloop user
@@ -101,11 +100,12 @@ print str(S1.count() + S2.count()) + ' stroke records in the database.'
 print str(C1.count() + S2.count()) + ' clickedObj records in the database.' # previously 722 so 882 ideally
 
 ## get list of all candidate games
-games = coll.distinct('gameid')
+run3_games = coll.find({'iterationName':iterationName1}).distinct('gameid')
+run4_games = coll.find({'iterationName':iterationName2}).distinct('gameid')
 
 ## get list of complete and valid games
-run3_complete_games = h.get_complete_and_valid_games(games,coll,iterationName1,researchers=researchers, tolerate_undefined_worker=False)
-run4_complete_games = h.get_complete_and_valid_games(games,coll,iterationName2,researchers=researchers, tolerate_undefined_worker=False)
+run3_complete_games = h.get_complete_and_valid_games(run3_games,coll,iterationName1,researchers=researchers, tolerate_undefined_worker=False)
+run4_complete_games = h.get_complete_and_valid_games(run4_games,coll,iterationName2,researchers=researchers, tolerate_undefined_worker=False)
 ## generate actual dataframe and get only valid games (filtering out games with low accuracy, timeouts)
 D_run3 = h.generate_dataframe(coll, run3_complete_games, iterationName1, results_dir)
 D_run4 = h.generate_dataframe(coll, run4_complete_games, iterationName2, results_dir)
@@ -120,6 +120,7 @@ D = h.add_recog_session_ids(D)
 D = h.add_distractors_and_shapenet_ids(D)
 
 # write out main dataframe to results dir
+D.rename(index=str, columns={"Generalization": "generalization"})
 D.to_csv(os.path.join(results_dir, 'graphical_conventions.csv'))
 
 ## write out bis dataframe to results dir
