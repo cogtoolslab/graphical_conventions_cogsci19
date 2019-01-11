@@ -120,7 +120,7 @@ D = h.add_recog_session_ids(D)
 D = h.add_distractors_and_shapenet_ids(D)
 
 # write out main dataframe to results dir
-D.rename(index=str, columns={"Generalization": "generalization"})
+D = D.rename(index=str, columns={"Generalization": "generalization"})
 D.to_csv(os.path.join(results_dir, 'graphical_conventions.csv'))
 
 ## write out bis dataframe to results dir
