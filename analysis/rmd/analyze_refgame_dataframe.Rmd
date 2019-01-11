@@ -110,7 +110,6 @@ Set up pipeline for within-game similarity
 
 ```{r}
 # note: cor expects featurs to be in columns so we transpose
-ut <- upper.tri(matrix(ncol = 8,nrow = 8))
 
 get_corr_matrix = function(df) {
   feats <- F_mat[df$feature_ind,]
@@ -118,6 +117,7 @@ get_corr_matrix = function(df) {
 }
 
 flatten_corr_matrix <- function(cormat) {
+  ut <- upper.tri(cormat)
   data.frame(
     rep1 = seq(0,7)[row(cormat)[ut]],
     rep2 = seq(0,7)[col(cormat)[ut]],
@@ -139,6 +139,8 @@ compute_within_similarity <- function(M_mat, id, nboot = 1) {
 }
 ```
 
+compute both true empirical & permuted output
+
 ```{r}
 num_permutations <- 100
 empirical <- compute_within_similarity(M_mat, 'empirical', nboot = 100)
@@ -148,6 +150,8 @@ baselines <- map_dfr(seq_len(num_permutations), ~M_mat %>%
   ungroup() %>%
   compute_within_similarity(.x)) # this passes in the iteration number
 ```
+
+Plot with permutations
 
 ```{r}
 baselines %>% 
@@ -168,7 +172,17 @@ baselines %>%
 ## Between-interaction divergence 
 
 ```{r}
+average_corr_matrix <- function(cormat) {
+  ut <- lower.tri(cormat)
+  return(mean(cormat[ut]))
+}
 
+M_mat %>%
+  arrange(target, repetition) %>%
+  group_by(target, repetition) %>%
+  do(summarize(., m = average_corr_matrix(get_corr_matrix(.)))) %>%
+  group_by(repetition) %>%
+  tidyboot_mean(col = m)
 
 ```
 
