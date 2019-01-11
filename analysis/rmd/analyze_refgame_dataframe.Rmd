@@ -22,6 +22,10 @@ d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_dr
 d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') %>% select(-X1)
 ```
 
+```{r}
+d
+```
+
 ## Generate histograms for numCurvesPerSketch and numStrokes 
 
 ```{r}
@@ -37,33 +41,55 @@ d %>%
 ## Behavioral Results: BIS analysis (on drawDuration)
 
 ```{r}
-d.bootstrap <- d.bis.drawDuration %>% group_by(condition, repetition) %>% tidyboot_mean(column=bis_score)
+# generate "baseline" bis dataframe that computes pre-phase BIS, grouped by condition and gameID
+bbis <-d.bis.drawDuration %>%
+      filter(repetition==0) %>%
+      group_by(condition,gameID) %>%
+      summarize(bis_score = mean(bis_score))
+
+# add this "baseline" bis to each row of original bis dataframe
+d.bis.drawDuration <- inner_join(d.bis.drawDuration, bbis, by = c('condition','gameID'), suffix = c("","_baseline")) %>%
+                      mutate(bis_score_relative = bis_score - bis_score_baseline) %>%
+                      mutate(repetition_1 = repetition + 1)
+```
+
+```{r}
+d.bootstrap <- d.bis.drawDuration %>% group_by(condition, repetition_1) %>% tidyboot_mean(column=bis_score_relative)
+
 d.bootstrap %>%
-  ggplot(aes(x=repetition,y=empirical_stat, color=condition, fill=condition)) + 
+  ggplot(aes(x=repetition_1,y=empirical_stat, color=condition, fill=condition)) + 
     geom_ribbon(aes(ymin=ci_lower, ymax = ci_upper), alpha =.25, color=NA,
                 data = d.bootstrap %>% filter(condition == 'repeated')) + # position = dodge, 
-    geom_line()+#data = d.bootstrap %>% filter(condition == 'repeated')) + 
-    geom_errorbar(aes(ymin=ci_lower, ymax = ci_upper), width = 0,
+    geom_line(size=1.5)+#data = d.bootstrap %>% filter(condition == 'repeated')) + 
+    geom_errorbar(aes(ymin=ci_lower, ymax = ci_upper), width = 0, size = 1.5,
                   data = d.bootstrap %>% filter(condition == 'control')) + 
-    geom_point(size = 2) + 
-    scale_x_continuous(breaks = round(seq(min(d.bootstrap$repetition), max(d.bootstrap$repetition), by =1),1)) + 
-    ylab("BIS") +
-    #ylim(-1,1) +
-    theme_bw() +
-    scale_color_manual(values=c("#cc0000", "#0066cc")) + 
-    scale_fill_manual(values=c("#cc0000", "#0066cc")) + 
-  theme(legend.position = c(0.9, 0.2))
-ggsave('../../writing/cogsci19/figures/bis_score.pdf', width=20, height = 15, units='cm')
+    # geom_point(size = 5) + 
+    ylab("relative efficiency") +
+    xlab("repetition") +
+    theme_few() +
+    scale_x_continuous(breaks = round(seq(min(d.bootstrap$repetition_1), max(d.bootstrap$repetition_1), by =1),1)) + 
+    scale_y_continuous(breaks = seq(-0.5,2.5,0.5)) +
+    scale_color_manual(values=c("#d07e93", "#163c4e")) + 
+    scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
+    theme(legend.position = c(0.8, 0.2), text = element_text(size=18), element_line(size=1), element_rect(size=2, color="#00000"))
+ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, units='cm')
 
 ```
 
 ## Mixed-effects model for BIS (on drawDuration)
 
 ```{r}
-#lmer model for interaction between repetition and condition for bis (right syntax but doesn't converge)
-interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | gameID) + (1 + phase*condition | target), data = d.bis.drawDuration %>%
-                          filter(repetition == 0 | repetition == 7) %>% mutate(phase = ifelse(repetition == 0, 'pre', 'post'))) 
-coef(summary(interaction_lmm))
+# preferred model definition for interaction between repetition and condition for bis -- has right syntax but doesn't converge
+# interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target) + (1 + phase*condition | gameID)
+
+# alternative model definition (removing game-wise random effects for phase*condition interaction)
+interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target), 
+                        data = d.bis.drawDuration %>%
+                                filter(repetition == 0 | repetition == 7) %>% 
+                                mutate(phase = ifelse(repetition == 0, 'pre', 'post'))) 
+
+print(summary(interaction_lmm))
+#print(coef(summary(interaction_lmm)))
 ```
 
 ## Within-interaction convergence
