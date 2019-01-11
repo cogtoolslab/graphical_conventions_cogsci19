@@ -22,6 +22,10 @@ d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_dr
 d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') %>% select(-X1)
 ```
 
+```{r}
+d
+```
+
 ## Generate histograms for numCurvesPerSketch and numStrokes 
 
 ```{r}
@@ -60,7 +64,7 @@ d.bootstrap %>%
     geom_errorbar(aes(ymin=ci_lower, ymax = ci_upper), width = 0, size = 1.5,
                   data = d.bootstrap %>% filter(condition == 'control')) + 
     # geom_point(size = 5) + 
-    ylab("normalized efficiency") +
+    ylab("relative efficiency") +
     xlab("repetition") +
     theme_few() +
     scale_x_continuous(breaks = round(seq(min(d.bootstrap$repetition_1), max(d.bootstrap$repetition_1), by =1),1)) + 
@@ -68,7 +72,7 @@ d.bootstrap %>%
     scale_color_manual(values=c("#d07e93", "#163c4e")) + 
     scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
     theme(legend.position = c(0.8, 0.2), text = element_text(size=18), element_line(size=1), element_rect(size=2, color="#00000"))
-ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 14, units='cm')
+ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, units='cm')
 
 ```
 

@@ -431,7 +431,7 @@ def save_bis_scores(D):
     D = pd.concat([D_repeated, D_control], axis = 0)
 
     standardized_outcome = standardize(D, 'outcome')
-    standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID','condition', 'target'], axis = 1)
+    standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID','condition', 'target','Generalization'], axis = 1)
     standardized_drawDuration = standardize(D, 'drawDuration')
     standardized_numStrokes = standardize(D, 'numStrokes')
 
