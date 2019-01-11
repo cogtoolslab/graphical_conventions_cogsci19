@@ -385,28 +385,33 @@ def standardize(D, dv):
     game_id_list = []
     target_list = []
     condition_list = []
+    generalization_list = []
     for g in D['gameID'].unique():
         D_game = D[D['gameID'] == g]
-        mean = np.mean(np.array(D_game[dv]))
-        std = np.std(np.array(D_game[dv]))
+        mu = np.mean(np.array(D_game[dv]))
+        sd = np.std(np.array(D_game[dv]))
         for t in list(D_game['trialNum']):
             game_id_list.append(g)
             D_trial = D_game[D_game['trialNum'] == t]
             trialNum_list.append(t)
-            if std == 0:
+            if sd == 0:
                 z_score = 0
             else:
-                z_score = (list(D_trial[dv])[0] - mean) / float(std)
+                z_score = (D_trial[dv].values[0] - mu) / float(sd)
             dv_list.append(z_score)
             rep_list.append(list(D_trial['repetition'])[0])
             condition_list.append(list(D_trial['condition'])[0])
             target_list.append(list(D_trial['target'])[0])
+            generalization_list.append(list(D_trial['generalization'])[0])
+            
     new_D['trialNum'] = trialNum_list
     new_D[dv] = dv_list
     new_D['repetition'] = rep_list
     new_D['gameID'] = game_id_list
     new_D['condition'] = condition_list
     new_D['target'] = target_list
+    new_D['generalization'] = generalization_list
+    
     return new_D
 
 ###############################################################################################
@@ -431,7 +436,7 @@ def save_bis_scores(D):
     D = pd.concat([D_repeated, D_control], axis = 0)
 
     standardized_outcome = standardize(D, 'outcome')
-    standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID','condition', 'target','Generalization'], axis = 1)
+    standardized_outcome = standardized_outcome.loc[:,'outcome']
     standardized_drawDuration = standardize(D, 'drawDuration')
     standardized_numStrokes = standardize(D, 'numStrokes')
 
@@ -501,7 +506,7 @@ def add_distractors_and_shapenet_ids(D):
     D['target_shapenet'] = target_shapenets
     for i,d in D.iterrows():
         target = d['target']
-        shapenet_id = h.object_to_shapenet[target]
+        shapenet_id = object_to_shapenet[target]
         D.loc[i, 'target_shapenet'] = shapenet_id
     # add distractor
     # add shapenet ids for distractors
@@ -516,7 +521,7 @@ def add_distractors_and_shapenet_ids(D):
         distractors_list = [target for target in target_list if target !=  d['target']]
         distractors_dict = {'distractor1':distractors_list[0],'distractor2':distractors_list[1],'distractor3':distractors_list[2]}
         D.at[i, 'distractors'] = distractors_dict
-        shapenets_list = [h.object_to_shapenet[dist] for dist in distractors_list]
+        shapenets_list = [object_to_shapenet[dist] for dist in distractors_list]
         shapenets_dict = {'distractor1':shapenets_list[0],'distractor2':shapenets_list[1],'distractor3':shapenets_list[2]}
         D.at[i, 'distractors_shapenet'] = shapenets_dict
     if 'Unnamed: 0' in list(D.columns.values):
