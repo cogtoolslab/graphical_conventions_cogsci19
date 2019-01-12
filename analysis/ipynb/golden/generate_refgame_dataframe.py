@@ -121,7 +121,7 @@ D = h.add_distractors_and_shapenet_ids(D)
 
 # write out main dataframe to results dir
 D = D.rename(index=str, columns={"Generalization": "generalization"})
-D.to_csv(os.path.join(results_dir, 'graphical_conventions.csv'))
+D.to_csv(os.path.join(results_dir, 'graphical_conventions.csv'), index=False)
 
 ## write out bis dataframe to results dir
 drawDuration_accuracy_bis, numStrokes_accuracy_bis = h.save_bis_scores(D, results_dir)
