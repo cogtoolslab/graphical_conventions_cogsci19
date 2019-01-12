@@ -97,53 +97,48 @@ print(summary(interaction_lmm))
 Import pre-processed matrices from ipynb
 
 ```{r}
+source('./helpers.R')
 M_mat = read_csv('../../data/sketch_features/no_crop/METADATA_sketch.csv') %>%
   filter(condition == 'repeated') %>%
   select(gameID, target, repetition, feature_ind) %>%
-  mutate(feature_ind = feature_ind + 1) %>% # Have to correct for R 1-indexing...
+  mutate(feature_ind = feature_ind + 1,
+         repetition = as.numeric(repetition)) %>% # Have to correct for R 1-indexing...
   arrange(gameID, target, repetition) 
-F_mat = as.matrix(read_delim('../ipynb/rxdh/F.txt', delim=',', col_names=F))
+F_mat = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch.txt', delim=',', col_names=F))
 colnames(F_mat) <- NULL
+```
+
+Sanity check of whitening:
+
+```{r}
+cat('avg feat mean = ', mean(apply(F_mat, 2, mean)), '\n')
+cat('avg feat sd = ', mean(apply(F_mat, 2, sd)))
 ```
 
 Set up pipeline for within-game similarity
 
 ```{r}
-# note: cor expects featurs to be in columns so we transpose
+F_by_game <- whitenF(M_mat, F_mat, 'by_game')
+F_by_target <- whitenF(M_mat, F_mat, 'by_target')
+```
 
-get_corr_matrix = function(df) {
-  feats <- F_mat[df$feature_ind,]
-  return(cor(t(feats)))
-}
-
-flatten_corr_matrix <- function(cormat) {
-  ut <- upper.tri(cormat)
-  data.frame(
-    rep1 = seq(0,7)[row(cormat)[ut]],
-    rep2 = seq(0,7)[col(cormat)[ut]],
-    cor  = cormat[ut]
-  )
-}
-
-compute_within_similarity <- function(M_mat, id, nboot = 1) {
-  cat('\r', id, '/100')
-  return(M_mat %>%
-    complete(nesting(gameID, target), repetition) %>%  # Fill in NAs for missing repetitions
+```{r}
+# lmer model
+summary(lmer(cor ~ phase + (1 | gameID) + (1 | target),
+     data = M_mat %>%
     group_by(gameID, target) %>%
-    do(flatten_corr_matrix(get_corr_matrix(.))) %>%
-    filter(rep2 == rep1 + 1) %>%                       # only interested in successive reps
-    group_by(rep1, rep2) %>%
-    tidyboot_mean(col = cor, nboot = nboot, na.rm = T) %>%
-    unite(`rep diff`, rep1, rep2, sep = '->')) %>%
-    mutate(sample_id = id)
-}
+    do(flatten_sim_matrix(get_sim_matrix(., F_by_game, method = 'euclidean'))) %>%
+    filter(rep2 == rep1 + 1) %>% 
+    filter(rep1 %in% c(0,6)) %>%
+    mutate(phase = ifelse(rep1 == 0, 'pre', 'post')) %>%
+    mutate(phase = factor(phase, levels = c('pre', 'post')))))
 ```
 
 compute both true empirical & permuted output
 
 ```{r}
 num_permutations <- 100
-empirical.within <- compute_within_similarity(M_mat, 'empirical', nboot = 100)
+empirical.within <- compute_within_similarity(M_mat, 'empirical', nboot = 500)
 baselines.within <- map_dfr(seq_len(num_permutations), ~M_mat %>%
   group_by(target, repetition) %>%
   mutate(gameID = sample(gameID)) %>% # shuffle within target-rep 
@@ -154,40 +149,38 @@ baselines.within <- map_dfr(seq_len(num_permutations), ~M_mat %>%
 Plot with permutations
 
 ```{r}
-baselines.within %>% 
-  group_by(`rep diff`) %>% 
+baselines.within %>%
+  group_by(`rep diff`) %>%
   summarize(`ci_upper`=quantile(empirical_stat, probs=0.975),
             `ci_lower`=quantile(empirical_stat, probs=0.025),
             `empirical_stat`=quantile(empirical_stat, probs=0.5)) %>%
   mutate(sample_id = 'baseline') %>%
   rbind(empirical.within %>% select(-n, -mean)) %>%
   ggplot(aes(x = `rep diff`, y = empirical_stat, 
-             fill = sample_id == 'empirical', color = sample_id == 'empirical', group = sample_id)) +
+                               fill = sample_id == 'empirical', color = sample_id == 'empirical', group = sample_id)) +
     geom_line() +
     geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA ) + #data = empirical, 
     theme_few() +
+    #ylim(0,.4) +
     guides(fill = F, color = F)
 ```
 
 ## Between-interaction divergence 
 
+Look at curves broken out by target
+
 ```{r}
-average_corr_matrix <- function(cormat) {
-  ut <- lower.tri(cormat)
-  return(mean(cormat[ut]))
-}
+mod1 <- lmer(sim ~ repetition + (1 + repetition | target), data = M_mat %>%
+  group_by(target, repetition) %>%
+  do(flatten_sim_matrix_across(get_sim_matrix(., F_by_target, method = 'euclidean'))))
+  # filter(repetition %in% c(0,7)) %>%
+  # mutate(phase = ifelse(repetition == 0, 'pre', 'post')) %>%
+  # mutate(phase = factor(phase, levels = c('pre', 'post'))))
+summary(mod1)
+```
 
-compute_across_similarity <- function(M_mat, id, nboot = 1) {
-  cat('\r', id, '/100')
-  M_mat %>%
-    group_by(target, repetition) %>%
-    do(summarize(., m = average_corr_matrix(get_corr_matrix(.)))) %>%
-    group_by(repetition) %>%
-    tidyboot_mean(col = m, nboot) %>%
-    mutate(sample_id = id)
-}
-
-empirical.across <- compute_across_similarity(M_mat, 'empirical',nboot = 100)
+```{r}
+empirical.across <- compute_across_similarity(M_mat, 'empirical',nboot = 1000)
 baselines.across <- map_dfr(seq_len(num_permutations), ~M_mat %>%
   group_by(target, gameID) %>%
   mutate(repetition = sample(repetition, size = length(repetition))) %>% # shuffle within repetition 
@@ -205,7 +198,7 @@ ggplot(aes(x = repetition, y = empirical_stat, group = sample_id,
            fill = sample_id == 'empirical', color = sample_id == 'empirical')) +
   geom_line() +
   geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA ) + #data = empirical, 
-  ylim(0,.2) +
+  #ylim(0,.2) +
   ylab('across-game similarity') +
   theme_few()
 
