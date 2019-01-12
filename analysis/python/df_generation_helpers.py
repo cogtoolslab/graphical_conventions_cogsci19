@@ -377,40 +377,43 @@ def save_sketches(D, sketch_dir, dir_name, iterationName):
 
 ###############################################################################################
 
+def zscore(x,mu,sd):
+    return (x-mu)/(sd+1e-6)
+
 def standardize(D, dv):
     new_D = pd.DataFrame()
-    trialNum_list = []
+    trial_list = []
     dv_list = []
     rep_list = []
     game_id_list = []
     target_list = []
     condition_list = []
     generalization_list = []
-    for g in D['gameID'].unique():
-        D_game = D[D['gameID'] == g]
-        mu = np.mean(np.array(D_game[dv]))
-        sd = np.std(np.array(D_game[dv]))
-        for t in list(D_game['trialNum']):
-            game_id_list.append(g)
-            D_trial = D_game[D_game['trialNum'] == t]
-            trialNum_list.append(t)
-            if sd == 0:
-                z_score = 0
-            else:
-                val = D_trial[dv].values[0].astype(np.float32)
-                z_score = (val - mu) / float(sd)
+    
+    grouped = D.groupby('gameID')  
+    ## loop through games
+    for gamename, group in grouped:
+        mu = np.mean(np.array(group[dv]))
+        sd = np.std(np.array(group[dv]))        
+        ## loop through trials within games        
+        trialwise = group.groupby('trialNum')
+        for trialname,trial in trialwise:            
+            trial_list.append(trialname)
+            val = trial[dv].values[0]
+            z_score = zscore(val, mu, sd)             
             dv_list.append(z_score)
-            rep_list.append(list(D_trial['repetition'])[0])
-            condition_list.append(list(D_trial['condition'])[0])
-            target_list.append(list(D_trial['target'])[0])
-            generalization_list.append(list(D_trial['generalization'])[0])
+            rep_list.append(trial['repetition'].values[0])       
+            game_id_list.append(gamename)                           
+            target_list.append(trial['target'].values[0])
+            condition_list.append(trial['condition'].values[0])
+            generalization_list.append(trial['generalization'].values[0])
             
-    new_D['trialNum'] = trialNum_list
+    new_D['trialNum'] = trial_list
     new_D[dv] = dv_list
     new_D['repetition'] = rep_list
     new_D['gameID'] = game_id_list
-    new_D['condition'] = condition_list
     new_D['target'] = target_list
+    new_D['condition'] = condition_list    
     new_D['generalization'] = generalization_list
     
     return new_D
