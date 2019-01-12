@@ -82,11 +82,13 @@ ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, 
 # preferred model definition for interaction between repetition and condition for bis -- has right syntax but doesn't converge
 # interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target) + (1 + phase*condition | gameID)
 
+input <- d.bis.drawDuration %>%
+         filter(repetition == 0 | repetition == 7) %>% 
+         mutate(phase = ifelse(repetition == 0, 'pre', 'post'))
+
 # alternative model definition (removing game-wise random effects for phase*condition interaction)
 interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target), 
-                        data = d.bis.drawDuration %>%
-                                filter(repetition == 0 | repetition == 7) %>% 
-                                mutate(phase = ifelse(repetition == 0, 'pre', 'post'))) 
+                        data = input)
 
 print(summary(interaction_lmm))
 #print(coef(summary(interaction_lmm)))
