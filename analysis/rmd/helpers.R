@@ -65,7 +65,7 @@ compute_within_similarity <- function(M_mat, id, nboot = 1) {
            do(flatten_sim_matrix(get_sim_matrix(., F_by_game, method = 'euclidean'))) %>%
            filter(rep2 == rep1 + 1) %>%                       # only interested in successive reps
            group_by(rep1, rep2) %>%
-           tidyboot_mean(col = cor, na.rm = T, nboot = nboot) %>%
+           tidyboot_mean(col = sim, na.rm = T, nboot = nboot) %>%
            unite(`rep diff`, rep1, rep2, sep = '->')) %>%
     mutate(sample_id = id)
 }
@@ -74,8 +74,8 @@ compute_across_similarity <- function(M_mat, id, nboot = 1) {
   cat('\r', id, '/100')
   M_mat %>%
     group_by(target, repetition) %>%
-    do(summarize(., m = average_sim_matrix(get_sim_matrix(., F_by_target, method = 'euclidean')))) %>%
+    do(flatten_sim_matrix(get_sim_matrix(., F_by_target, method = 'euclidean'))) %>%
     group_by(repetition) %>%
-    tidyboot_mean(col = m, nboot) %>%
+    tidyboot_mean(col = sim, nboot) %>%
     mutate(sample_id = id)
 }
