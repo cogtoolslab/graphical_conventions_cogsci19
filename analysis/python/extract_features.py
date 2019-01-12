@@ -70,6 +70,7 @@ def save_features(Features, Y, layer_num, data_type,feat_path='/data/jefan/graph
         os.makedirs('./features')
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
     np.save(os.path.join(feat_path,'FEATURES_{}_{}.npy'.format(layers[int(layer_num)], data_type)), Features)
+    np.savetxt(os.path.join(feat_path,'FEATURES_{}_{}.txt'.format(layers[int(layer_num)], data_type)), Features, delimiter=',') ## also save as txt file
     Y.to_csv(os.path.join(feat_path,'METADATA_{}.csv'.format(data_type)), index=False)
     return layers[int(layer_num)]
 
