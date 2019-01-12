@@ -397,7 +397,8 @@ def standardize(D, dv):
             if sd == 0:
                 z_score = 0
             else:
-                z_score = (D_trial[dv].values[0] - mu) / float(sd)
+                val = D_trial[dv].values[0].astype(np.float32)
+                z_score = (val - mu) / float(sd)
             dv_list.append(z_score)
             rep_list.append(list(D_trial['repetition'])[0])
             condition_list.append(list(D_trial['condition'])[0])
@@ -427,7 +428,7 @@ def add_bis_scores(D, dv):
 
 ###############################################################################################
 
-def save_bis_scores(D):
+def save_bis_scores(D, results_dir):
 
     # split into repeated and control
     D_repeated = D[D['condition'] == 'repeated']
