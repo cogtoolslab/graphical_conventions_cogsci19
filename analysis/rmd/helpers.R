@@ -16,12 +16,13 @@ whiten <- function(feats) {
 # may be able to directly index F_out for each group instead of concatenating and then
 # setting... 
 whitenF <- function(M_mat, F_mat, how) {
-  F_out <- matrix(data = NA, nrow = dim(F_mat)[1], ncol = dim(F_mat)[2])
-  if(how == 'by_game') {
-    grouped_M <- M_mat %>% group_by(gameID, target)
-  } else if (how == 'by_target') {
-    grouped_M <- M_mat %>% group_by(target)
+  if (how == 'by_target') {
+    grouped_M <- M_mat %>% group_by(target, repetition)
+  } else {
+    stop(paste0('whitenF not supported for ', how))
   }
+
+  F_out <- matrix(data = NA, nrow = dim(F_mat)[1], ncol = dim(F_mat)[2])
   F.df <- grouped_M %>%
     do(cbind(feature_ind = .$feature_ind, repetition = .$repetition, 
              as.data.frame(whiten(F_mat[.$feature_ind,])))) %>%
@@ -37,6 +38,8 @@ get_sim_matrix = function(df, how, method = 'cor') {
     feats <- F_by_target[df$feature_ind,]
   } else if (how == 'by_game') {
     feats <- whiten(F_mat[df$feature_ind,])
+  } else {
+    feats <- F_mat[df$feature_ind,]
   }
   if(method == 'cor') {
     return(cor(t(feats), method = 'pearson'))
@@ -52,34 +55,36 @@ average_sim_matrix <- function(cormat) {
   return(mean(cormat[ut]))
 }
 
-flatten_sim_matrix <- function(cormat) {
+flatten_sim_matrix <- function(cormat, ids) {
   ut <- upper.tri(cormat)
   data.frame(
-    dim1 = seq(0,nrow(ut))[row(cormat)[ut]],
-    dim2 = seq(0,ncol(ut))[col(cormat)[ut]],
+    dim1 = ids[row(cormat)[ut]],
+    dim2 = ids[col(cormat)[ut]],
     sim  = cormat[ut]
   )
 }
 
 compute_within_similarity <- function(M_mat, id, nboot = 1) {
   cat('\r', id, '/100')
-  return(M_mat %>%
-           complete(nesting(gameID, target), repetition) %>%  # Fill in NAs for missing repetitions
-           group_by(gameID, target) %>%
-           do(flatten_sim_matrix(get_sim_matrix(., 'by_game', method = 'euclidean'))) %>%
-           rename(rep1 = dim1, rep2 = dim2) %>%
-           filter(rep2 == rep1 + 1) %>%                       # only interested in successive reps
-           group_by(rep1, rep2) %>%
-           tidyboot_mean(col = sim, na.rm = T, nboot = nboot) %>%
-           unite(`rep diff`, rep1, rep2, sep = '->')) %>%
-    mutate(sample_id = id)
+  M_mat %>%
+     complete(nesting(gameID, target), repetition) %>%  # Fill in NAs for missing repetitions
+     group_by(gameID, target) %>%
+     do(flatten_sim_matrix(get_sim_matrix(., 'by_game', method = 'euclidean'),
+                           .$repetition)) %>%
+     rename(rep1 = dim1, rep2 = dim2) %>%
+     filter(rep2 == rep1 + 1) %>%                       # only interested in successive reps
+     group_by(rep1, rep2) %>%
+     tidyboot_mean(col = sim, na.rm = T, nboot = nboot) %>%
+     unite(`rep diff`, rep1, rep2, sep = '->') %>%
+     mutate(sample_id = id)
 }
 
 compute_across_similarity <- function(M_mat, id, nboot = 1) {
   cat('\r', id, '/100')
   M_mat %>%
     group_by(target, repetition) %>%
-    do(flatten_sim_matrix(get_sim_matrix(., 'by_target', method = 'euclidean'))) %>%
+    do(flatten_sim_matrix(get_sim_matrix(., 'none', method = 'cor'),
+                          .$gameID)) %>%
     group_by(repetition) %>%
     tidyboot_mean(col = sim, nboot) %>%
     mutate(sample_id = id)
