@@ -120,11 +120,6 @@ cat('avg feat sd = ', mean(apply(F_mat, 2, sd)))
 Set up pipeline for within-game similarity
 
 ```{r}
-#F_by_game <- whitenF(M_mat, F_mat, 'by_game')
-F_by_target <- whitenF(M_mat, F_mat, 'by_target')
-```
-
-```{r}
 # lmer model
 lmer.within <- M_mat %>%
     group_by(gameID, target) %>%
@@ -161,7 +156,7 @@ baselines.within %>%
   mutate(sample_id = 'baseline') %>%
   rbind(empirical.within %>% select(-n, -mean)) %>%
   ggplot(aes(x = `rep diff`, y = empirical_stat, 
-                               fill = sample_id == 'empirical', color = sample_id == 'empirical', group = sample_id)) +
+             fill = sample_id == 'empirical', color = sample_id == 'empirical', group = sample_id)) +
     geom_line() +
     geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA ) + #data = empirical, 
     theme_few() +
@@ -171,20 +166,36 @@ baselines.within %>%
 
 ## Between-interaction divergence 
 
+```{r}
+F_by_target <- whitenF(M_mat, F_mat, 'by_target')
+```
+
 Look at curves broken out by target
 
 ```{r}
-mod1 <- lmer(sim ~ repetition + (1 + repetition | target), data = M_mat %>%
+gamepair.df <- M_mat %>%
   group_by(target, repetition) %>%
-  do(flatten_sim_matrix_across(get_sim_matrix(., F_by_target, method = 'euclidean'))))
-  # filter(repetition %in% c(0,7)) %>%
+  do(flatten_sim_matrix(get_sim_matrix(., 'none', method = 'cor'),
+                        .$gameID)) %>%
+  #filter(repetition %in% c(0,7)) %>%
   # mutate(phase = ifelse(repetition == 0, 'pre', 'post')) %>%
-  # mutate(phase = factor(phase, levels = c('pre', 'post'))))
-summary(mod1)
+  # mutate(phase = factor(phase, levels = c('pre', 'post'))) %>%
+  unite(col = 'gamepair', dim1, dim2)
+summary(lmer(sim ~ poly(repetition, 2) + (1 + repetition | gamepair) , data = gamepair.df))
 ```
 
 ```{r}
-empirical.across <- compute_across_similarity(M_mat, 'empirical',nboot = 1000)
+ggplot(gamepair.df, aes(x = as.character(repetition), y = sim)) + 
+  #geom_line(alpha = 0.1) +
+  geom_boxplot() +
+  theme_few() +
+  facet_wrap(~ target) 
+  #geom_smooth(group = 1, method = 'loess')
+  #geom_smooth(group = 1)
+```
+
+```{r}
+empirical.across <- compute_across_similarity(M_mat, 'empirical',nboot = 500)
 baselines.across <- map_dfr(seq_len(num_permutations), ~M_mat %>%
   group_by(target, gameID) %>%
   mutate(repetition = sample(repetition, size = length(repetition))) %>% # shuffle within repetition 
@@ -203,7 +214,7 @@ ggplot(aes(x = repetition, y = empirical_stat, group = sample_id,
   geom_line() +
   geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA ) + #data = empirical, 
   #ylim(0,.2) +
-  ylab('across-game similarity') +
+  ylab('across-game distance') +
   theme_few()
 
 ```
