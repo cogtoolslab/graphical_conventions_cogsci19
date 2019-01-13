@@ -7,6 +7,8 @@ import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+from sklearn.decomposition import PCA
+
 from glob import glob
 import os
 
@@ -65,17 +67,29 @@ def preprocess_features(Features, Y):
     _Y = _Y.reset_index(drop=True) # reset pandas dataframe index
     return _Features, _Y
 
-def save_features(Features, Y, layer_num, data_type,feat_path='/data/jefan/graphical_conventions/features'):
+def save_features(Features, Y, layer_num, data_type, out_dir='/data/jefan/graphical_conventions/features'):
     if not os.path.exists('./features'):
         os.makedirs('./features')
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
-    np.save(os.path.join(feat_path,'FEATURES_{}_{}.npy'.format(layers[int(layer_num)], data_type)), Features)
-    np.savetxt(os.path.join(feat_path,'FEATURES_{}_{}.txt'.format(layers[int(layer_num)], data_type)), Features, delimiter=',') ## also save as txt file
-    Y.to_csv(os.path.join(feat_path,'METADATA_{}.csv'.format(data_type)), index=True, index_label='feature_ind')
+    np.save(os.path.join(out_dir,'FEATURES_{}_{}.npy'.format(layers[int(layer_num)], data_type)), Features)
+    np.savetxt(os.path.join(out_dir,'FEATURES_{}_{}.txt'.format(layers[int(layer_num)], data_type)), Features, delimiter=',') ## also save as txt file
+    Y.to_csv(os.path.join(out_dir,'METADATA_{}.csv'.format(data_type)), index=True, index_label='feature_ind')
+    print('Saved features out to {}!'.format(out_dir))
     return layers[int(layer_num)]
 
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
+
+def apply_pca_and_save(F, layer_num, data_type, num_pcs = 512, out_dir='/data/jefan/graphical_conventions/features'):
+    pca = PCA(n_components=num_pcs)
+    pca.fit(F)
+    print('Applying PCA and transforming data, using {} components'.format(num_pcs))
+    F_ = pca.fit_transform(F)      
+    np.save(os.path.join(out_dir,'FEATURES_{}_{}_PCA_{}.npy'.format(layers[int(layer_num)], data_type, num_pcs)), F_)
+    np.savetxt(os.path.join(out_dir,'FEATURES_{}_{}_PCA_{}.txt'.format(layers[int(layer_num)], data_type, num_pcs)), F_, delimiter=',')    
+    print('Saved PC-transformed features out to {}!').format(out_dir)
+    return F_  
+
 
 if __name__ == "__main__":
     import argparse
@@ -85,7 +99,9 @@ if __name__ == "__main__":
     parser.add_argument('--data', type=str, help='full path to images', \
                         default=os.path.join(sketch_dir,'combined'))
     parser.add_argument('--layer_ind', help='fc6 = 5, fc7 = 6', default=5)
+    parser.add_argument('--num_pcs', help='number of principal components', default=512)    
     parser.add_argument('--data_type', help='"images" or "sketch"', default='images')
+    parser.add_argument('--out_dir', help='path to save features to', default='/data/jefan/graphical_conventions/features')    
     parser.add_argument('--spatial_avg', type=bool, help='collapse over spatial dimensions, preserving channel activation only if true', default=True)     
     parser.add_argument('--crop_sketch', type=str2bool, help='do we crop sketches by default?', default='False')     
     parser.add_argument('--test', type=str2bool, help='testing only, do not save features', default='False')  
@@ -115,5 +131,6 @@ if __name__ == "__main__":
     _Features, _Y = preprocess_features(Features, Y)
 
     if args.test==False:
-        layer = save_features(_Features, _Y, args.layer_ind, args.data_type)        
+        layer = save_features(_Features, _Y, args.layer_ind, args.data_type,out_dir = args.out_dir)   
+        _Features_PCA = apply_pca_and_save(_Features, args.layer_ind, args.data_type, num_pcs = args.num_pcs, out_dir=args.out_dir)
        
