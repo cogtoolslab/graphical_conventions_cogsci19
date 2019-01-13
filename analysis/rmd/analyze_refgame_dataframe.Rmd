@@ -120,20 +120,22 @@ cat('avg feat sd = ', mean(apply(F_mat, 2, sd)))
 Set up pipeline for within-game similarity
 
 ```{r}
-F_by_game <- whitenF(M_mat, F_mat, 'by_game')
+#F_by_game <- whitenF(M_mat, F_mat, 'by_game')
 F_by_target <- whitenF(M_mat, F_mat, 'by_target')
 ```
 
 ```{r}
 # lmer model
-summary(lmer(cor ~ phase + (1 | gameID) + (1 | target),
-     data = M_mat %>%
+lmer.within <- M_mat %>%
     group_by(gameID, target) %>%
-    do(flatten_sim_matrix(get_sim_matrix(., F_by_game, method = 'euclidean'))) %>%
+    do(flatten_sim_matrix(get_sim_matrix(., 'by_game', method = 'euclidean'))) %>%
+    rename(rep1 = dim1, rep2 = dim2) %>%
     filter(rep2 == rep1 + 1) %>% 
     filter(rep1 %in% c(0,6)) %>%
     mutate(phase = ifelse(rep1 == 0, 'pre', 'post')) %>%
-    mutate(phase = factor(phase, levels = c('pre', 'post')))))
+    mutate(phase = factor(phase, levels = c('pre', 'post'))) %>%
+    ungroup()
+summary(lmer(sim ~ phase + (1 | gameID) + (1 | target), data = lmer.within))
 ```
 
 compute both true empirical & permuted output
