@@ -177,7 +177,7 @@ ggplot(d.toplot, aes(x = `rep diff`, y = empirical_stat,
     scale_color_manual(values=c("#d07e93", "#163c4e")) + 
     scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
     scale_x_discrete(labels = c('(1,2)','(2,3)', '(3,4)', '(4,5)', '(5,6)' ,'(6,7)','(7,8)')) +
-    ylim(.5, .77) +
+    ylim(.5, .8) +
     ylab('correlation') +
     ggtitle('within-pair') +
     theme_few() +
@@ -224,7 +224,9 @@ baselines.across <- map_dfr(seq_len(1000), ~M_mat %>%
   mutate(repetition = sample(repetition, size = length(repetition))) %>% 
   ungroup() %>%
   compute_across_similarity(F_mat_raw_nonorm, .x, method = 'cor')) 
+```
 
+```{r}
 d.toplot <- rbind(empirical.across %>% select(-mean, -n),
       baselines.across %>% 
         group_by(repetition) %>%
@@ -242,7 +244,7 @@ ggplot(d.toplot, aes(x = repetition, y = empirical_stat, group = sample_id,
   scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
   xlim(0.5, 8.5) +
   scale_x_continuous(labels = c(1,2,3,4,5,6,7,8), breaks = c(1, 2,3,4,5,6,7,8)) +
-  ylim(.5, .75) +
+  ylim(.5, .8) +
   ylab('correlation') +
   ggtitle('between-pair') +
   theme_few() +
