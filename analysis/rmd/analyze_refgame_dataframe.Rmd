@@ -84,7 +84,11 @@ ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, 
 
 input <- d.bis.drawDuration %>%
          filter(repetition == 0 | repetition == 7) %>% 
-         mutate(phase = ifelse(repetition == 0, 'pre', 'post'))
+         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+                condition = as.factor(condition))
+
+contrasts(input$phase) <- c(-.5, .5)
+contrasts(input$condition) <- c(-.5, .5)
 
 # alternative model definition (removing game-wise random effects for phase*condition interaction)
 interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target), 
@@ -109,17 +113,17 @@ M_mat = read_csv('../../data/sketch_features/no_crop/METADATA_sketch.csv') %>%
   arrange(gameID, target, repetition) 
 F_mat_raw_nonorm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_no-channel-norm.txt', 
                                    delim=',', col_names=F))
-F_mat_raw_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_channel-norm.txt', 
-                                   delim=',', col_names=F))
-F_mat_PCA_nonorm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_no-channel-norm.txt', 
-                                   delim=',', col_names=F))
-F_mat_PCA_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_channel-norm.txt', 
-                                   delim=',', col_names=F))
+# F_mat_raw_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_channel-norm.txt', 
+#                                    delim=',', col_names=F))
+# F_mat_PCA_nonorm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_no-channel-norm.txt', 
+#                                    delim=',', col_names=F))
+# F_mat_PCA_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_channel-norm.txt', 
+#                                    delim=',', col_names=F))
 
 colnames(F_mat_raw_nonorm) <- NULL
-colnames(F_mat_raw_norm) <- NULL
-colnames(F_mat_PCA_nonorm) <- NULL
-colnames(F_mat_PCA_norm) <- NULL
+# colnames(F_mat_raw_norm) <- NULL
+# colnames(F_mat_PCA_nonorm) <- NULL
+# colnames(F_mat_PCA_norm) <- NULL
 
 ```
 
@@ -142,7 +146,7 @@ lmer.within <- filtered_M %>%
            rep2 = as.numeric(dim2)) %>%
     filter(rep2 == rep1 + 1) %>% 
     ungroup()
-summary(lmer(sim ~ rep1 + (1 | gameID) + (1 | target), data = lmer.within))
+summary(lmer(sim ~ rep1 + (1 + rep1 | gameID) + (1 | target), data = lmer.within))
 ```
 
 compute both true empirical & permuted output
@@ -170,10 +174,15 @@ d.toplot <- baselines.within %>%
 
 ggplot(d.toplot, aes(x = `rep diff`, y = empirical_stat, 
                      fill = sample_id, color = sample_id, group = sample_id)) +
-    geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA) +
+    geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA,
+                d.toplot %>% filter(sample_id == 'baseline')) +
     #geom_line(alpha = 0, size = 2) +
-    geom_line(size = 1, linetype = 'dashed',data = d.toplot %>% filter(sample_id == 'baseline')) +
-    geom_line(size = 2, data = d.toplot %>% filter(sample_id == 'empirical')) +
+    geom_line(size = 1, linetype = 'dashed', data = d.toplot %>% filter(sample_id == 'baseline')) +
+    geom_point(size = 2, data = d.toplot %>% filter(sample_id == 'empirical')) +
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0,
+                  data = d.toplot %>% filter(sample_id == 'empirical')) +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F,
+                data = d.toplot %>% filter(sample_id == 'empirical')) +
     scale_color_manual(values=c("#d07e93", "#163c4e")) + 
     scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
     scale_x_discrete(labels = c('(1,2)','(2,3)', '(3,4)', '(4,5)', '(5,6)' ,'(6,7)','(7,8)')) +
@@ -219,7 +228,7 @@ ggsave('by_target_gamepair.pdf')
 
 ```{r}
 empirical.across <- compute_across_similarity(M_mat, F_mat_raw_nonorm,   'raw_cor_nonorm', method = 'cor', nboot = 1000)
-baselines.across <- map_dfr(seq_len(1000), ~M_mat %>%
+baselines.across <- map_dfr(seq_len(100), ~M_mat %>%
   group_by(target, gameID) %>%
   mutate(repetition = sample(repetition, size = length(repetition))) %>% 
   ungroup() %>%
@@ -237,9 +246,14 @@ d.toplot <- rbind(empirical.across %>% select(-mean, -n),
         mutate(repetition = repetition + 1)
 ggplot(d.toplot, aes(x = repetition, y = empirical_stat, group = sample_id, 
                      color = sample_id, fill=sample_id)) +
-  geom_ribbon(alpha = 0.25, aes(ymin = ci_lower, ymax = ci_upper), color = NA ) + 
+  geom_ribbon(alpha = 0.25, aes(ymin = ci_lower, ymax = ci_upper), color = NA,
+              data = d.toplot %>% filter(sample_id == 'baseline')) + 
   geom_line(size = 1, linetype = 'dashed', data = d.toplot %>% filter(sample_id == 'baseline')) +
-  geom_line(size = 2, alpha = 1, data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  geom_point(size = 2, alpha = 1, data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0,
+                 data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F,
+              data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
   scale_color_manual(values=c("#d07e93", "#163c4e")) + 
   scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
   xlim(0.5, 8.5) +
