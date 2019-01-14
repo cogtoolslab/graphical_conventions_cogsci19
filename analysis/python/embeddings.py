@@ -113,13 +113,14 @@ class FeatureExtractor():
 
         def load_image(path, imsize=224, padding=self.padding, volatile=True, use_cuda=False):
             im = Image.open(path)
-            if self.data_type=='sketch':
-                if len(im.split()) != 4:
-                    im_ = im.convert('RGB')
-                else:
+            if self.data_type=='sketch': ## if the latter condition satisfied, could be 2-dim (300,300) image
+                if (len(np.array(im).shape)==3):
                     im_ = RGBA2RGB(im)
+                else:
+                    im_ = im.convert(mode="RGB")
             elif self.data_type=='images':
                 im_ = im.convert(mode="RGB")
+
 
             ## POSSIBLY do this preprocessing if you are working with sketches
             if (self.data_type=='sketch') & (self.crop_sketch==True):

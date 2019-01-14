@@ -808,7 +808,7 @@ def get_confusion_matrix_on_rep(D, category, set_size, repetition):
 def plot_between_interaction_similarity(M, F, rep_name):
     ### computing average of upper triangle of RDM and plotting across repetitions
     new_df = pd.DataFrame()
-    for targ in M['target'].unique():
+    for targ in sorted(M['target'].unique()):
         M_targ = M[M['target'] == targ]
         M_targ.sort_values(by=[rep_name])
         for rep in range(8):
@@ -816,7 +816,7 @@ def plot_between_interaction_similarity(M, F, rep_name):
             inds_to_compare = M_targ_rep['feature_ind']
             features_to_compare = F[inds_to_compare, :]
             CORRMAT = np.corrcoef(features_to_compare)
-            avr = np.mean(np.tril(CORRMAT)) # only upper triangle
+            avr = np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0)) # only upper triangle
             df_to_add = pd.DataFrame([[rep, targ, avr]], columns=[rep_name, 'target', 'average_similarity'])
             new_df = new_df.append(df_to_add)
     sns.set_context('paper')
@@ -858,8 +858,8 @@ def make_adjacency_matrix(M, F, gameID_colname):
     # add scratch index to handle NaNs
     F_ = np.vstack((F, [float('NaN')] * 4096))
     arr_of_corrmats = []
-    for game in M[gameID_colname].unique(): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
-        for target in M.query('{} == "{}"'.format(gameID_colname, game)).target.unique():  #['dining_04']:
+    for game in sorted(M[gameID_colname].unique()): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
+        for target in sorted(M.query('{} == "{}"'.format(gameID_colname, game)).target.unique()):  #['dining_04']:
             M_instance = M.query('{} == "{}" and target == "{}"'.format(gameID_colname, game, target))
             for rep in range(8):
                 if rep not in list(M_instance['repetition']):
@@ -869,7 +869,6 @@ def make_adjacency_matrix(M, F, gameID_colname):
             M_instance_sorted = M_instance.sort_values(by=['repetition'])
             inds_to_compare = M_instance_sorted['feature_ind']
             features_to_compare = F_[inds_to_compare, :]
-
             # transpose array so that features are columns
             # pandas .corr() handles NaNs better and expects columns
             pd_CORRMAT = pd.DataFrame(features_to_compare.T).corr()
@@ -883,7 +882,7 @@ def make_adjacency_matrix(M, F, gameID_colname):
             result[i][j] = np.nanmean(np.array(to_add))
 
     average_corr_mat = np.array(result)
-
+    print(average_corr_mat)
     # Plot it
     sns.set_context('paper')
     fig, ax = plt.subplots(figsize=(5,4))
