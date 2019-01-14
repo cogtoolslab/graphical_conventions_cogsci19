@@ -3,7 +3,7 @@ library(Rfast)
 ########################
 
 # whiten takes a matrix of features and z-scores within feature dimensions
-whiten <- function(feats) {
+channel_norm <- function(feats) {
   feat_centroid <- Rfast::colmeans(feats, parallel = T)
   feat_sd <- Rfast::colVars(feats, std = T, parallel = T)
   feat_sd <- ifelse(feat_sd == 0, 1e-5, feat_sd)
@@ -15,7 +15,7 @@ whiten <- function(feats) {
 # all these data.frames with 4000 rows each?) 
 # may be able to directly index F_out for each group instead of concatenating and then
 # setting... 
-whitenF <- function(M_mat, F_mat, how) {
+normF <- function(M_mat, F_mat, how) {
   if (how == 'by_target') {
     grouped_M <- M_mat %>% group_by(target, repetition)
   } else {
@@ -25,7 +25,7 @@ whitenF <- function(M_mat, F_mat, how) {
   F_out <- matrix(data = NA, nrow = dim(F_mat)[1], ncol = dim(F_mat)[2])
   F.df <- grouped_M %>%
     do(cbind(feature_ind = .$feature_ind, repetition = .$repetition, 
-             as.data.frame(whiten(F_mat[.$feature_ind,])))) %>%
+             as.data.frame(channel_norm(F_mat[.$feature_ind,])))) %>%
     ungroup() %>%
     arrange(feature_ind) 
   F_out[F.df$feature_ind,] <- data.matrix(F.df %>% select(starts_with('V')))
@@ -33,14 +33,10 @@ whitenF <- function(M_mat, F_mat, how) {
 }
 
 # note: cor expects featurs to be in columns so we transpose
-get_sim_matrix = function(df, how, method = 'cor') {
-  if(how == 'by_target') {
-    feats <- F_by_target[df$feature_ind,]
-  } else if (how == 'by_game') {
-    feats <- whiten(F_mat[df$feature_ind,])
-  } else {
-    feats <- F_mat[df$feature_ind,]
-  }
+get_sim_matrix = function(df, F_mat, normalize = F, method = 'cor') {
+  feats = (if(normalize) channel_norm(F_mat[df$feature_ind,]) 
+           else F_mat[df$feature_ind,])
+
   if(method == 'cor') {
     return(cor(t(feats), method = 'pearson'))
   } else if (method == 'euclidean') {
@@ -60,18 +56,22 @@ flatten_sim_matrix <- function(cormat, ids) {
   data.frame(
     dim1 = ids[row(cormat)[ut]],
     dim2 = ids[col(cormat)[ut]],
-    sim  = cormat[ut]
-  )
+    sim  = as.numeric(cormat[ut])
+  ) %>%
+    mutate(dim1 = as.character(dim1),
+           dim2 = as.character(dim2))
 }
 
-compute_within_similarity <- function(M_mat, id, nboot = 1) {
+compute_within_similarity <- function(M_mat, F_mat, id, 
+                                      method = 'euclidean', nboot = 1) {
   cat('\r', id, '/100')
   M_mat %>%
      complete(nesting(gameID, target), repetition) %>%  # Fill in NAs for missing repetitions
      group_by(gameID, target) %>%
-     do(flatten_sim_matrix(get_sim_matrix(., 'by_game', method = 'euclidean'),
+     do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
                            .$repetition)) %>%
-     rename(rep1 = dim1, rep2 = dim2) %>%
+     mutate(rep1 = as.numeric(dim1), 
+            rep2 = as.numeric(dim2)) %>%
      filter(rep2 == rep1 + 1) %>%                       # only interested in successive reps
      group_by(rep1, rep2) %>%
      tidyboot_mean(col = sim, na.rm = T, nboot = nboot) %>%
@@ -79,12 +79,13 @@ compute_within_similarity <- function(M_mat, id, nboot = 1) {
      mutate(sample_id = id)
 }
 
-compute_across_similarity <- function(M_mat, id, nboot = 1) {
+compute_across_similarity <- function(M_mat, F_mat, id,
+                                      method = 'euclidean', nboot = 1) {
   cat('\r', id, '/100')
   M_mat %>%
     group_by(target, repetition) %>%
-    do(flatten_sim_matrix(get_sim_matrix(., 'none', method = 'cor'),
-                          .$gameID)) %>%
+    do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
+                          as.character(.$gameID))) %>%
     group_by(repetition) %>%
     tidyboot_mean(col = sim, nboot) %>%
     mutate(sample_id = id)
