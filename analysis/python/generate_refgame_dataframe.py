@@ -112,7 +112,7 @@ D_run4 = h.generate_dataframe(coll, run4_complete_games, iterationName2, results
 ## concatenate run3 and run4 dataframes
 D = pd.concat([D_run3, D_run4], axis=0)
 
-## filter crazies and add column
+# ## filter crazies and add column
 D = h.find_crazies(D)
 
 ## add features for recognition experiment
