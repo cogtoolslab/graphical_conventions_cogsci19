@@ -300,7 +300,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
         mean_accuracy = sum(all_accuracies) / float(len(all_accuracies))
         accuracy_list.append(mean_accuracy)
         if any(d['timedOut'] == True for i, d in D_.iterrows()):
-            print ("timed out!")
+            print ("Game: {} timed out!".format(g))
             timed_outs.append(g)
 
     arr = np.array(accuracy_list)
