@@ -84,7 +84,11 @@ ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, 
 
 input <- d.bis.drawDuration %>%
          filter(repetition == 0 | repetition == 7) %>% 
-         mutate(phase = ifelse(repetition == 0, 'pre', 'post'))
+         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+                condition = as.factor(condition))
+
+contrasts(input$phase) <- c(-.5, .5)
+contrasts(input$condition) <- c(-.5, .5)
 
 # alternative model definition (removing game-wise random effects for phase*condition interaction)
 interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target), 
@@ -94,123 +98,176 @@ print(summary(interaction_lmm))
 #print(coef(summary(interaction_lmm)))
 ```
 
-## Within-interaction convergence
+# Similarity-based analyses
 
 Import pre-processed matrices from ipynb
 
 ```{r}
+source('./helpers.R')
 M_mat = read_csv('../../data/sketch_features/no_crop/METADATA_sketch.csv') %>%
   filter(condition == 'repeated') %>%
-  select(gameID, target, repetition, feature_ind) %>%
-  mutate(feature_ind = feature_ind + 1) %>% # Have to correct for R 1-indexing...
+  select(gameID, target, repetition, trial_num, feature_ind) %>%
+  mutate(feature_ind = feature_ind + 1,
+         trial_num = as.numeric(trial_num),
+         repetition = as.numeric(repetition)) %>% # Have to correct for R 1-indexing...
   arrange(gameID, target, repetition) 
-F_mat = as.matrix(read_delim('../ipynb/rxdh/F.txt', delim=',', col_names=F))
-colnames(F_mat) <- NULL
+F_mat_raw_nonorm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_no-channel-norm.txt', 
+                                   delim=',', col_names=F))
+# F_mat_raw_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_channel-norm.txt', 
+#                                    delim=',', col_names=F))
+# F_mat_PCA_nonorm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_no-channel-norm.txt', 
+#                                    delim=',', col_names=F))
+# F_mat_PCA_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_channel-norm.txt', 
+#                                    delim=',', col_names=F))
+
+colnames(F_mat_raw_nonorm) <- NULL
+# colnames(F_mat_raw_norm) <- NULL
+# colnames(F_mat_PCA_nonorm) <- NULL
+# colnames(F_mat_PCA_norm) <- NULL
+
 ```
 
-Set up pipeline for within-game similarity
+## Within-interaction convergence
 
 ```{r}
-# note: cor expects featurs to be in columns so we transpose
+# lmer model
+filtered_M <- M_mat %>% 
+  left_join(read_csv('../../results/graphical_conventions.csv') %>% rename(trial_num = trialNum),
+            by = c('gameID', 'trial_num')) %>%
+  filter(outcome == 'True' & crazy == "False") %>%
+  rename(target = 'target.x', repetition = 'repetition.x') %>%
+  mutate(repetition = as.numeric(repetition))
 
-get_corr_matrix = function(df) {
-  feats <- F_mat[df$feature_ind,]
-  return(cor(t(feats)))
-}
-
-flatten_corr_matrix <- function(cormat) {
-  ut <- upper.tri(cormat)
-  data.frame(
-    rep1 = seq(0,7)[row(cormat)[ut]],
-    rep2 = seq(0,7)[col(cormat)[ut]],
-    cor  = cormat[ut]
-  )
-}
-
-compute_within_similarity <- function(M_mat, id, nboot = 1) {
-  cat('\r', id, '/100')
-  return(M_mat %>%
-    complete(nesting(gameID, target), repetition) %>%  # Fill in NAs for missing repetitions
+lmer.within <- filtered_M %>%
     group_by(gameID, target) %>%
-    do(flatten_corr_matrix(get_corr_matrix(.))) %>%
-    filter(rep2 == rep1 + 1) %>%                       # only interested in successive reps
-    group_by(rep1, rep2) %>%
-    tidyboot_mean(col = cor, nboot = nboot, na.rm = T) %>%
-    unite(`rep diff`, rep1, rep2, sep = '->')) %>%
-    mutate(sample_id = id)
-}
+    do(flatten_sim_matrix(get_sim_matrix(., F_mat_raw_nonorm, method = 'cor'),
+                         .$repetition)) %>%
+    mutate(rep1 = as.numeric(dim1), 
+           rep2 = as.numeric(dim2)) %>%
+    filter(rep2 == rep1 + 1) %>% 
+    ungroup()
+summary(lmer(sim ~ rep1 + (1 + rep1 | gameID) + (1 | target), data = lmer.within))
 ```
 
 compute both true empirical & permuted output
 
 ```{r}
 num_permutations <- 100
-empirical.within <- compute_within_similarity(M_mat, 'empirical', nboot = 100)
+empirical.within <- compute_within_similarity(M_mat, F_mat_raw_nonorm, 'empirical', method = 'cor', nboot = 1000)
 baselines.within <- map_dfr(seq_len(num_permutations), ~M_mat %>%
   group_by(target, repetition) %>%
   mutate(gameID = sample(gameID)) %>% # shuffle within target-rep 
   ungroup() %>%
-  compute_within_similarity(.x)) # this passes in the iteration number
+  compute_within_similarity(F_mat_raw_nonorm, .x, method = 'cor')) # this passes in the iteration number
 ```
 
 Plot with permutations
 
 ```{r}
-baselines.within %>% 
-  group_by(`rep diff`) %>% 
+d.toplot <- baselines.within %>%
+  group_by(`rep diff`) %>%
   summarize(`ci_upper`=quantile(empirical_stat, probs=0.975),
             `ci_lower`=quantile(empirical_stat, probs=0.025),
             `empirical_stat`=quantile(empirical_stat, probs=0.5)) %>%
   mutate(sample_id = 'baseline') %>%
-  rbind(empirical.within %>% select(-n, -mean)) %>%
-  ggplot(aes(x = `rep diff`, y = empirical_stat, 
-             fill = sample_id == 'empirical', color = sample_id == 'empirical', group = sample_id)) +
-    geom_line() +
-    geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA ) + #data = empirical, 
+  rbind(empirical.within %>% select(-n, -mean))
+
+ggplot(d.toplot, aes(x = `rep diff`, y = empirical_stat, 
+                     fill = sample_id, color = sample_id, group = sample_id)) +
+    geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA,
+                d.toplot %>% filter(sample_id == 'baseline')) +
+    #geom_line(alpha = 0, size = 2) +
+    geom_line(size = 1, linetype = 'dashed', data = d.toplot %>% filter(sample_id == 'baseline')) +
+    geom_point(size = 2, data = d.toplot %>% filter(sample_id == 'empirical')) +
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0,
+                  data = d.toplot %>% filter(sample_id == 'empirical')) +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F,
+                data = d.toplot %>% filter(sample_id == 'empirical')) +
+    scale_color_manual(values=c("#d07e93", "#163c4e")) + 
+    scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
+    scale_x_discrete(labels = c('(1,2)','(2,3)', '(3,4)', '(4,5)', '(5,6)' ,'(6,7)','(7,8)')) +
+    ylim(.5, .8) +
+    ylab('correlation') +
+    ggtitle('within-pair') +
     theme_few() +
-    guides(fill = F, color = F)
+    xlab('repetition pair') +
+    guides(color = F, fill = F) +
+    theme(legend.position = c(0.5, 0.8), text = element_text(size=18), 
+          element_line(size=1), element_rect(size=2, color="#00000"))
+
+ggsave('../../../graphical_conventions_latex/cogsci19/figures/within_unfiltered.pdf', height = 10, width = 7, units = 'cm')
 ```
 
 ## Between-interaction divergence 
 
+Look at curves broken out by target
+
 ```{r}
-average_corr_matrix <- function(cormat) {
-  ut <- lower.tri(cormat)
-  return(mean(cormat[ut]))
-}
+gamepair.df <- M_mat %>%
+  group_by(target, repetition) %>%
+  do(flatten_sim_matrix(get_sim_matrix(., F_mat_raw_nonorm, method = 'cor'),
+                        .$gameID)) %>%
+  unite(col = 'gamepair', dim1, dim2)
+summary(lmer(sim ~ poly(repetition, 2) + (1 + repetition | gamepair) + (1 + repetition | target), data = gamepair.df))
+```
 
-compute_across_similarity <- function(M_mat, id, nboot = 1) {
-  cat('\r', id, '/100')
-  M_mat %>%
-    group_by(target, repetition) %>%
-    do(summarize(., m = average_corr_matrix(get_corr_matrix(.)))) %>%
-    group_by(repetition) %>%
-    tidyboot_mean(col = m, nboot) %>%
-    mutate(sample_id = id)
-}
+```{r}
+M_mat %>%
+  group_by(target, repetition) %>%
+  do(flatten_sim_matrix(get_sim_matrix(., F_mat_raw_nonorm, method = 'cor'),
+                        .$gameID)) %>%
+  unite(col = 'gamepair', dim1, dim2) %>%
+  ggplot(aes(x = repetition, y = sim, group = gamepair)) +
+    geom_line(alpha = .1) +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), group = 1) +
+    facet_wrap(~ target) +
+    theme_few()
 
-empirical.across <- compute_across_similarity(M_mat, 'empirical',nboot = 100)
-baselines.across <- map_dfr(seq_len(num_permutations), ~M_mat %>%
+ggsave('by_target_gamepair.pdf')
+```
+
+```{r}
+empirical.across <- compute_across_similarity(M_mat, F_mat_raw_nonorm,   'raw_cor_nonorm', method = 'cor', nboot = 1000)
+baselines.across <- map_dfr(seq_len(100), ~M_mat %>%
   group_by(target, gameID) %>%
-  mutate(repetition = sample(repetition, size = length(repetition))) %>% # shuffle within repetition 
+  mutate(repetition = sample(repetition, size = length(repetition))) %>% 
   ungroup() %>%
-  compute_across_similarity(.x)) # this passes in the iteration number
+  compute_across_similarity(F_mat_raw_nonorm, .x, method = 'cor')) 
+```
 
-baselines.across %>% 
-  group_by(repetition) %>% 
-  summarize(`ci_upper`=quantile(empirical_stat, probs=0.975),
-            `ci_lower`=quantile(empirical_stat, probs=0.025),
-            `empirical_stat`=quantile(empirical_stat, probs=0.5)) %>%
-  mutate(sample_id = 'baseline') %>%
-  rbind(empirical.across %>% select(-n, -mean)) %>%
-ggplot(aes(x = repetition, y = empirical_stat, group = sample_id,
-           fill = sample_id == 'empirical', color = sample_id == 'empirical')) +
-  geom_line() +
-  geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA ) + #data = empirical, 
-  ylim(0,.2) +
-  ylab('across-game similarity') +
-  theme_few()
+```{r}
+d.toplot <- rbind(empirical.across %>% select(-mean, -n),
+      baselines.across %>% 
+        group_by(repetition) %>%
+        summarize(`ci_upper`=quantile(empirical_stat, probs=0.975),
+                  `ci_lower`=quantile(empirical_stat, probs=0.025),
+                  `empirical_stat`=quantile(empirical_stat, probs=0.5)) %>%
+        mutate(sample_id = 'baseline')) %>%
+        mutate(repetition = repetition + 1)
+ggplot(d.toplot, aes(x = repetition, y = empirical_stat, group = sample_id, 
+                     color = sample_id, fill=sample_id)) +
+  geom_ribbon(alpha = 0.25, aes(ymin = ci_lower, ymax = ci_upper), color = NA,
+              data = d.toplot %>% filter(sample_id == 'baseline')) + 
+  geom_line(size = 1, linetype = 'dashed', data = d.toplot %>% filter(sample_id == 'baseline')) +
+  geom_point(size = 2, alpha = 1, data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0,
+                 data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F,
+              data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  scale_color_manual(values=c("#d07e93", "#163c4e")) + 
+  scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
+  xlim(0.5, 8.5) +
+  scale_x_continuous(labels = c(1,2,3,4,5,6,7,8), breaks = c(1, 2,3,4,5,6,7,8)) +
+  ylim(.5, .8) +
+  ylab('correlation') +
+  ggtitle('between-pair') +
+  theme_few() +
+  guides(color = F, fill = F) +
+  theme(legend.position = c(0.5, 0.8), text = element_text(size=18), 
+        element_line(size=1), element_rect(size=2, color="#00000"))
 
+
+ggsave('../../../graphical_conventions_latex/cogsci19/figures/across.pdf', height = 10, width = 7, units = 'cm')
 ```
 
 ## Temporal structure 
@@ -218,4 +275,45 @@ ggplot(aes(x = repetition, y = empirical_stat, group = sample_id,
 ```{r}
 
 
+```
+
+## supplemental
+
+Visualize effects of different pre-processing steps and distance metrics
+
+```{r}
+rbind(compute_across_similarity(filtered_M, F_mat_raw_nonorm, 'raw_euclid_nonorm', method = 'euclidean'),
+      compute_across_similarity(filtered_M, F_mat_raw_norm,   'raw_euclid_norm',   method = 'euclidean'),
+      compute_across_similarity(filtered_M, F_mat_PCA_nonorm, 'PCA_euclid_nonorm', method = 'euclidean'),
+      compute_across_similarity(filtered_M, F_mat_PCA_norm,   'PCA_euclid_norm',   method = 'euclidean'),
+      compute_across_similarity(filtered_M, F_mat_raw_nonorm, 'raw_cor_nonorm',    method = 'cor'),
+      compute_across_similarity(filtered_M, F_mat_raw_norm,   'raw_cor_norm',      method = 'cor'),
+      compute_across_similarity(filtered_M, F_mat_PCA_nonorm, 'PCA_cor_nonorm',    method = 'cor'),
+      compute_across_similarity(filtered_M, F_mat_PCA_norm,   'PCA_cor_norm',      method = 'cor')) %>%
+      separate(sample_id, into = c('PCA', 'dist', 'norm')) %>%
+      ggplot(aes(x = repetition, y = empirical_stat, color = norm)) + 
+        #geom_line(alpha = 0.1) +
+        geom_line() +
+        geom_ribbon(aes(ymax = ci_upper, ymin = ci_lower), color = NA, alpha = .5) +
+        theme_few() +
+        facet_grid(dist ~ PCA, scales = 'free') +
+        theme(aspect.ratio = 2)
+  #geom_smooth(group = 1, method = 'loess')
+  #geom_smooth(group = 1)
+ggsave('unfiltered.pdf')
+```
+
+How well are these different steps correlated?
+
+```{r}
+rbind(compute_across_similarity(M_mat, F_mat_PCA_norm, 'PCA_cor_norm',    method = 'cor'),
+      compute_across_similarity(M_mat, F_mat_raw_nonorm, 'raw_cor_nonorm',    method = 'cor')) %>%
+      #separate(sample_id, into = c('PCA', 'dist', 'norm')) %>%
+  select(repetition, sample_id, empirical_stat) %>%
+  spread(sample_id, empirical_stat) %>%
+  mutate(spcor = cor(PCA_cor_norm,raw_cor_nonorm, method='pearson')) %>%
+  ggplot(aes(x = PCA_cor_norm, y = raw_cor_nonorm)) +
+      geom_point() +
+      geom_smooth() +
+      theme_few()
 ```
