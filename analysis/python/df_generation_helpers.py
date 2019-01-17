@@ -408,23 +408,15 @@ def standardize(D, dv):
 ###############################################################################################
 
 def add_bis_scores(D, dv):
-    new_D = D.copy(deep=True)
-    bis_score_list = []
-    for i,d in D.iterrows():
-        bis_score = d['outcome'] - d[dv]
-        bis_score_list.append(bis_score)
-    new_D['bis_score'] = bis_score_list
-    return new_D
+    D = D.assign(bis_score = pd.Series(D['outcome'] - D[dv]))
+    return D
 
 ###############################################################################################
 
 def save_bis_scores(D, results_dir):
 
-    # split into repeated and control
-    D_repeated = D[D['condition'] == 'repeated']
-    D_control = D[D['condition'] == 'control']
-    D_control.repetition = D_control.repetition.replace(1, 7)
-    D = pd.concat([D_repeated, D_control], axis = 0)
+    ## convert rep number for post from "1" to "7"
+    D.loc[(D['condition']=='control') & (D['repetition']==1),'repetition'] = 7
 
     standardized_outcome = standardize(D, 'outcome')
     standardized_outcome = standardized_outcome.loc[:,'outcome']
