@@ -23,7 +23,7 @@ d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numS
 ```
 
 ```{r}
-d
+d.bis.drawDuration
 ```
 
 ## Generate histograms for numCurvesPerSketch and numStrokes 
@@ -76,7 +76,8 @@ ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, 
 
 ```
 
-## Mixed-effects model for BIS (on drawDuration)
+
+## Mixed-effects model for BIS (on drawDuration by phase)
 
 ```{r}
 # preferred model definition for interaction between repetition and condition for bis -- has right syntax but doesn't converge
@@ -90,13 +91,84 @@ input <- d.bis.drawDuration %>%
 contrasts(input$phase) <- c(-.5, .5)
 contrasts(input$condition) <- c(-.5, .5)
 
-# alternative model definition (removing game-wise random effects for phase*condition interaction)
-interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target), 
+# alternative model definition (removing target-wise random effects for phase*condition interaction)
+interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | gameID), 
                         data = input)
 
 print(summary(interaction_lmm))
-#print(coef(summary(interaction_lmm)))
 ```
+
+
+## Mixed-effects model for BIS (on numStrokes by phase)
+
+```{r}
+input <- d.bis.numStrokes %>%
+         filter(repetition == 0 | repetition == 7) %>% 
+         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+                condition = as.factor(condition))
+
+contrasts(input$phase) <- c(-.5, .5)
+contrasts(input$condition) <- c(-.5, .5)
+
+# alternative model definition (removing game-wise random effects for phase*condition interaction)
+interaction_lmm <- lmer(numStrokes ~ phase * condition + (1 + phase*condition | target), 
+                        data = input)
+
+print(coef(summary(interaction_lmm)))
+```
+
+## Mixed-effects model on accuracy (instead of just BIS)
+
+```{r}
+
+input <- d %>%
+         filter(repetition == 0 | repetition == 7) %>% 
+         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+                condition = as.factor(condition),
+                outcome = as.factor(outcome))
+
+# alternative model definition (removing game-wise random effects for phase*condition interaction)
+interaction_lmm <- glm(outcome ~ phase * condition , family='binomial',
+                        data = input)
+
+summary(interaction_lmm)
+```
+
+## Raw accuracy in pre and post
+
+```{r}
+d %>% 
+  filter(phase== 'pre'| phase == 'post') %>%
+  mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
+  group_by(phase) %>%
+  tidyboot_mean(column=mean(outcome_binary))
+
+```
+
+## compute subject-wise, condition-wise change in accuracy from pre to post
+```{r}
+
+d_acc <- d %>%
+  filter(phase== 'pre'| phase == 'post') %>%
+  mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
+  group_by(gameID,phase,condition) %>%
+  summarize(accuracy=mean(outcome_binary)) %>%
+  spread(phase, accuracy) %>%
+  mutate(diff = post - pre) %>%
+  group_by(condition) %>%
+  tidyboot_mean(column=mean(diff)) 
+
+d_acc
+
+d_acc %>%
+    ggplot(aes(x = condition, y =empirical_stat)) +
+    geom_bar(stat = 'identity') +
+    geom_errorbar(aes(ymax = ci_upper, ymin = ci_lower), width = 0) +
+    theme_few() +
+    ylim(-.25, .25)
+  
+```
+
 
 # Similarity-based analyses
 
