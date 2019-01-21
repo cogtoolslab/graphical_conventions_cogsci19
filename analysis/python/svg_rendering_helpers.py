@@ -66,6 +66,34 @@ def render_svg(paths,
                       'fill':fill_mode}]*len(paths),
          viewbox=viewbox,
          filename=os.path.join(base_dir,out_dir,out_fname))
+    
+def render_svg_color(paths,
+                     stroke_colors,
+               stroke_width = 5,
+               stroke_linecap = 'round',
+               fill_mode = 'none',
+               viewbox=[0, 0, 300, 300],
+               base_dir = './',
+               out_dir = 'svg',
+               out_fname= 'tmp.svg'):
+
+    '''
+    see docs for wsvg: https://www.pydoc.io/pypi/svgpathtools-1.3.3/autoapi/paths2svg/index.html?highlight=wsvg#paths2svg.wsvg
+    wsvg(paths=None, colors=None, filename=join, stroke_widths=None, nodes=None, node_colors=None, node_radii=None, openinbrowser=False, timestamp=False, margin_size=0.1, mindim=600, dimensions=None, viewbox=None, text=None, text_path=None, font_size=None, attributes=None, svg_attributes=None)
+    '''
+
+    ## render out to svg file
+    #print('Rendering out to {}'.format(os.path.join(out_dir,out_fname)))
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    wsvg(paths,
+         attributes=[{'stroke-width':stroke_width,\
+                      'stroke-linecap':stroke_linecap,\
+                      'stroke':color,\
+                      'fill':fill_mode} for color in stroke_colors],
+         viewbox=viewbox,
+         filename=os.path.join(base_dir,out_dir,out_fname))
+ 
 
 def generate_svg_path_list(svg_dir):
     svg_paths = list_files(svg_dir, ext='svg')
