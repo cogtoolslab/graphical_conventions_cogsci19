@@ -99,6 +99,26 @@ print(summary(interaction_lmm))
 ```
 
 
+## BIS differences between condition in pre phase 
+
+```{r}
+input <- d.bis.drawDuration %>%
+         filter(repetition == 0 | repetition == 7) %>% 
+         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+                condition = as.factor(condition)) %>%
+         filter(phase == 'pre')
+
+contrasts(input$phase) <- c(-.5, .5)
+contrasts(input$condition) <- c(-.5, .5)
+
+# alternative model definition (removing target-wise random effects for phase*condition interaction)
+interaction_lmm <- lmer(bis_score ~  condition + (1 + condition | gameID), 
+                        data = input)
+
+print(summary(interaction_lmm))
+```
+
+
 ## Mixed-effects model for BIS (on numStrokes by phase)
 
 ```{r}
@@ -140,7 +160,7 @@ summary(interaction_lmm)
 d %>% 
   filter(phase== 'pre'| phase == 'post') %>%
   mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
-  group_by(phase) %>%
+  group_by(phase,condition) %>%
   tidyboot_mean(column=mean(outcome_binary))
 
 ```
