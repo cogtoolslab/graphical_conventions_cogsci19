@@ -69,8 +69,8 @@ d.bootstrap %>%
     theme_few() +
     scale_x_continuous(breaks = round(seq(min(d.bootstrap$repetition_1), max(d.bootstrap$repetition_1), by =1),1)) + 
     scale_y_continuous(breaks = seq(-0.5,2.5,0.5)) +
-    scale_color_manual(values=c("#d07e93", "#163c4e")) + 
-    scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
+    scale_color_manual(values=c("#808080", "#163c4e")) + 
+    scale_fill_manual(values=c("#808080", "#163c4e")) + 
     theme(legend.position = c(0.8, 0.2), text = element_text(size=18), element_line(size=1), element_rect(size=2, color="#00000"))
 ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, units='cm')
 
