@@ -190,6 +190,19 @@ d_acc %>%
 ```
 
 
+## fit lmer model to subject-wise, condition-wise change in num strokes from pre to post
+```{r}
+
+m_strokes <- lmer(numStrokes ~ repetition + (1 + repetition | gameID), data = d %>% filter(condition=='repeated'))
+summary(m_strokes)
+
+d %>%
+  group_by(repetition,condition) %>%
+  summarize(numstrokes = mean(numStrokes))
+
+```
+
+
 # Similarity-based analyses
 
 Import pre-processed matrices from ipynb
