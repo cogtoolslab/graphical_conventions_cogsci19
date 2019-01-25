@@ -195,20 +195,30 @@ d_acc %>%
   
 ```
 
-## Stroke reduction
-
-```{r}
-
-```
-
 ## fit lmer model to subject-wise, condition-wise change in num strokes from pre to post
 ```{r}
 
-m_strokes <- lmer(numStrokes ~ repetition + (1 + repetition | gameID), data = d %>% filter(condition=='repeated'))
+m_strokes <- lmer(numStrokes ~ repetition + (1 + repetition | gameID) + (1 | target), data = d %>% filter(condition=='repeated'))
 summary(m_strokes)
 d %>%
-  group_by(repetition,condition) %>%
-  summarize(numstrokes = mean(numStrokes))
+  filter(condition == 'repeated') %>%
+  mutate(repetition = repetition + 1) %>%
+  group_by(repetition) %>%
+  tidyboot_mean(numStrokes) %>%
+  ggplot(aes(x = repetition, y = empirical_stat)) +
+    geom_point() +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F, color = 'black') +
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0) +
+    theme_few() +
+    scale_x_continuous(labels = c(1,2,3,4,5,6,7,8), breaks = c(1, 2,3,4,5,6,7,8)) +
+    ylim(1,8) +
+    ylab('number strokes') +
+    theme(legend.position = c(0.5, 0.8), text = element_text(size=18), 
+          element_line(size=1), element_rect(size=2, color="#00000")) +
+  
+
+ggsave('../../../graphical_conventions_latex/cogsci19/figures/numStrokes.pdf', height = 10, width = 7, units = 'cm', useDingbats = F)
+
 
 ```
 
