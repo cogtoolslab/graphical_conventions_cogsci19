@@ -87,17 +87,13 @@ d.acc %>%
 d.acc <- read_csv('../../results/graphical_conventions_recog_data.csv') %>%
   mutate(version = factor(version, levels = c("refgame","yoked","scrambled40"), labels = c("communication", "yoked", "shuffled" ))) %>%
   filter(version %in% c('communication','yoked')) %>%
-  group_by(version,orig_gameID,repetition) %>%
+  group_by(version,gameID,repetition) %>%
   summarize(accuracy=mean(correct))
-```
 
-```{r}
-m1a <- summary(lmer(accuracy ~ version * repetition + (1 + version * repetition | orig_gameID),
+m1a <- summary(lmer(accuracy ~ version + (1 | gameID),
               data = d.acc))
 summary(m1a)
-
 ```
-
 ##### Plotting accuracy timecourse for communication and yoked
 ```{r}
 d.acc.boot = d.acc %>%
@@ -133,7 +129,7 @@ d.acc <- read_csv('../../results/graphical_conventions_recog_data.csv') %>%
   group_by(version,gameID,repetition) %>%
   summarize(accuracy=mean(correct))
 
-m1b <- summary(lmer(accuracy ~ version * repetition + (1 + repetition | gameID),
+m1b <- summary(lmer(accuracy ~ version + (1 | gameID),
               data = d.acc))
 summary(m1b)
 
