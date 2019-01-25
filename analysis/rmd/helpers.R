@@ -103,7 +103,7 @@ make_across_df <- function(M_mat, F_mat, method) {
 compute_across_similarity <- function(M_mat, F_mat, id,
                                       method = 'euclidean', nboot = 1) {
   cat('\r', id, '/100')
-  make_within_df(M_mat) %>%
+  make_across_df(M_mat, F_mat, method) %>%
     group_by(repetition) %>%
     tidyboot_mean(col = sim, nboot) %>%
     mutate(sample_id = id)
