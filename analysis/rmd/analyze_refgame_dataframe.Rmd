@@ -195,7 +195,6 @@ d_acc %>%
 
 m_strokes <- lmer(numStrokes ~ repetition + (1 + repetition | gameID), data = d %>% filter(condition=='repeated'))
 summary(m_strokes)
-
 d %>%
   group_by(repetition,condition) %>%
   summarize(numstrokes = mean(numStrokes))
