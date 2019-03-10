@@ -82,6 +82,10 @@ ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, 
 
 ```
 
+```{r}
+typeof(d.bootstrap)
+```
+
 
 ## Mixed-effects model for BIS (on drawDuration by phase)
 
@@ -207,9 +211,9 @@ d %>%
   group_by(repetition) %>%
   tidyboot_mean(numStrokes) %>%
   ggplot(aes(x = repetition, y = empirical_stat)) +
-    geom_point() +
-    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F, color = 'black') +
-    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0) +
+    geom_point(colour = '#163c4e',size = 2) +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F, color = '#163c4e') +
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0, color = '#163c4e') +
     theme_few() +
     scale_x_continuous(labels = c(1,2,3,4,5,6,7,8), breaks = c(1,2,3,4,5,6,7,8)) +
     ylab('number of strokes') +
