@@ -149,6 +149,20 @@ def get_complete_and_valid_games(games,
 
 ###############################################################################################
 
+def find_crazies(D):
+    arr1 = np.array(D['numStrokes'])
+    arr2 = np.array(D['numCurvesPerSketch'])
+    crazies = []
+    for i, d in D.iterrows():
+        if d['numStrokes'] < np.median(arr1) + 3 * np.std(arr1) and d['numCurvesPerSketch'] < np.median(arr2) + 3 * np.std(arr2):
+            crazies.append(False)
+        else:
+            crazies.append(True)
+    D['crazy'] = crazies
+    return D
+
+###############################################################################################
+
 def generate_dataframe(coll, complete_games, iterationName, results_dir):
 
     # new field in run5_submitButton to keep track of which subset of dining/waiting chairs used
@@ -190,7 +204,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
             Y = coll.find({ '$and': [{'gameid': g}, {'eventType': 'stroke'}]}).sort('time')
             counter = 0
             for t in X: # for each clickedObj event
-                print( 'Analyzing game {} | {} of {} | trial {}'.format(g, i, len(_complete_games),counter))
+                print( 'Analyzing game {} | {} of {} | trial {}'.format(g, i+1, len(_complete_games),counter))
                 clear_output(wait=True)                                
                 counter += 1
                 targetname = t['intendedName']
@@ -290,50 +304,23 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     if iterationName == 'run5_submitButton':
         _D = _D.assign(subset=pd.Series(Subset))
 
-    # filter out crazy games (low accuracy and timeouts)
-    accuracy_list = []
-    timed_outs = []
+    # tag outlier games (low accuracy)
+    _D['outcome'] = pd.to_numeric(_D['outcome'])
+    acc = _D.groupby('gameID')['outcome'].mean().reset_index()
+    thresh = acc['outcome'].mean() - acc['outcome'].std()*3
+    low_acc_games = acc[acc['outcome']<thresh]['gameID'].values
 
-    for g in _complete_games:
-        D_ = _D[_D['gameID'] == g]
-        all_accuracies = [d['outcome'] for i, d in D_.iterrows()]
-        mean_accuracy = sum(all_accuracies) / float(len(all_accuracies))
-        accuracy_list.append(mean_accuracy)
-        if any(d['timedOut'] == True for i, d in D_.iterrows()):
-            print ("timed out!")
-            timed_outs.append(g)
-
-    arr = np.array(accuracy_list)
-    med = np.median(arr)
-    sd = np.std(arr)
-    crazy_games = [_complete_games[i] for i, acc in enumerate(accuracy_list) if (med-acc)/sd > 3]
-    crazy_games = crazy_games + timed_outs
-    if (len(crazy_games) > 0):
-        print ("there were some crazy games: ", crazy_games)
-    #complete_games= [item for item in _complete_games if item not in crazy_games]
-    D = _D.loc[~_D['gameID'].isin(crazy_games)]
+    # add new column, low_acc, to keep track of low accuracy games
+    _D = _D.assign(low_acc = pd.Series(np.zeros(len(_D),dtype=bool)))
+    _D.loc[_D['gameID'].isin(low_acc_games),'low_acc'] = True
 
     # save out dataframe to be able to load in and analyze later w/o doing the above mongo querying ...
-    D.to_csv(os.path.join(results_dir,'graphical_conventions_group_data_{}.csv'.format(iterationName)))
+    _D.to_csv(os.path.join(results_dir,'graphical_conventions_group_data_{}.csv'.format(iterationName)),index=False)
 
     #D_dining_repeated = D[(D['category'] == 'dining')& (D['condition'] == 'repeated')]
     # Just look at one game
     print 'Done!'
-    return D
-
-###############################################################################################
-
-def find_crazies(D):
-    arr1 = np.array(D['numStrokes'])
-    arr2 = np.array(D['numCurvesPerSketch'])
-    crazies = []
-    for i, d in D.iterrows():
-        if d['numStrokes'] < np.median(arr1) + 3 * np.std(arr1) and d['numCurvesPerSketch'] < np.median(arr2) + 3 * np.std(arr2):
-            crazies.append(False)
-        else:
-            crazies.append(True)
-    D['crazy'] = crazies
-    return D
+    return _D
 
 ###############################################################################################
 
@@ -421,23 +408,15 @@ def standardize(D, dv):
 ###############################################################################################
 
 def add_bis_scores(D, dv):
-    new_D = D.copy(deep=True)
-    bis_score_list = []
-    for i,d in D.iterrows():
-        bis_score = d['outcome'] - d[dv]
-        bis_score_list.append(bis_score)
-    new_D['bis_score'] = bis_score_list
-    return new_D
+    D = D.assign(bis_score = pd.Series(D['outcome'] - D[dv]))
+    return D
 
 ###############################################################################################
 
 def save_bis_scores(D, results_dir):
 
-    # split into repeated and control
-    D_repeated = D[D['condition'] == 'repeated']
-    D_control = D[D['condition'] == 'control']
-    D_control.repetition = D_control.repetition.replace(1, 7)
-    D = pd.concat([D_repeated, D_control], axis = 0)
+    ## convert rep number for post from "1" to "7"
+    D.loc[(D['condition']=='control') & (D['repetition']==1),'repetition'] = 7
 
     standardized_outcome = standardize(D, 'outcome')
     standardized_outcome = standardized_outcome.loc[:,'outcome']
@@ -477,8 +456,8 @@ def add_recog_session_ids(D):
             control_tuple_list.append((g, t))
     control = np.array(control_tuple_list)
 
-    assert len(repeated) == 268
-    assert len(control) == 268
+    assert len(repeated) == len(D)/10
+    assert len(control) == len(D)/10
 
     new_d = pd.DataFrame()
     for rep in range(8):

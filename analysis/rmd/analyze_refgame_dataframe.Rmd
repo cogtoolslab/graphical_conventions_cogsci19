@@ -22,8 +22,14 @@ d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_dr
 d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') %>% select(-X1)
 ```
 
+Some statistics we report
+
 ```{r}
-d
+d %>% group_by(generalization) %>% summarize(l = length(unique(gameID)))
+```
+
+```{r}
+d.bis.drawDuration
 ```
 
 ## Generate histograms for numCurvesPerSketch and numStrokes 
@@ -69,14 +75,19 @@ d.bootstrap %>%
     theme_few() +
     scale_x_continuous(breaks = round(seq(min(d.bootstrap$repetition_1), max(d.bootstrap$repetition_1), by =1),1)) + 
     scale_y_continuous(breaks = seq(-0.5,2.5,0.5)) +
-    scale_color_manual(values=c("#d07e93", "#163c4e")) + 
-    scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
+    scale_color_manual(values=c("#808080", "#163c4e")) + 
+    scale_fill_manual(values=c("#808080", "#163c4e")) + 
     theme(legend.position = c(0.8, 0.2), text = element_text(size=18), element_line(size=1), element_rect(size=2, color="#00000"))
 ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, units='cm')
 
 ```
 
-## Mixed-effects model for BIS (on drawDuration)
+```{r}
+typeof(d.bootstrap)
+```
+
+
+## Mixed-effects model for BIS (on drawDuration by phase)
 
 ```{r}
 # preferred model definition for interaction between repetition and condition for bis -- has right syntax but doesn't converge
@@ -84,15 +95,134 @@ ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, 
 
 input <- d.bis.drawDuration %>%
          filter(repetition == 0 | repetition == 7) %>% 
-         mutate(phase = ifelse(repetition == 0, 'pre', 'post'))
+         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+                condition = as.factor(condition))
 
-# alternative model definition (removing game-wise random effects for phase*condition interaction)
-interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target), 
+contrasts(input$phase) <- c(-.5, .5)
+contrasts(input$condition) <- c(-.5, .5)
+
+# alternative model definition (removing target-wise random effects for phase*condition interaction)
+interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | gameID), 
                         data = input)
 
 print(summary(interaction_lmm))
-#print(coef(summary(interaction_lmm)))
 ```
+
+
+## accuracy differences between condition in pre phase 
+
+```{r}
+d %>%
+   mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+          condition = as.factor(condition)) %>%
+   filter(phase == 'pre') %>%
+   mutate(binaryOutcome = ifelse(outcome == 'True', 1, 0)) %>%
+   group_by(gameID, condition) %>%
+  summarize(acc = mean(binaryOutcome)) %>%
+  spread(condition, acc) %>%
+  mutate(diff = repeated - control) %>%
+  ungroup() %>%
+  tidyboot_mean(diff)
+```
+
+
+## Mixed-effects model for BIS (on numStrokes by phase)
+
+```{r}
+input <- d.bis.numStrokes %>%
+         filter(repetition == 0 | repetition == 7) %>% 
+         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+                condition = as.factor(condition))
+
+contrasts(input$phase) <- c(-.5, .5)
+contrasts(input$condition) <- c(-.5, .5)
+
+# alternative model definition (removing game-wise random effects for phase*condition interaction)
+interaction_lmm <- lmer(numStrokes ~ phase * condition + (1 + phase*condition | target), 
+                        data = input)
+
+print(coef(summary(interaction_lmm)))
+```
+
+## Mixed-effects model on accuracy (instead of just BIS)
+
+```{r}
+
+input <- d %>%
+         filter(repetition == 0 | repetition == 7) %>% 
+         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+                condition = as.factor(condition),
+                outcome = as.factor(outcome))
+
+# alternative model definition (removing game-wise random effects for phase*condition interaction)
+interaction_lmm <- glm(outcome ~ phase * condition , family='binomial',
+                        data = input)
+
+summary(interaction_lmm)
+```
+
+## Raw accuracy in pre and post
+
+```{r}
+d %>% 
+  filter(phase== 'pre'| phase == 'post') %>%
+  mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
+  group_by(phase,condition) %>%
+  tidyboot_mean(column=mean(outcome_binary))
+
+```
+
+## compute subject-wise, condition-wise change in accuracy from pre to post
+```{r}
+
+d_acc <- d %>%
+  filter(phase== 'pre'| phase == 'post') %>%
+  mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
+  group_by(gameID,phase,condition) %>%
+  summarize(accuracy=mean(outcome_binary)) %>%
+  spread(phase, accuracy) %>%
+  mutate(diff = post - pre) %>%
+  group_by(condition) %>%
+  tidyboot_mean(column=mean(diff)) 
+
+d_acc
+
+d_acc %>%
+    ggplot(aes(x = condition, y =empirical_stat)) +
+    geom_bar(stat = 'identity') +
+    geom_errorbar(aes(ymax = ci_upper, ymin = ci_lower), width = 0) +
+    theme_few() +
+    ylim(-.25, .25)
+  
+```
+
+## fit lmer model to subject-wise, condition-wise change in num strokes from pre to post
+```{r}
+
+m_strokes <- lmer(numStrokes ~ repetition + (1 + repetition | gameID) + (1 | target), data = d %>% filter(condition=='repeated'))
+summary(m_strokes)
+
+d %>%
+  filter(condition == 'repeated') %>%
+  mutate(repetition = repetition + 1) %>%
+  group_by(repetition) %>%
+  tidyboot_mean(numStrokes) %>%
+  ggplot(aes(x = repetition, y = empirical_stat)) +
+    geom_point(colour = '#163c4e',size = 2) +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F, color = '#163c4e') +
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0, color = '#163c4e') +
+    theme_few() +
+    scale_x_continuous(labels = c(1,2,3,4,5,6,7,8), breaks = c(1,2,3,4,5,6,7,8)) +
+    ylab('number of strokes') +
+    ylim(1,8) +
+    theme(legend.position = c(0.5, 0.8), text = element_text(size=18), 
+          element_line(size=1), element_rect(size=2, color="#00000")) +
+  
+ggsave('../../../graphical_conventions_latex/cogsci19/figures/source/num_strokes.pdf', height = 10, width = 7, units = 'cm', useDingbats = F)
+
+
+```
+
 
 # Similarity-based analyses
 
@@ -100,6 +230,8 @@ Import pre-processed matrices from ipynb
 
 ```{r}
 source('./helpers.R')
+library(broom)
+detach('package:lmerTest')
 M_mat = read_csv('../../data/sketch_features/no_crop/METADATA_sketch.csv') %>%
   filter(condition == 'repeated') %>%
   select(gameID, target, repetition, trial_num, feature_ind) %>%
@@ -109,52 +241,110 @@ M_mat = read_csv('../../data/sketch_features/no_crop/METADATA_sketch.csv') %>%
   arrange(gameID, target, repetition) 
 F_mat_raw_nonorm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_no-channel-norm.txt', 
                                    delim=',', col_names=F))
-F_mat_raw_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_channel-norm.txt', 
-                                   delim=',', col_names=F))
-F_mat_PCA_nonorm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_no-channel-norm.txt', 
-                                   delim=',', col_names=F))
-F_mat_PCA_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_channel-norm.txt', 
-                                   delim=',', col_names=F))
 
 colnames(F_mat_raw_nonorm) <- NULL
-colnames(F_mat_raw_norm) <- NULL
-colnames(F_mat_PCA_nonorm) <- NULL
-colnames(F_mat_PCA_norm) <- NULL
+```
 
+## Within-interaction drift
+
+```{r}
+true_lmer.drift <- make_within_df(M_mat, F_mat_raw_nonorm, 'cor') %>% filter(rep1 == 0) %>% ungroup()
+true_lmer.drift.out <- lmer(sim ~ poly(rep2,2) + (1  | gameID) + (1 | target), data = true_lmer.drift)
+
+permuted_tstats.drift <- map_dbl(seq_len(1000), ~ M_mat %>%
+ # scrambles repetition
+  group_by(target, repetition) %>% mutate(gameID = sample(gameID)) %>% ungroup() %>%
+  arrange(gameID, target, repetition) %>%
+  make_within_df(F_mat_raw_nonorm, 'cor') %>%
+  filter(rep1 == 0) %>% 
+  # turns into a list to make `map` happy
+  ungroup() %>%  mutate(sample_id = 1) %>% split(.$sample_id) %>%
+  map(~ lmer(sim ~ poly(rep2,2) + (1 | gameID) + (1 | target), data = .)) %>%
+  map(~ (tidy(., effects = 'fixed') %>% filter(term == 'poly(rep2, 2)1'))$statistic) %>%
+  unlist())
+
+cat('CI for drift analysis=', sort(permuted_tstats.drift)[25], sort(permuted_tstats.drift)[975])
+cat('true for drift analysis=', (tidy(true_lmer.drift.out, effects = 'fixed') %>% filter(term == 'poly(rep2, 2)1'))$statistic)
+```
+
+```{r}
+num_permutations <- 1000
+empirical.drift <- compute_within_drift(M_mat, F_mat_raw_nonorm, 'empirical', method = 'cor', nboot = 1000)
+baselines.drift <- map_dfr(seq_len(num_permutations), ~M_mat %>%
+  group_by(target, repetition) %>%
+  mutate(gameID = sample(gameID)) %>% # shuffle within target-rep 
+  ungroup() %>%
+  arrange(gameID, target, repetition) %>%
+  compute_within_drift(F_mat_raw_nonorm, .x, method = 'cor')) # this passes in the iteration number
+```
+
+```{r}
+d.toplot.drift <- baselines.drift %>%
+  group_by(`rep diff`) %>%
+  summarize(`ci_upper`=quantile(empirical_stat, probs=0.975),
+            `ci_lower`=quantile(empirical_stat, probs=0.025),
+            `empirical_stat`=quantile(empirical_stat, probs=0.5)) %>%
+  mutate(sample_id = 'baseline') %>%
+  rbind(empirical.drift %>% select(-n, -mean)) 
+
+ggplot(d.toplot.drift, aes(x = `rep diff`, y = empirical_stat, 
+             fill = sample_id, color = sample_id, group = sample_id)) +
+    geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA,
+                d.toplot.drift %>% filter(sample_id == 'baseline')) +
+    #geom_line(alpha = 0, size = 2) +
+    geom_line(size = 1, linetype = 'dashed', data = d.toplot.drift %>% filter(sample_id == 'baseline')) +
+    geom_point(size = 2, data = d.toplot.drift %>% filter(sample_id == 'empirical')) +
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0,
+                  data = d.toplot.drift %>% filter(sample_id == 'empirical')) +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F,
+                data = d.toplot.drift %>% filter(sample_id == 'empirical')) +
+    scale_color_manual(values=c("#d07e93", "#163c4e")) + 
+    scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
+    scale_x_discrete(labels = c('(1,2)','(1,3)', '(1,4)', '(1,5)', '(1,6)' ,'(1,7)','(1,8)')) +
+    ylim(.5, .8) +
+    ylab('correlation') +
+    ggtitle('drift from initial') +
+    theme_few() +
+    xlab('repetition pair') +
+    guides(color = F, fill = F) +
+    theme(legend.position = c(0.5, 0.8), text = element_text(size=18), 
+          element_line(size=1), element_rect(size=2, color="#00000"))
+
+ggsave('../../../graphical_conventions_latex/cogsci19/figures/source/drift.pdf', height = 10, width = 7, units = 'cm', useDingbats = F)
 ```
 
 ## Within-interaction convergence
 
 ```{r}
-# lmer model
-filtered_M <- M_mat %>% 
-  left_join(read_csv('../../results/graphical_conventions.csv') %>% rename(trial_num = trialNum),
-            by = c('gameID', 'trial_num')) %>%
-  filter(outcome == 'True' & crazy == "False") %>%
-  rename(target = 'target.x', repetition = 'repetition.x') %>%
-  mutate(repetition = as.numeric(repetition))
+true_lmer.within <- make_within_df(M_mat, F_mat_raw_nonorm, 'cor') %>% filter(rep2 == rep1 + 1) %>% ungroup()
+summary(lmer(sim ~ poly(rep1,2) + (1  | gameID) + (1 | target), data = true_lmer.within))
 
-lmer.within <- filtered_M %>%
-    group_by(gameID, target) %>%
-    do(flatten_sim_matrix(get_sim_matrix(., F_mat_raw_nonorm, method = 'cor'),
-                         .$repetition)) %>%
-    mutate(rep1 = as.numeric(dim1), 
-           rep2 = as.numeric(dim2)) %>%
-    filter(rep2 == rep1 + 1) %>% 
-    ungroup()
-summary(lmer(sim ~ rep1 + (1 | gameID) + (1 | target), data = lmer.within))
+permuted_tstats.within <- map_dbl(seq_len(1000), ~ M_mat %>%
+ # scrambles repetition
+  group_by(target, repetition) %>% mutate(gameID = sample(gameID)) %>% ungroup() %>%
+  arrange(gameID, target, repetition) %>%
+  make_within_df(F_mat_raw_nonorm, 'cor') %>%
+  filter(rep2 == rep1 + 1) %>% 
+  # turns into a list to make `map` happy
+  ungroup() %>%  mutate(sample_id = 1) %>% split(.$sample_id) %>%
+  map(~ lmer(sim ~ poly(rep1,2) + (1 | gameID) + (1 | target), data = .)) %>%
+  map(~ (tidy(., effects = 'fixed') %>% filter(term == 'poly(rep1, 2)1'))$statistic) %>%
+  unlist())
+
+cat('CI for within analysis=', sort(permuted_tstats.within)[25], sort(permuted_tstats.within)[975])
 ```
 
 compute both true empirical & permuted output
 
 ```{r}
-num_permutations <- 100
-empirical.within <- compute_within_similarity(M_mat, F_mat_raw_nonorm, 'empirical', method = 'cor', nboot = 1000)
+num_permutations <- 1000
+empirical.within <- compute_within_convergence(M_mat, F_mat_raw_nonorm, 'empirical', method = 'cor', nboot = 1000)
 baselines.within <- map_dfr(seq_len(num_permutations), ~M_mat %>%
   group_by(target, repetition) %>%
   mutate(gameID = sample(gameID)) %>% # shuffle within target-rep 
   ungroup() %>%
-  compute_within_similarity(F_mat_raw_nonorm, .x, method = 'cor')) # this passes in the iteration number
+  arrange(gameID, target, repetition) %>%
+  compute_within_convergence(F_mat_raw_nonorm, .x, method = 'cor')) # this passes in the iteration number
 ```
 
 Plot with permutations
@@ -170,10 +360,15 @@ d.toplot <- baselines.within %>%
 
 ggplot(d.toplot, aes(x = `rep diff`, y = empirical_stat, 
                      fill = sample_id, color = sample_id, group = sample_id)) +
-    geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA) +
+    geom_ribbon(aes(ymin = ci_lower, ymax = ci_upper), alpha = 0.5, color = NA,
+                d.toplot %>% filter(sample_id == 'baseline')) +
     #geom_line(alpha = 0, size = 2) +
-    geom_line(size = 1, linetype = 'dashed',data = d.toplot %>% filter(sample_id == 'baseline')) +
-    geom_line(size = 2, data = d.toplot %>% filter(sample_id == 'empirical')) +
+    geom_line(size = 1, linetype = 'dashed', data = d.toplot %>% filter(sample_id == 'baseline')) +
+    geom_point(size = 2, data = d.toplot %>% filter(sample_id == 'empirical')) +
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0,
+                  data = d.toplot %>% filter(sample_id == 'empirical')) +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F,
+                data = d.toplot %>% filter(sample_id == 'empirical')) +
     scale_color_manual(values=c("#d07e93", "#163c4e")) + 
     scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
     scale_x_discrete(labels = c('(1,2)','(2,3)', '(3,4)', '(4,5)', '(5,6)' ,'(6,7)','(7,8)')) +
@@ -186,12 +381,11 @@ ggplot(d.toplot, aes(x = `rep diff`, y = empirical_stat,
     theme(legend.position = c(0.5, 0.8), text = element_text(size=18), 
           element_line(size=1), element_rect(size=2, color="#00000"))
 
-ggsave('../../../graphical_conventions_latex/cogsci19/figures/within_unfiltered.pdf', height = 10, width = 7, units = 'cm')
+ggsave('../../../graphical_conventions_latex/cogsci19/figures/source/within.pdf', height = 10, width = 7, units = 'cm', useDingbats = F)
 ```
 
 ## Between-interaction divergence 
 
-Look at curves broken out by target
 
 ```{r}
 gamepair.df <- M_mat %>%
@@ -199,22 +393,39 @@ gamepair.df <- M_mat %>%
   do(flatten_sim_matrix(get_sim_matrix(., F_mat_raw_nonorm, method = 'cor'),
                         .$gameID)) %>%
   unite(col = 'gamepair', dim1, dim2)
-summary(lmer(sim ~ poly(repetition, 2) + (1 + repetition | gamepair) + (1 + repetition | target), data = gamepair.df))
-```
 
-```{r}
-M_mat %>%
-  group_by(target, repetition) %>%
-  do(flatten_sim_matrix(get_sim_matrix(., F_mat_raw_nonorm, method = 'cor'),
-                        .$gameID)) %>%
+true_lmer.across <- lmer(sim ~ poly(repetition, 2) + (1 + repetition | gamepair) + (1 + repetition | target), data = gamepair.df)
+true_tstat.across <- coef(summary(true_lmer.across))[,"t value"][2]
+
+permuted_tstats.across <- map_dbl(seq_len(1000), ~ M_mat %>%
+ # scrambles repetition
+  group_by(target, gameID) %>%
+  mutate(repetition = sample(repetition, size = length(repetition))) %>% 
+  ungroup() %>%
+  arrange(gameID, target, repetition) %>%
+  group_by(target,repetition) %>%
+  # computes similarity upper triangular
+  do(flatten_sim_matrix(get_sim_matrix(., F_mat_raw_nonorm, method = 'cor'), .$gameID)) %>%
   unite(col = 'gamepair', dim1, dim2) %>%
-  ggplot(aes(x = repetition, y = sim, group = gamepair)) +
-    geom_line(alpha = .1) +
-    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), group = 1) +
-    facet_wrap(~ target) +
-    theme_few()
+  mutate(sample_id = 1) %>%
+  ungroup() %>%
+  # turns into a list to make `map` happy
+  split(.$sample_id) %>%
+  map(~ lmer(sim ~ poly(repetition,2) + (1 + repetition | gamepair) + (1 + repetition | target), data = .)) %>%
+  map(~ (tidy(., effects = 'fixed') %>% filter(term == 'poly(repetition, 2)1'))$statistic) %>%
+  unlist())
 
-ggsave('by_target_gamepair.pdf')
+cat('CI=', sort(permuted_tstats.across)[25], sort(permuted_tstats.across)[975])
+
+# ggplot(data.frame(permuted = permuted_tstats.across, true = true_tstat.across),
+#        aes(x = 0, y = permuted)) +
+#   geom_violin(fill = '#d07e93', alpha = 0.25, color = NA) +
+#   geom_point(aes(x = 0, y = true), size = 4, color = "#163c4e") +
+#   theme_bw() +
+#   ylab('slope t value') +
+#   coord_flip() +
+#   scale_x_continuous(breaks = NULL) +
+#   theme(aspect.ratio = 1/5) 
 ```
 
 ```{r}
@@ -237,9 +448,14 @@ d.toplot <- rbind(empirical.across %>% select(-mean, -n),
         mutate(repetition = repetition + 1)
 ggplot(d.toplot, aes(x = repetition, y = empirical_stat, group = sample_id, 
                      color = sample_id, fill=sample_id)) +
-  geom_ribbon(alpha = 0.25, aes(ymin = ci_lower, ymax = ci_upper), color = NA ) + 
+  geom_ribbon(alpha = 0.25, aes(ymin = ci_lower, ymax = ci_upper), color = NA,
+              data = d.toplot %>% filter(sample_id == 'baseline')) + 
   geom_line(size = 1, linetype = 'dashed', data = d.toplot %>% filter(sample_id == 'baseline')) +
-  geom_line(size = 2, alpha = 1, data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  geom_point(size = 2, alpha = 1, data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0,
+                 data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
+  geom_smooth(method = 'lm', formula = y ~ poly(x, 2), se = F,
+              data = d.toplot %>% filter(sample_id == 'raw_cor_nonorm')) +
   scale_color_manual(values=c("#d07e93", "#163c4e")) + 
   scale_fill_manual(values=c("#d07e93", "#163c4e")) + 
   xlim(0.5, 8.5) +
@@ -253,7 +469,7 @@ ggplot(d.toplot, aes(x = repetition, y = empirical_stat, group = sample_id,
         element_line(size=1), element_rect(size=2, color="#00000"))
 
 
-ggsave('../../../graphical_conventions_latex/cogsci19/figures/across.pdf', height = 10, width = 7, units = 'cm')
+ggsave('../../../graphical_conventions_latex/cogsci19/figures/source/across.pdf', height = 10, width = 7, units = 'cm', useDingbats = F)
 ```
 
 ## Temporal structure 
@@ -268,6 +484,16 @@ ggsave('../../../graphical_conventions_latex/cogsci19/figures/across.pdf', heigh
 Visualize effects of different pre-processing steps and distance metrics
 
 ```{r}
+F_mat_raw_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_channel-norm.txt',
+                                   delim=',', col_names=F))
+F_mat_PCA_nonorm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_no-channel-norm.txt',
+                                   delim=',', col_names=F))
+F_mat_PCA_norm = as.matrix(read_delim('../../data/sketch_features/no_crop/FEATURES_FC6_sketch_PCA_512_channel-norm.txt',
+                                   delim=',', col_names=F))
+
+colnames(F_mat_raw_norm) <- NULL
+colnames(F_mat_PCA_nonorm) <- NULL
+colnames(F_mat_PCA_norm) <- NULL
 rbind(compute_across_similarity(filtered_M, F_mat_raw_nonorm, 'raw_euclid_nonorm', method = 'euclidean'),
       compute_across_similarity(filtered_M, F_mat_raw_norm,   'raw_euclid_norm',   method = 'euclidean'),
       compute_across_similarity(filtered_M, F_mat_PCA_nonorm, 'PCA_euclid_nonorm', method = 'euclidean'),
@@ -302,4 +528,21 @@ rbind(compute_across_similarity(M_mat, F_mat_PCA_norm, 'PCA_cor_norm',    method
       geom_point() +
       geom_smooth() +
       theme_few()
+```
+
+Broken out by target
+
+```{r}
+M_mat %>%
+  group_by(target, repetition) %>%
+  do(flatten_sim_matrix(get_sim_matrix(., F_mat_raw_nonorm, method = 'cor'),
+                        .$gameID)) %>%
+  unite(col = 'gamepair', dim1, dim2) %>%
+  ggplot(aes(x = repetition, y = sim, group = gamepair)) +
+    geom_line(alpha = .1) +
+    geom_smooth(method = 'lm', formula = y ~ poly(x, 2), group = 1) +
+    facet_wrap(~ target) +
+    theme_few()
+
+ggsave('by_target_gamepair.pdf')
 ```
