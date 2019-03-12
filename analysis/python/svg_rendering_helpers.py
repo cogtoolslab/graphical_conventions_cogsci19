@@ -60,9 +60,9 @@ def render_svg(paths,
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     wsvg(paths,
-         attributes=[{'stroke-width':stroke_width,\
-                      'stroke-linecap':stroke_linecap,\
-                      'stroke':stroke_color,\
+         attributes=[{'stroke-width':stroke_width,
+                      'stroke-linecap':stroke_linecap,
+                      'stroke':stroke_color,
                       'fill':fill_mode}]*len(paths),
          viewbox=viewbox,
          filename=os.path.join(base_dir,out_dir,out_fname))
@@ -87,9 +87,9 @@ def render_svg_color(paths,
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     wsvg(paths,
-         attributes=[{'stroke-width':stroke_width,\
-                      'stroke-linecap':stroke_linecap,\
-                      'stroke':color,\
+         attributes=[{'stroke-width':stroke_width,
+                      'stroke-linecap':stroke_linecap,
+                      'stroke':color,
                       'fill':fill_mode} for color in stroke_colors],
          viewbox=viewbox,
          filename=os.path.join(base_dir,out_dir,out_fname))
