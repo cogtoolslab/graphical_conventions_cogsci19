@@ -62,30 +62,48 @@ flatten_sim_matrix <- function(cormat, ids) {
            dim2 = as.character(dim2))
 }
 
-compute_within_similarity <- function(M_mat, F_mat, id, 
-                                      method = 'euclidean', nboot = 1) {
-  cat('\r', id, '/100')
+make_within_df <- function(M_mat, F_mat, method) {
   M_mat %>%
-     complete(nesting(gameID, target), repetition) %>%  # Fill in NAs for missing repetitions
-     group_by(gameID, target) %>%
-     do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
-                           .$repetition)) %>%
-     mutate(rep1 = as.numeric(dim1), 
-            rep2 = as.numeric(dim2)) %>%
-     filter(rep2 == rep1 + 1) %>%                       # only interested in successive reps
+    group_by(gameID, target) %>%
+    do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
+                          .$repetition)) %>%
+    mutate(rep1 = as.numeric(dim1), 
+           rep2 = as.numeric(dim2)) 
+}
+
+compute_within_convergence <- function(M_mat, F_mat, id, 
+                                      method = 'cor', nboot = 1) {
+  cat('\r', id, '/100')
+  make_within_df(M_mat, F_mat, method) %>%   
+     filter(rep2 == rep1 + 1) %>%
      group_by(rep1, rep2) %>%
      tidyboot_mean(col = sim, na.rm = T, nboot = nboot) %>%
      unite(`rep diff`, rep1, rep2, sep = '->') %>%
      mutate(sample_id = id)
 }
 
-compute_across_similarity <- function(M_mat, F_mat, id,
-                                      method = 'euclidean', nboot = 1) {
+compute_within_drift <- function(M_mat, F_mat, id, 
+                                       method = 'cor', nboot = 1) {
   cat('\r', id, '/100')
+  make_within_df(M_mat, F_mat, method) %>%   
+    filter(rep1 == 0) %>%
+    group_by(rep1, rep2) %>%
+    tidyboot_mean(col = sim, na.rm = T, nboot = nboot) %>%
+    unite(`rep diff`, rep1, rep2, sep = '->') %>%
+    mutate(sample_id = id)
+}
+
+make_across_df <- function(M_mat, F_mat, method) {
   M_mat %>%
     group_by(target, repetition) %>%
     do(flatten_sim_matrix(get_sim_matrix(., F_mat, method = method),
-                          as.character(.$gameID))) %>%
+                          as.character(.$gameID)))
+}
+
+compute_across_similarity <- function(M_mat, F_mat, id,
+                                      method = 'euclidean', nboot = 1) {
+  cat('\r', id, '/100')
+  make_across_df(M_mat, F_mat, method) %>%
     group_by(repetition) %>%
     tidyboot_mean(col = sim, nboot) %>%
     mutate(sample_id = id)
