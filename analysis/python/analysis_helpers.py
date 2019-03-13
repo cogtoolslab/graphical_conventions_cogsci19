@@ -15,10 +15,12 @@ import base64
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from matplotlib import colors
 import seaborn as sns
 import re
 sns.set_context('poster')
 colors = sns.color_palette("cubehelix", 5)
+from svgpathtools import parse_path, wsvg, svg2paths
 
 # directory & file hierarchy
 proj_dir = os.path.abspath('../../..')
@@ -134,9 +136,9 @@ def plot_repeated_control(D_repeated, D_control, var, ax, numReps):
 ###############################################################################################
 
 def clean_up_metadata(M):
-    return (M.drop(columns=['Unnamed: 0'])
-             .assign(feature_ind=pd.Series(range(len(M))))
+    return (M.assign(feature_ind=pd.Series(range(len(M))))
              .assign(repetition=pd.to_numeric(M.repetition)))
+             #drop(columns=['Unnamed: 0'])
 
 ###############################################################################################
 
@@ -983,17 +985,16 @@ def compute_similarity(F, inds_to_compare): # inds_to_compare: feature indices
     features_to_compare = F[inds_to_compare, :]
     CORRMAT = np.corrcoef(features_to_compare)
     similarity = np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
+    #np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))#(np.tril(CORRMAT)) # (np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
     return similarity
 
 ###############################################################################################
 
 def plot_stroke_similarity_rep_specific(d, lesion_later_sketch, axs):
-    for b in range(7):
+    for base_rep in range(7):
         for direction in ['start', 'end']:
-            ax=axs[b]
-            n = b + 1
-            base_rep = str(b)
-            next_rep = str(n)
+            ax=axs[base_rep]
+            next_rep = base_rep + 1
             d_ = d[(d['base_rep'] == base_rep) & (d['direction'] == direction) & (d['lesion_later_sketch'] == lesion_later_sketch)]
             color = 'lightcoral' if direction == 'start' else 'turquoise'
             intact = base_rep if lesion_later_sketch else next_rep
@@ -1023,7 +1024,9 @@ def plot_stroke_similarity_discrete(d, lesion_later_sketch):
     num_graphs = len(d['total_num_strokes'].unique())
     fig, axs = plt.subplots(nrows=num_graphs, figsize=(5,100))
     count = 0
-    for total_num_strokes in d['total_num_strokes'].unique():
+    total_num_strokes_list = list(set(d['total_num_strokes']))
+    total_num_strokes_list.sort()
+    for total_num_strokes in total_num_strokes_list:
         _d = d[d['total_num_strokes'] == total_num_strokes]
         ax=axs[count]
         count += 1
@@ -1039,41 +1042,182 @@ def plot_stroke_similarity_discrete(d, lesion_later_sketch):
             a.legend()
 
 ###############################################################################################
+def compute_similarity_2(F1, F2, inds_to_compare): # inds_to_compare: feature indices
+    features_to_compare = [F1[inds_to_compare[0]], F2[inds_to_compare[1]]]
+    CORRMAT = np.corrcoef(features_to_compare)
+    similarity = np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
+    #np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))#(np.tril(CORRMAT)) # (np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
+    return similarity
+
 
 def get_stroke_analysis_df(D, M, F):
     d = pd.DataFrame()
     for direction in ['start', 'end']:
         for lesion_later_sketch in [True, False]:
-            for b in range(7):
-                n = b + 1
-                base_rep = str(b)
-                next_rep = str(n)
+            for base_rep in range(7):
+                next_rep = base_rep + 1
                 # make dataframe with gameid, target, percentage strokes deleted, and similarity
                 for g in M['gameID'].unique():
                     # retrieve repeated condition targets from game
                     repeated_targets = D[(D['gameID'] == g) & (D['condition'] == 'repeated')]['target'].unique()
                     repeated_targets_ = [target.split('_')[0] + target.split('_')[1] for target in repeated_targets]
+                    assert len(repeated_targets_) == 4
                     for t in repeated_targets_:
                         if lesion_later_sketch:
                             # get feature inds of each stroke-deletion version of later sketch
                             all_strokes_to_delete = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == next_rep) & (M['direction'] == direction)]
                             # get feature ind of intact earlier sketch
-                            feature_ind_of_paired_sketch = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == base_rep) & (M['num_strokes_deleted'] == str(0)) & (M['direction'] == direction)]['feature_ind'].unique()[0]
+                            feature_ind_of_paired_sketch = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == base_rep) & (M['num_strokes_deleted'] == 0) & (M['direction'] == direction)]['feature_ind'].unique()[0]
                         else:
                             # get feature inds of each stroke-deletion version of earlier sketch
                             all_strokes_to_delete = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == base_rep) & (M['direction'] == direction)]
                             # get feature ind of intact later sketch
-                            feature_ind_of_paired_sketch = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == next_rep) & (M['num_strokes_deleted'] == str(0)) & (M['direction'] == direction)]['feature_ind'].unique()[0]
-                        total_num_strokes = len(all_strokes_to_delete) + 1
-                        for i in range(len(all_strokes_to_delete)):
+                            feature_ind_of_paired_sketch = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == next_rep) & (M['num_strokes_deleted'] == 0) & (M['direction'] == direction)]['feature_ind'].unique()[0]
+                        total_num_strokes = len(all_strokes_to_delete)
+                        for num_deleted in range(len(all_strokes_to_delete)):
                             # for each stroke deletion step of the lesioned sketch, compute percentage of strokes deleted and similarity between that version and the intact version of the adjacent repetition
-                            num_deleted = i
-                            percentage_deleted = i / total_num_strokes
-                            feature_ind_of_deleted_sketch = all_strokes_to_delete[(all_strokes_to_delete['num_strokes_deleted'] == str(i)) & (all_strokes_to_delete['direction'] == direction)]['feature_ind'].unique()[0]
+                            percentage_deleted = float(num_deleted) / float(total_num_strokes)
+                            feature_ind_of_deleted_sketch = all_strokes_to_delete[(all_strokes_to_delete['num_strokes_deleted'] == num_deleted) & (all_strokes_to_delete['direction'] == direction)]['feature_ind'].unique()[0]
                             similarity = compute_similarity(F, [feature_ind_of_paired_sketch, feature_ind_of_deleted_sketch])
-                            if i == 0:
+                            if num_deleted == 0:
                                 baseline_similarity = similarity
                             normalized_similarity = float(similarity) / float(baseline_similarity)
                             df_to_add = pd.DataFrame([[g, t, percentage_deleted, num_deleted, total_num_strokes, normalized_similarity, base_rep, direction, lesion_later_sketch]], columns=['gameID', 'target', 'percentage_strokes_deleted', 'num_strokes_deleted', 'total_num_strokes', 'similarity', 'base_rep', 'direction', 'lesion_later_sketch'])
                             d = d.append(df_to_add)
     return d
+
+
+###############################################################################################
+def get_self_similarity_df(D, M, F):
+    d = pd.DataFrame()
+    for direction in ['start', 'end']:
+        for rep in range(7):
+            # make dataframe with gameid, target, percentage strokes deleted, and similarity
+            for g in M['gameID'].unique():
+                # retrieve repeated condition targets from game
+                repeated_targets = D[(D['gameID'] == g) & (D['condition'] == 'repeated')]['target'].unique()
+                repeated_targets_ = [target.split('_')[0] + target.split('_')[1] for target in repeated_targets]
+                assert len(repeated_targets_) == 4
+                for t in repeated_targets_:
+                    # get feature inds of each stroke-deletion version of later sketch
+                    all_strokes_to_delete = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == rep) & (M['direction'] == direction)]
+                    # get feature ind of intact earlier sketch
+                    feature_ind_of_paired_sketch = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == rep) & (M['num_strokes_deleted'] == 0) & (M['direction'] == direction)]['feature_ind'].unique()[0]
+                    total_num_strokes = len(all_strokes_to_delete)
+                    for num_deleted in range(len(all_strokes_to_delete)):
+                        # for each stroke deletion step of the lesioned sketch, compute percentage of strokes deleted and similarity between that version and the intact version of the adjacent repetition
+                        percentage_deleted = float(num_deleted) / float(total_num_strokes)
+                        feature_ind_of_deleted_sketch = all_strokes_to_delete[(all_strokes_to_delete['num_strokes_deleted'] == num_deleted) & (all_strokes_to_delete['direction'] == direction)]['feature_ind'].unique()[0]
+                        similarity = compute_similarity(F, [feature_ind_of_paired_sketch, feature_ind_of_deleted_sketch])
+                        #if num_deleted == 0:
+                        #    baseline_similarity = similarity
+                        #normalized_similarity = float(similarity) / float(baseline_similarity)
+                        df_to_add = pd.DataFrame([[g, t, percentage_deleted, num_deleted, total_num_strokes, similarity, rep, direction]], columns=['gameID', 'target', 'percentage_strokes_deleted', 'num_strokes_deleted', 'total_num_strokes', 'similarity', 'base_rep', 'direction'])
+                        d = d.append(df_to_add)
+    return d
+
+###############################################################################################
+def plot_self_similarity(d, axs):
+    sns.set(style="ticks", rc={"lines.linewidth": 0.7})
+    sns.set_context("paper")
+    for base_rep in range(7):
+        for direction in ['start', 'end']:
+            ax=axs[base_rep]
+            d_ = d[(d['base_rep'] == base_rep) & (d['direction'] == direction)]
+            color = 'lightcoral' if direction == 'start' else 'turquoise'
+            a = sns.regplot(x="percentage_strokes_deleted", y='similarity', data=d_, x_bins=10, ax=ax, color=color)
+            a.set_title('Similarity to whole sketch with increasing stroke deletion in rep  {}'.format(str(base_rep)))
+            a.set_ylabel('Similarity')
+            a.set_xlabel('Percentage of strokes deleted')
+            
+###############################################################################################           
+            
+            
+ # delete every stroke from whole sketch and plot similarity to whole sketch against length of stroke 
+def get_one_deleted_df(D, M, F, Ms, Fs):
+    d = pd.DataFrame()
+    for rep in range(8):
+        # make dataframe with gameid, target, percentage strokes deleted, and similarity
+        for g in M['gameID'].unique():
+            # retrieve repeated condition targets from game
+            repeated_targets = D[(D['gameID'] == g) & (D['condition'] == 'repeated')]['target'].unique()
+            #repeated_targets_ = [target.split('_')[0] + target.split('_')[1] for target in repeated_targets]
+            assert len(repeated_targets) == 4
+            for t in repeated_targets:
+                # get feature inds of each stroke-deletion version of later sketch
+                all_strokes_to_delete = M[(M['gameID'] == g) & (M['target'] == t) & (M['repetition'] == rep)]
+                # get feature ind of intact earlier sketch
+                t_ = t.split('_')[0] + t.split('_')[1]
+                feature_ind_of_paired_sketch = Ms[(Ms['gameID'] == g) & (Ms['target'] == t_) & (Ms['repetition'] == rep) & (Ms['num_strokes_deleted'] == 0) & (Ms['direction'] == 'start')]['feature_ind'].unique()[0]
+                total_num_strokes = len(all_strokes_to_delete)
+                D_ = D[(D['gameID'] == g) & (D['target'] == t) & (D['repetition'] == rep)]
+                svgListString = list(D_['svgString'])[0]
+                arcLengths = getArcLengths(svgListString)
+                for num_deleted in range(len(all_strokes_to_delete)):
+                    # for each stroke deletion step of the lesioned sketch, compute percentage of strokes deleted and similarity between that version and the intact version of the adjacent repetition
+                    #percentage_deleted = float(num_deleted) / float(total_num_strokes)
+                    feature_ind_of_deleted_sketch = all_strokes_to_delete[(all_strokes_to_delete['num_strokes_deleted'] == num_deleted)]['feature_ind'].unique()[0]
+                    similarity = compute_similarity_2(Fs, F, [feature_ind_of_paired_sketch, feature_ind_of_deleted_sketch])
+                    length = arcLengths[num_deleted]
+                    df_to_add = pd.DataFrame([[g, t, num_deleted, total_num_strokes, length, similarity, rep]], columns=['gameID', 'target', 'deleted_stroke_number', 'total_num_strokes', 'length', 'similarity', 'base_rep'])
+                    d = d.append(df_to_add)
+    return d
+            
+############################################################################################### 
+
+
+
+import ast 
+import PIL.Image
+from svgpathtools import parse_path
+import svgpathtools
+import math
+import ast 
+
+def arcl(svg):
+    return parse_path(svg).length()
+def getArcLengths(svgListString):
+    return [arcl(ast.literal_eval(svgListString)[i]) for i in range(len(ast.literal_eval(svgListString)))]
+
+
+
+############################################################################################### 
+### Self-similarity individual sketches 
+## run3_0286-a442ec93-ad78-42fa-b3e9-083da9a64c4d_6_repeated_waiting_03_0_end_0.png
+def plot_self_similarity_of(df, sketch_dir, png_name):
+    gameID = png_name.split('.')[0].split('_')[1]
+    target = png_name.split('.')[0].split('_')[4] + png_name.split('.')[0].split('_')[5]
+    repetition = png_name.split('.')[0].split('_')[6]
+    d = df[(df['gameID'] == gameID) & (df['target'] == target) & (df['base_rep'] == int(repetition))]
+    total_num_strokes = list(d['total_num_strokes'])[0]
+    png_name_first = png_name.split('.')[0].split('_')[0] + '_' + png_name.split('.')[0].split('_')[1] + '_'\
+                    + png_name.split('.')[0].split('_')[2] + '_'+ png_name.split('.')[0].split('_')[3]+ '_' \
+                    + png_name.split('.')[0].split('_')[4] + '_'+ png_name.split('.')[0].split('_')[5]+ '_'\
+                    + png_name.split('.')[0].split('_')[6]
+    grid = plt.GridSpec(5, total_num_strokes, wspace=0.1, hspace=0.1)
+    line_plot_height = 3
+    width = 1.5 * total_num_strokes 
+    plt.figure(figsize=(width,7.5))
+        # Call plot() method on the appropriate object
+    for direction in ['start', 'end']:
+        color = 'lightcoral' if direction == 'start' else 'turquoise'
+        num_row = line_plot_height if direction == 'start' else line_plot_height + 1
+        d_ = d[d['direction'] == direction]
+        a = sns.lineplot(x="num_strokes_deleted", y='similarity', data=d_, ax=plt.subplot(grid[0:line_plot_height, 0:]), color=color)
+        plt.subplot(grid[0:line_plot_height, 0:]).set_xticks([])
+        plot_num = 0
+        for num_strokes_deleted in range(total_num_strokes):
+            plot_num +=1
+            png_name = png_name_first + '_' + direction + '_' + str(num_strokes_deleted) + '.png'
+            path = os.path.join(os.path.join(sketch_dir, 'stroke_analysis/png'), png_name)
+            im = Image.open(path)
+            cropped_im = im.crop((350, 150, 600, 400))
+            numReps = total_num_strokes
+            # ax[1].plot(x, np.cos(x));
+            #p = plt.subplot(num_row, num_strokes_deleted+1, 1)
+            for spine in plt.subplot(grid[num_row, num_strokes_deleted]).spines.values():
+                spine.set_edgecolor(color)
+            p = plt.subplot(grid[num_row, num_strokes_deleted]).imshow(im)
+            sns.set_style('white')
+            plt.subplot(grid[num_row, num_strokes_deleted]).set_xticks([])
+            plt.subplot(grid[num_row, num_strokes_deleted]).set_yticks([])
