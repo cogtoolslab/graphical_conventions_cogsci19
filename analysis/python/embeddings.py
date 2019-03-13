@@ -167,42 +167,43 @@ class FeatureExtractor():
         def flatten_list(x):
             return np.array([item for sublist in x for item in sublist])
 
-        def get_metadata_from_path(path):
-            parsed_path = path.split('.')[0].split('/')[-1].split('_')
-            ## e.g., '6378-75ca9ee2-ed38-4434-b0bc-00c039f29b57_12_waiting_01_1_run4_generalization_3_start'
+        def get_metadata_from_path(path): # change later to be consistent
+            parsed_path = path.split('/')[-1].split('.')[0].split('_')
+            # 0050-769c4742-aefc-4bea-aeb2-7dc48b51fe82_2_waiting_04_0_run4_generalization_0.png
+            ## e.g., 'run4_6378-75ca9ee2-ed38-4434-b0bc-00c039f29b57_12_repeated_waiting_01_1_start_3'
             gameID = parsed_path[0]
             trialNum = parsed_path[1]
-            target = parsed_path[2]+parsed_path[3]
+            target = parsed_path[2] + '_' + parsed_path[3]
             repetition = parsed_path[4]
             if parsed_path[5] == 'run4':
-                condition = parsed_path[5]+parsed_path[6]
+                condition = 'between'
+                runNum = 'run4'
                 num_strokes_deleted = parsed_path[7]
-                direction = parsed_path[8]
             else:
-                condition = parsed_path[5]+parsed_path[6]+parsed_path[7]
+                condition = 'within'
+                runNum = 'run3'
                 num_strokes_deleted = parsed_path[8]
-                direction = parsed_path[9]
-
-            return gameID, trialNum, condition, target, repetition, num_strokes_deleted, direction
+            
+            return runNum, gameID, trialNum, condition, target, repetition, num_strokes_deleted
 
         def generator(paths, imsize=self.imsize, use_cuda=use_cuda):
             for path in paths:
                 image = load_image(path)
-                gameID, trialNum, condition, target, repetition, num_strokes_deleted, direction = get_metadata_from_path(path)
-                yield (image, gameID, trialNum, condition, target, repetition, num_strokes_deleted, direction)
+                runNum, gameID, trialNum, condition, target, repetition, num_strokes_deleted = get_metadata_from_path(path)
+                yield (image, runNum, gameID, trialNum, condition, target, repetition,  num_strokes_deleted)
 
         # define generator
         generator = generator(self.paths,imsize=self.imsize,use_cuda=self.use_cuda)
 
         # initialize sketch and label matrices
         Features = []
+        RunNums = []
         GameIDs = []
         TrialNums = []
         Conditions = []
         Targets = []
         Repetitions = []
         NumStrokesDeleteds = []
-        Directions = []
 
         n = 0
         quit = False
@@ -224,21 +225,20 @@ class FeatureExtractor():
                 target_batch = []
                 repetition_batch = []
                 num_strokes_deleted_batch = []
-                direction_batch = []
 
                 if (n+1)%20==0:
                     print('Batch {}'.format(n + 1))
                 for b in range(batch_size):
                     try:
-                        sketch, gameID, trialNum, condition, target, repetition, num_strokes_deleted, direction = generator.next()
+                        sketch, runNum, gameID, trialNum, condition, target, repetition, num_strokes_deleted = generator.next()
                         sketch_batch[b] = sketch
+                        run_batch.append(runNum)
                         game_batch.append(gameID)
                         trial_batch.append(trialNum)
                         condition_batch.append(condition)
                         target_batch.append(target)
                         repetition_batch.append(repetition)
                         num_strokes_deleted_batch.append(num_strokes_deleted)
-                        direction_batch.append(direction)
                     except StopIteration:
                         quit = True
                         print('stopped!')
@@ -254,7 +254,6 @@ class FeatureExtractor():
                     target_batch = target_batch[:b + 1]
                     repetition_batch = repetition_batch[:b + 1]
                     num_strokes_deleted_batch = num_strokes_deleted_batch[:b + 1]
-                    direction_batch = direction_batch[:b + 1]
 
                 # extract features from batch
                 sketch_batch = extractor(sketch_batch)
@@ -265,18 +264,18 @@ class FeatureExtractor():
                 else:
                     Features = np.vstack((Features,sketch_batch))
 
+                RunNums.append(run_batch)
                 GameIDs.append(game_batch)
                 TrialNums.append(trial_batch)
                 Conditions.append(condition_batch)
                 Targets.append(target_batch)
                 Repetitions.append(repetition_batch)
                 NumStrokesDeleteds.append(num_strokes_deleted_batch)
-                Directions.append(direction_batch)
 
                 if n == self.num_images//batch_size + 1:
                     break
-        GameIDs,TrialNums,\
-        Conditions,Targets,Repetitions, NumStrokesDeleteds, Directions = map(flatten_list,\
-                                            [GameIDs,TrialNums,\
-                                            Conditions,Targets,Repetitions, NumStrokesDeleteds, Directions])
-        return Features,[GameIDs,TrialNums,Conditions,Targets,Repetitions, NumStrokesDeleteds, Directions]
+        RunNums, GameIDs,TrialNums,\
+        Conditions,Targets,Repetitions, NumStrokesDeleteds = map(flatten_list,\
+                                            [RunNums, GameIDs,TrialNums,\
+                                            Conditions,Targets,Repetitions, NumStrokesDeleteds])
+        return Features,RunNums, GameIDs,TrialNums,Conditions,Targets,Repetitions, NumStrokesDeleteds
