@@ -223,7 +223,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
                 if (y.count() == 0):
                     numStrokes.append(float('NaN'))
                     drawDuration.append(float('NaN'))
-                    svgString.append('NaN')
+                    #svgString.append('NaN')
                     numCurvesPerSketch.append(float('NaN'))
                     numCurvesPerStroke.append(float('NaN'))
                     meanPixelIntensity.append('NaN')
