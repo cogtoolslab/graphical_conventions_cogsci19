@@ -15,7 +15,7 @@ var
 // define number of trials to fetch from database (what is length of each recog HIT?)
 var gameport;
 var recogVersion;
-var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK', 'A1MMCS8S8CTWKU'];
+var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK', 'A1MMCS8S8CTWKU','A1MMCS8S8CTWKV','A1MMCS8S8CTWKS'];
 var blockResearcher = false;
 
 if(argv.gameport) {
