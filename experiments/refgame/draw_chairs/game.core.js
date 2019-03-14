@@ -136,8 +136,8 @@ var game_core = function(options){
   // Are we just using waiting and dining chairs? Should be true for all planned experiments. 
   this.waitingDining = true;
 
-  // Just using waiting chairs? - set TRUE to set waiting to be repeated, set FALSE for dining to be repeated
-  this.waiting = false;
+  // set TRUE to set waiting to be repeated, set FALSE for dining to be repeated
+  this.waiting = true;
 
   // Use submit button
   this.useSubmitButton = true;
@@ -303,8 +303,8 @@ game_core.prototype.getRandomizedConditions = function() {
     var sampledSubsetControl = "N"; // null placeholder   
   } else { // define repeatedObj on basis of hard subsetting within cluster into contexts
     // independent random sampling to decide whether to use subset "A" or subset "B" within each cluster
-    var sampledSubsetRepeated = _.sample(["A","B"]);
-    var sampledSubsetControl = _.sample(["A","B"]);    
+    var sampledSubsetRepeated = _.sample(["B","A"]);
+    var sampledSubsetControl = _.sample(["B","A"]);    
     _r = _.filter(this.stimList, ({subset,basic}) => subset == sampledSubsetRepeated && basic == repeatedCat);
     var repeatedObjs = _.values(_.mapValues(_r, ({object}) => object));
     _c = _.filter(this.stimList, ({subset,basic}) => subset == sampledSubsetControl && basic == controlCat);
