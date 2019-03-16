@@ -137,7 +137,7 @@ var game_core = function(options){
   this.waitingDining = true;
 
   // set TRUE to set waiting to be repeated, set FALSE for dining to be repeated
-  this.waiting = true;
+  this.waiting = false;
 
   // Use submit button
   this.useSubmitButton = true;
