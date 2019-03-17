@@ -315,7 +315,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     _D.loc[_D['gameID'].isin(low_acc_games),'low_acc'] = True
 
     # save out dataframe to be able to load in and analyze later w/o doing the above mongo querying ...
-    _D.to_csv(os.path.join(results_dir,'graphical_conventions_group_data_{}.csv'.format(iterationName)),index=False)
+    _D.to_csv(os.path.join(csv_dir,'graphical_conventions_group_data_{}.csv'.format(iterationName)),index=False)
 
     #D_dining_repeated = D[(D['category'] == 'dining')& (D['condition'] == 'repeated')]
     # Just look at one game
