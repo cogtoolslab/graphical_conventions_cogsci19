@@ -304,7 +304,7 @@ game_core.prototype.getRandomizedConditions = function() {
   } else { // define repeatedObj on basis of hard subsetting within cluster into contexts
     // independent random sampling to decide whether to use subset "A" or subset "B" within each cluster
     var sampledSubsetRepeated = _.sample(["B","B"]);
-    var sampledSubsetControl = _.sample(["B","B"]);    
+    var sampledSubsetControl = _.sample(["A","B"]);    
     _r = _.filter(this.stimList, ({subset,basic}) => subset == sampledSubsetRepeated && basic == repeatedCat);
     var repeatedObjs = _.values(_.mapValues(_r, ({object}) => object));
     _c = _.filter(this.stimList, ({subset,basic}) => subset == sampledSubsetControl && basic == controlCat);
