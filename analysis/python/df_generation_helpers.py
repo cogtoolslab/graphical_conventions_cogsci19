@@ -163,7 +163,7 @@ def find_crazies(D):
 
 ###############################################################################################
 
-def generate_dataframe(coll, complete_games, iterationName, results_dir):
+def generate_dataframe(coll, complete_games, iterationName, csv_dir):
 
     # new field in run5_submitButton to keep track of which subset of dining/waiting chairs used
     if iterationName == 'run5_submitButton':
