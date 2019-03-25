@@ -116,6 +116,10 @@ if __name__ == '__main__':
 	## filter out single low accuracy game
 	D = D[D['low_acc'] != True]
 
+	## filter out games with missing data
+	missing_data_games = D[D['drawDuration'].isna()]['gameID'].values
+	D = D[-D['gameID'].isin(missing_data_games)]
+
 	## assign extra columns to keep track of category/subset/condition combinations
 	if iterationName=='run5_submitButton':
 		D = D.assign(category_subset = pd.Series(D['category'] + D['subset']))
