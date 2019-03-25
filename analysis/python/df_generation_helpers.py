@@ -161,6 +161,29 @@ def find_crazies(D):
     D['crazy'] = crazies
     return D
 
+
+## detect low accuracy games
+def detect_outlier_games(D,criterion='3sd'):
+    dacc = D.groupby('gameID')['outcome'].mean().reset_index()
+    acc = dacc['outcome']    
+    if criterion=='iqr':
+        lq = np.percentile(acc,25)
+        uq = np.percentile(acc,75)
+        IQR = uq - lq
+        lb = lq - 1.5*IQR
+        ub = uq + 1.5*IQR
+        outlier_games = dacc[dacc['outcome'] < lb]['gameID'].values
+    elif criterion=='3sd':
+        mu = np.mean(acc)
+        sd = np.std(acc)
+        lb = mu - 3*sd
+        outlier_games = dacc[dacc['outcome'] < lb]['gameID'].values 
+    return outlier_games
+
+def filter_outlier_games(D,outlier_games):
+    return D[~D['gameID'].isin(outlier_games)]
+
+
 ###############################################################################################
 
 def generate_dataframe(coll, complete_games, iterationName, csv_dir):
@@ -297,7 +320,7 @@ def generate_dataframe(coll, complete_games, iterationName, csv_dir):
     Repetition = map(int,Repetition)
 
     _D = pd.DataFrame([GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity, numCurvesPerSketch, numCurvesPerStroke, timedOut, png,svgString],
-                     index = ['gameID','trialNum','condition', 'target', 'category', 'repetition', 'phase', 'Generalization', 'drawDuration', 'outcome', 'response', 'numStrokes', 'meanPixelIntensity', 'numCurvesPerSketch', 'numCurvesPerStroke', 'timedOut', 'png','svgString'])
+                     index = ['gameID','trialNum','condition', 'target', 'category', 'repetition', 'phase', 'generalization', 'drawDuration', 'outcome', 'response', 'numStrokes', 'meanPixelIntensity', 'numCurvesPerSketch', 'numCurvesPerStroke', 'timedOut', 'png','svgString'])
     _D = _D.transpose()
     
     # if run5_submitButton, add the subset column
@@ -407,13 +430,13 @@ def standardize(D, dv):
 
 ###############################################################################################
 
-def add_bis_scores(D, dv):
-    D = D.assign(bis_score = pd.Series(D['outcome'] - D[dv]))
+def add_bis(D, dv):
+    D = D.assign(bis = pd.Series(D['outcome'] - D[dv]))
     return D
 
 ###############################################################################################
 
-def save_bis_scores(D, results_dir):
+def save_bis(D, csv_dir, iterationName):
 
     ## convert rep number for post from "1" to "7"
     D.loc[(D['condition']=='control') & (D['repetition']==1),'repetition'] = 7
@@ -426,14 +449,13 @@ def save_bis_scores(D, results_dir):
     drawDuration_accuracy = pd.concat([standardized_drawDuration, standardized_outcome], axis = 1)
     numStrokes_accuracy = pd.concat([standardized_numStrokes, standardized_outcome], axis = 1)
 
-    drawDuration_accuracy_bis = add_bis_scores(drawDuration_accuracy, 'drawDuration')
-    numStrokes_accuracy_bis = add_bis_scores(numStrokes_accuracy, 'numStrokes')
+    drawDuration_accuracy_bis = add_bis(drawDuration_accuracy, 'drawDuration')
+    numStrokes_accuracy_bis = add_bis(numStrokes_accuracy, 'numStrokes')    
 
-    drawDuration_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'drawDuration')))
-    numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'numStrokes')))
+    drawDuration_accuracy_bis.to_csv(os.path.join(csv_dir,'graphical_conventions_bis_drawDuration_{}.csv'.format(iterationName)))
+    numStrokes_accuracy_bis.to_csv(os.path.join(csv_dir, 'graphical_conventions_bis_numStrokes_{}.csv'.format(iterationName)))
 
-    return drawDuration_accuracy_bis, numStrokes_accuracy_bis
-
+    print 'Saved BIS dataframe out!'
 
 ###############################################################################################
 
