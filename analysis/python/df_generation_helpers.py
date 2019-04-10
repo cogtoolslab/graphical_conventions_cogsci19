@@ -184,6 +184,22 @@ def detect_outlier_games(D,criterion='3sd'):
 def filter_outlier_games(D,outlier_games):
     return D[~D['gameID'].isin(outlier_games)]
 
+def preprocess_dataframe(D):
+    '''
+    remove game data for which we have invalid draw duration measurements, and were outliers on task performance    
+    '''
+    initial_gamecount = D.gameID.nunique()
+    missing_data_games = D[D['drawDuration'].isna()]['gameID'].values
+    D = D[-D['gameID'].isin(missing_data_games)]
+    
+    outlier_games = detect_outlier_games(D)
+    D = filter_outlier_games(D,outlier_games)
+    
+    after_gamecount = D.gameID.nunique()
+    print 'Dataframe initially contained {} unique games. Now contains {} games.'.format(initial_gamecount,after_gamecount)
+    print 'There were {} outlier games: {}. Now filtered.'.format(len(outlier_games),list(outlier_games))    
+    
+    return D
 
 ###############################################################################################
 
