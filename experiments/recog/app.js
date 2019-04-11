@@ -35,8 +35,8 @@ if(argv.recogVersion) {
 }
 
 try {
-  var privateKey  = fs.readFileSync('/etc/apache2/ssl/rxdhawkins.me.key'),
-      certificate = fs.readFileSync('/etc/apache2/ssl/rxdhawkins.me.crt'),
+  var privateKey  = fs.readFileSync('/etc/apache2/ssl/stanford-cogsci.org.key'),
+      certificate = fs.readFileSync('/etc/apache2/ssl/stanford-cogsci.org.crt'),
       intermed    = fs.readFileSync('/etc/apache2/ssl/intermediate.crt'),
       options     = {key: privateKey, cert: certificate, ca: intermed},
       server      = require('https').createServer(options,app).listen(gameport),
@@ -137,9 +137,9 @@ function checkPreviousParticipant (workerId, callback) {
 
 function initializeWithTrials(socket) {
   var gameid = UUID();
-  var colname = (recogVersion == 'yoked' ? 'graphical_conventions_sketches_yoked_remaining' :
-		 recogVersion == 'scrambled40' ? 'graphical_conventions_sketches_scrambled40_remaining' :
-		 recogVersion == 'scrambled10' ? 'graphical_conventions_sketches_scrambled10_dev' :
+  var colname = (recogVersion == 'yoked' ? 'graphical_conventions_sketches_yoked_refgame2.0_dev' :
+		 recogVersion == 'scrambled40' ? 'graphical_conventions_sketches_scrambled40_refgame2.0_dev' :
+		 recogVersion == 'scrambled10' ? 'graphical_conventions_sketches_scrambled10_refgame2.0_dev' :
 		 console.error('unknown version: ' + recogVersion));
   sendPostRequest('http://localhost:6003/db/getstims', {
     json: {
