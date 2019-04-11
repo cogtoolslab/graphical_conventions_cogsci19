@@ -1,6 +1,6 @@
 {
-  "name": "couzin_replication",
-  "description": "Unofficial fork of MWERT, adapted to replicate sensing experiment",
+  "name": "graphical_conventions",
+  "description": "graphical convention reference game experiment",
   "version": "0.0.0",
   "private": true,
   "dependencies": {
