@@ -137,7 +137,7 @@ function checkPreviousParticipant (workerId, callback) {
 
 function initializeWithTrials(socket) {
   var gameid = UUID();
-  var colname = (recogVersion == 'yoked' ? 'graphical_conventions_sketches_yoked_refgame2.0_dev' :
+  var colname = (recogVersion == 'yoked' ? 'graphical_conventions_sketches_yoked_refgame2.0' :
 		 recogVersion == 'scrambled40' ? 'graphical_conventions_sketches_scrambled40_refgame2.0_dev' :
 		 recogVersion == 'scrambled10' ? 'graphical_conventions_sketches_scrambled10_refgame2.0_dev' :
 		 console.error('unknown version: ' + recogVersion));
