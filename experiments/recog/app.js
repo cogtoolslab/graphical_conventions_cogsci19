@@ -115,7 +115,7 @@ function checkPreviousParticipant (workerId, callback) {
     projection: {'_id': 1}
   };
   sendPostRequest(
-    'http://localhost:6003/db/exists',
+    'http://localhost:6004/db/exists',
     {json: postData},
     (error, res, body) => {
       try {
@@ -141,7 +141,7 @@ function initializeWithTrials(socket) {
 		 recogVersion == 'scrambled40' ? 'graphical_conventions_sketches_scrambled40_refgame2.0_dev' :
 		 recogVersion == 'scrambled10' ? 'graphical_conventions_sketches_scrambled10_refgame2.0_dev' :
 		 console.error('unknown version: ' + recogVersion));
-  sendPostRequest('http://localhost:6003/db/getstims', {
+  sendPostRequest('http://localhost:6004/db/getstims', {
     json: {
       dbname: 'stimuli',
       colname: colname,
@@ -167,7 +167,7 @@ function initializeWithTrials(socket) {
 
 function writeDataToMongo (data) {
   sendPostRequest(
-    'http://localhost:6003/db/insert',
+    'http://localhost:6004/db/insert',
     { json: data },
     (error, res, body) => {
       if (!error && res.statusCode === 200) {
