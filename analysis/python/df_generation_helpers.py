@@ -511,7 +511,7 @@ def add_recog_session_ids(D):
         for j, pair in enumerate(list(d)):
             if j == 8 or j == 9:
                 condition = 'control'
-                rep_num = 0 if j == 8 else 1
+                rep_num = 0 if j == 8 else 7
             else:
                 condition = 'repeated'
                 rep_num = j
