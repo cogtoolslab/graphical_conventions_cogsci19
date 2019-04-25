@@ -80,10 +80,9 @@ class VGG19Embeddings(nn.Module):
         #         self._flatten(x_conv5), x_linear1, x_linear2, x_linear3]
 
 class FeatureExtractor():
-    def __init__(self, paths, model = 'vgg', layer=6, use_cuda=True, imsize=224, 
+    def __init__(self, paths, layer=6, use_cuda=True, imsize=224, 
                  batch_size=64, cuda_device=2, data_type='images',
                  spatial_avg=True):
-        self.model = model
         self.layer = layer
         self.paths = paths
         self.num_images = len(self.paths)

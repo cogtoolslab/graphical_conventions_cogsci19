@@ -18,12 +18,12 @@ import re
 from PIL import Image
 import base64
 
-from embeddings_new import *
+from embeddings_images_only import *
 
 '''
 To extract features, run, e.g.:
 
-python extract_features.py --data='/share/megsano/graphical_conventions/diagnosicity_56/' --data_type='images' --spatial_avg=False --ext 'jpg' --out_dir='..'
+python extract_features.py --data='/share/megsano/graphical_conventions/diagnosicity_56/' --data_type='images' --cuda_device=2 --spatial_avg=False --ext 'jpg' --out_dir='..'
 '''
 
 # retrieve sketch paths
@@ -71,7 +71,7 @@ if __name__ == "__main__":
                         default=os.path.join(sketch_dir,'combined'))
     parser.add_argument('--layer_ind', help='fc6 = 5, fc7 = 6', default=5)
     parser.add_argument('--num_pcs', help='number of principal components', default=512)
-    parser.add_argument('--cuda_device', help='device to use', default=0)    
+    parser.add_argument('--cuda_device', help='device to use', default=2)    
     parser.add_argument('--data_type', help='"images" or "sketch"', default='images')
     parser.add_argument('--out_dir', help='path to save features to', default='/data/jefan/graphical_conventions/features')    
     parser.add_argument('--spatial_avg', type=bool, help='collapse over spatial dimensions, preserving channel activation only if true', default=True) 
@@ -83,7 +83,6 @@ if __name__ == "__main__":
     print('Spatial averaging is {}'.format(args.spatial_avg))
     print('Channel norm is {}'.format(args.channel_norm))
     print('Testing mode is {}'.format(args.test))
-    print('Extracting from {}'.format(args.model))
     print('VGG layer index is {}'.format(args.layer_ind))
     print('Num principal components = {}'.format(args.num_pcs))
     
@@ -93,7 +92,6 @@ if __name__ == "__main__":
         
     ## extract features
     extractor = FeatureExtractor(image_paths,
-                                 model = args.model,
                                  layer = args.layer_ind,
                                  data_type = args.data_type,
                                  cuda_device = args.cuda_device,
