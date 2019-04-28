@@ -15,7 +15,7 @@ var
 // define number of trials to fetch from database (what is length of each recog HIT?)
 var gameport;
 var recogVersion;
-var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK', 'A1MMCS8S8CTWKU'];
+var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK', 'A1MMCS8S8CTWKU','A1MMCS8S8CTWKV','A1MMCS8S8CTWKS'];
 var blockResearcher = false;
 
 if(argv.gameport) {
@@ -35,8 +35,8 @@ if(argv.recogVersion) {
 }
 
 try {
-  var privateKey  = fs.readFileSync('/etc/apache2/ssl/rxdhawkins.me.key'),
-      certificate = fs.readFileSync('/etc/apache2/ssl/rxdhawkins.me.crt'),
+  var privateKey  = fs.readFileSync('/etc/apache2/ssl/stanford-cogsci.org.key'),
+      certificate = fs.readFileSync('/etc/apache2/ssl/stanford-cogsci.org.crt'),
       intermed    = fs.readFileSync('/etc/apache2/ssl/intermediate.crt'),
       options     = {key: privateKey, cert: certificate, ca: intermed},
       server      = require('https').createServer(options,app).listen(gameport),
@@ -115,7 +115,7 @@ function checkPreviousParticipant (workerId, callback) {
     projection: {'_id': 1}
   };
   sendPostRequest(
-    'http://localhost:6003/db/exists',
+    'http://localhost:6004/db/exists',
     {json: postData},
     (error, res, body) => {
       try {
@@ -137,11 +137,11 @@ function checkPreviousParticipant (workerId, callback) {
 
 function initializeWithTrials(socket) {
   var gameid = UUID();
-  var colname = (recogVersion == 'yoked' ? 'graphical_conventions_sketches_yoked_remaining' :
-		 recogVersion == 'scrambled40' ? 'graphical_conventions_sketches_scrambled40_remaining' :
-		 recogVersion == 'scrambled10' ? 'graphical_conventions_sketches_scrambled10_dev' :
+  var colname = (recogVersion == 'yoked' ? 'graphical_conventions_sketches_yoked_refgame2.0' :
+		 recogVersion == 'scrambled40' ? 'graphical_conventions_sketches_scrambled40_refgame2.0_dev' :
+		 recogVersion == 'scrambled10' ? 'graphical_conventions_sketches_scrambled10_refgame2.0_dev' :
 		 console.error('unknown version: ' + recogVersion));
-  sendPostRequest('http://localhost:6003/db/getstims', {
+  sendPostRequest('http://localhost:6004/db/getstims', {
     json: {
       dbname: 'stimuli',
       colname: colname,
@@ -167,7 +167,7 @@ function initializeWithTrials(socket) {
 
 function writeDataToMongo (data) {
   sendPostRequest(
-    'http://localhost:6003/db/insert',
+    'http://localhost:6004/db/insert',
     { json: data },
     (error, res, body) => {
       if (!error && res.statusCode === 200) {

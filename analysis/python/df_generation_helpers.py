@@ -111,10 +111,11 @@ def get_complete_and_valid_games(games,
         real_workers = False
         viewer = coll.find({'$and': [{'gameid':game},{'eventType':'clickedObj'},{'iterationName':iterationName}]}).distinct('workerId')
         sketcher = coll.find({'$and': [{'gameid':game},{'eventType':'stroke'},{'iterationName':iterationName}]}).distinct('workerId')
-        if viewer == 'A1V2P0JYPD7GM6' or sketcher == 'A1V2P0JYPD7GM6':
-            print("A1V2P0JYPD7GM6 did complete HIT")
-        if viewer == 'A6FE2ZQNFW12V' or sketcher == 'A6FE2ZQNFW12V':
-            print("A6FE2ZQNFW12V did complete HIT")
+        
+        # if viewer == 'A1V2P0JYPD7GM6' or sketcher == 'A1V2P0JYPD7GM6':
+        #     print("A1V2P0JYPD7GM6 did complete HIT")
+        # if viewer == 'A6FE2ZQNFW12V' or sketcher == 'A6FE2ZQNFW12V':
+        #     print("A6FE2ZQNFW12V did complete HIT")
         viewer_is_researcher = viewer in researchers
         sketcher_is_researcher = sketcher in researchers
         try:
@@ -161,9 +162,48 @@ def find_crazies(D):
     D['crazy'] = crazies
     return D
 
+
+## detect low accuracy games
+def detect_outlier_games(D,criterion='3sd'):
+    dacc = D.groupby('gameID')['outcome'].mean().reset_index()
+    acc = dacc['outcome']    
+    if criterion=='iqr':
+        lq = np.percentile(acc,25)
+        uq = np.percentile(acc,75)
+        IQR = uq - lq
+        lb = lq - 1.5*IQR
+        ub = uq + 1.5*IQR
+        outlier_games = dacc[dacc['outcome'] < lb]['gameID'].values
+    elif criterion=='3sd':
+        mu = np.mean(acc)
+        sd = np.std(acc)
+        lb = mu - 3*sd
+        outlier_games = dacc[dacc['outcome'] < lb]['gameID'].values 
+    return outlier_games
+
+def filter_outlier_games(D,outlier_games):
+    return D[~D['gameID'].isin(outlier_games)]
+
+def preprocess_dataframe(D):
+    '''
+    remove game data for which we have invalid draw duration measurements, and were outliers on task performance    
+    '''
+    initial_gamecount = D.gameID.nunique()
+    missing_data_games = D[D['drawDuration'].isna()]['gameID'].values
+    D = D[-D['gameID'].isin(missing_data_games)]
+    
+    outlier_games = detect_outlier_games(D)
+    D = filter_outlier_games(D,outlier_games)
+    
+    after_gamecount = D.gameID.nunique()
+    print 'Dataframe initially contained {} unique games. Now contains {} games.'.format(initial_gamecount,after_gamecount)
+    print 'There were {} outlier games: {}. Now filtered.'.format(len(outlier_games),list(outlier_games))    
+    
+    return D
+
 ###############################################################################################
 
-def generate_dataframe(coll, complete_games, iterationName, results_dir):
+def generate_dataframe(coll, complete_games, iterationName, csv_dir):
 
     # new field in run5_submitButton to keep track of which subset of dining/waiting chairs used
     if iterationName == 'run5_submitButton':
@@ -223,7 +263,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
                 if (y.count() == 0):
                     numStrokes.append(float('NaN'))
                     drawDuration.append(float('NaN'))
-                    svgString.append('NaN')
+                    #svgString.append('NaN')
                     numCurvesPerSketch.append(float('NaN'))
                     numCurvesPerStroke.append(float('NaN'))
                     meanPixelIntensity.append('NaN')
@@ -297,7 +337,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     Repetition = map(int,Repetition)
 
     _D = pd.DataFrame([GameID,TrialNum,Condition, Target, Category, Repetition, Phase, Generalization, drawDuration, Outcome, Response, numStrokes, meanPixelIntensity, numCurvesPerSketch, numCurvesPerStroke, timedOut, png,svgString],
-                     index = ['gameID','trialNum','condition', 'target', 'category', 'repetition', 'phase', 'Generalization', 'drawDuration', 'outcome', 'response', 'numStrokes', 'meanPixelIntensity', 'numCurvesPerSketch', 'numCurvesPerStroke', 'timedOut', 'png','svgString'])
+                     index = ['gameID','trialNum','condition', 'target', 'category', 'repetition', 'phase', 'generalization', 'drawDuration', 'outcome', 'response', 'numStrokes', 'meanPixelIntensity', 'numCurvesPerSketch', 'numCurvesPerStroke', 'timedOut', 'png','svgString'])
     _D = _D.transpose()
     
     # if run5_submitButton, add the subset column
@@ -315,7 +355,7 @@ def generate_dataframe(coll, complete_games, iterationName, results_dir):
     _D.loc[_D['gameID'].isin(low_acc_games),'low_acc'] = True
 
     # save out dataframe to be able to load in and analyze later w/o doing the above mongo querying ...
-    _D.to_csv(os.path.join(results_dir,'graphical_conventions_group_data_{}.csv'.format(iterationName)),index=False)
+    _D.to_csv(os.path.join(csv_dir,'graphical_conventions_group_data_{}.csv'.format(iterationName)),index=False)
 
     #D_dining_repeated = D[(D['category'] == 'dining')& (D['condition'] == 'repeated')]
     # Just look at one game
@@ -407,13 +447,13 @@ def standardize(D, dv):
 
 ###############################################################################################
 
-def add_bis_scores(D, dv):
-    D = D.assign(bis_score = pd.Series(D['outcome'] - D[dv]))
+def add_bis(D, dv):
+    D = D.assign(bis = pd.Series(D['outcome'] - D[dv]))
     return D
 
 ###############################################################################################
 
-def save_bis_scores(D, results_dir):
+def save_bis(D, csv_dir, iterationName):
 
     ## convert rep number for post from "1" to "7"
     D.loc[(D['condition']=='control') & (D['repetition']==1),'repetition'] = 7
@@ -426,14 +466,13 @@ def save_bis_scores(D, results_dir):
     drawDuration_accuracy = pd.concat([standardized_drawDuration, standardized_outcome], axis = 1)
     numStrokes_accuracy = pd.concat([standardized_numStrokes, standardized_outcome], axis = 1)
 
-    drawDuration_accuracy_bis = add_bis_scores(drawDuration_accuracy, 'drawDuration')
-    numStrokes_accuracy_bis = add_bis_scores(numStrokes_accuracy, 'numStrokes')
+    drawDuration_accuracy_bis = add_bis(drawDuration_accuracy, 'drawDuration')
+    numStrokes_accuracy_bis = add_bis(numStrokes_accuracy, 'numStrokes')    
 
-    drawDuration_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'drawDuration')))
-    numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'numStrokes')))
+    drawDuration_accuracy_bis.to_csv(os.path.join(csv_dir,'graphical_conventions_bis_drawDuration_{}.csv'.format(iterationName)))
+    numStrokes_accuracy_bis.to_csv(os.path.join(csv_dir, 'graphical_conventions_bis_numStrokes_{}.csv'.format(iterationName)))
 
-    return drawDuration_accuracy_bis, numStrokes_accuracy_bis
-
+    print 'Saved BIS dataframe out!'
 
 ###############################################################################################
 
@@ -472,7 +511,7 @@ def add_recog_session_ids(D):
         for j, pair in enumerate(list(d)):
             if j == 8 or j == 9:
                 condition = 'control'
-                rep_num = 0 if j == 8 else 1
+                rep_num = 0 if j == 8 else 7
             else:
                 condition = 'repeated'
                 rep_num = j

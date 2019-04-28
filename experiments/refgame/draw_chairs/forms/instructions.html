@@ -1,5 +1,5 @@
 <!-- set size = 6  -->
-<!-- to manually change to set size 4, change images to 4chairs.png (and adjust size to 400, 100), "six objects" to "four objects", and 48 rounds to 40 -->
+<!-- to manually change to set size 4, change images to 4chairs.png (and adjust size to 400, 100), "six objects" to "four objects", and 48 trials to 40 -->
 <!-- and second to last question in comprehension check  -->
 <!DOCTYPE html>
 <html lang="en">
@@ -46,7 +46,7 @@
 	<p>
 
 	  In this experiment you will play a fun communication game with
-	  another player on MTurk! In each round both of you are going to
+	  another player on MTurk! Each game consists of 40 trials. On each trial both of you are going to
     be shown a set of objects like this:
 </p>
     <p>
@@ -64,7 +64,7 @@
 <p>
 
     One of you will be assigned the <b>Sketcher</b> role and the
-    other will be the <b>Viewer</b>. On each round, one of the
+    other will be the <b>Viewer</b>. On each trial, one of the
     objects is the <b>target</b>, which is outlined in white. Only the
     Sketcher can see which object is the target.
 
@@ -72,8 +72,7 @@
 
 <p>
 
-    The goal of the Sketcher is to make a sketch of the target so that the Viewer can figure out which object the target is, as quickly
-    as possible.
+    The goal of the Sketcher is to make a sketch of the target so that the Viewer can figure out which object the target is, as quickly as possible.
   </p>
 
   <p>
@@ -93,7 +92,7 @@
       Both players will be given feedback; the Sketcher will see what the Viewer
       clicked (highlighted in black), and the Viewer will see the true target
       (highlighted in green). Then you will both automatically advance to
-      the next round of objects.
+      the next trial.
   </p>
 
   <p>
@@ -169,7 +168,7 @@
  <div class="well" style="width:800px; margin: 0 auto">
 
   </br>
-  The Sketcher can click on an object to end the round.
+  The Sketcher can click on an object to end the trial.
     </br>
     <input type="radio" name="dgoal" value="yes"> False
     </br>
@@ -203,7 +202,7 @@
       </br>
 
   </br>
-  There are a total of 200 rounds.
+  There are a total of 200 trials.
       </br>
       <input type="radio" name="comp" value="no"> True
       </br>
@@ -219,7 +218,7 @@
       </br>
 
     </br>
-    If an incorrect guess is made under 30 seconds, both players will still receive a "speed bonus" for completing that round quickly.
+    If an incorrect guess is made under 30 seconds, both players will still receive a "speed bonus" for completing that trial quickly.
         </br>
         <input type="radio" name="incorrect" value="no"> True
         </br>

@@ -261,7 +261,6 @@ var customSetup = function(game) {
 
   });
 
-
   game.socket.on('mutualDoneDrawing', function(role) {
     globalGame.doneDrawing = true;
     globalGame.drawingAllowed = false;
