@@ -19,6 +19,8 @@ var
     Server        = require('./utils/serverBase.js');
 
 var gameport;
+var researchers = ['A4SSYO0HDVD4E', 'A1BOIDKD33QSDK', 'A1MMCS8S8CTWKU'];
+var blockResearcher = false;
 
 if(argv.gameport) {
   gameport = argv.gameport;
@@ -38,8 +40,8 @@ if(argv.expname) {
 }
 
 try {
-  var privateKey  = fs.readFileSync('/etc/apache2/ssl/rxdhawkins.me.key'),
-      certificate = fs.readFileSync('/etc/apache2/ssl/rxdhawkins.me.crt'),
+  var privateKey  = fs.readFileSync('/etc/apache2/ssl/stanford-cogsci.org.key'),
+      certificate = fs.readFileSync('/etc/apache2/ssl/stanford-cogsci.org.crt'),
       intermed    = fs.readFileSync('/etc/apache2/ssl/intermediate.crt'),
       options     = {key: privateKey, cert: certificate, ca: intermed},
       server      = require('https').createServer(options,app).listen(gameport),
@@ -60,7 +62,8 @@ console.log('\t :: Express :: Listening on port ' + gameport );
 
 app.get( '/*' , function( req, res ) {
   var id = req.query.workerId;
-  if(!id || id === 'undefined') {
+  var isResearcher = _.includes(researchers, id);
+  if(!id || id === 'undefined' || (isResearcher && !blockResearcher))  {
     // If no worker id supplied (e.g. for demo), allow to continue
     return utils.serveFile(req, res);
   } else if(!valid_id(id)) {

@@ -17,9 +17,9 @@ library(tidyboot)
 ## Import group data
 
 ```{r}
-d <- read_csv('../../results/graphical_conventions.csv')  %>% select(-png)
-d.bis.drawDuration <- read_csv('../../results/graphical_conventions_bis_score_drawDuration.csv')  %>% select(-X1)
-d.bis.numStrokes <- read_csv('../../results/graphical_conventions_bis_score_numStrokes.csv') %>% select(-X1)
+d <- read_csv('../../results/csv/graphical_conventions_group_data_run5_submitButton.csv')  %>% select(-png)
+d.bis.drawDuration <- read_csv('../../results/csv/graphical_conventions_bis_drawDuration_run5_submitButton.csv')  %>% select(-X1)
+d.bis.numStrokes <- read_csv('../../results/csv/graphical_conventions_bis_numStrokes_run5_submitButton.csv') %>% select(-X1)
 ```
 
 Some statistics we report
@@ -29,7 +29,7 @@ d %>% group_by(generalization) %>% summarize(l = length(unique(gameID)))
 ```
 
 ```{r}
-d.bis.drawDuration
+d.bis.drawDuration %>% ggplot(aes(x = bis)) + geom_histogram(bins=50)
 ```
 
 ## Generate histograms for numCurvesPerSketch and numStrokes 
@@ -51,16 +51,19 @@ d %>%
 bbis <-d.bis.drawDuration %>%
       filter(repetition==0) %>%
       group_by(condition,gameID) %>%
-      summarize(bis_score = mean(bis_score))
+      summarize(bis = mean(bis))
 
 # add this "baseline" bis to each row of original bis dataframe
 d.bis.drawDuration <- inner_join(d.bis.drawDuration, bbis, by = c('condition','gameID'), suffix = c("","_baseline")) %>%
-                      mutate(bis_score_relative = bis_score - bis_score_baseline) %>%
+                      mutate(bis_relative = bis - bis_baseline) %>%
                       mutate(repetition_1 = repetition + 1)
+
 ```
 
+
+
 ```{r}
-d.bootstrap <- d.bis.drawDuration %>% group_by(condition, repetition_1) %>% tidyboot_mean(column=bis_score_relative)
+d.bootstrap <- d.bis.drawDuration %>% group_by(condition, repetition_1) %>% tidyboot_mean(column=bis_relative)
 
 d.bootstrap %>%
   ggplot(aes(x=repetition_1,y=empirical_stat, color=condition, fill=condition)) + 
@@ -82,16 +85,12 @@ ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, 
 
 ```
 
-```{r}
-typeof(d.bootstrap)
-```
-
 
 ## Mixed-effects model for BIS (on drawDuration by phase)
 
 ```{r}
 # preferred model definition for interaction between repetition and condition for bis -- has right syntax but doesn't converge
-# interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | target) + (1 + phase*condition | gameID)
+# interaction_lmm <- lmer(bis ~ phase * condition + (1 + phase*condition | target) + (1 + phase*condition | gameID)
 
 input <- d.bis.drawDuration %>%
          filter(repetition == 0 | repetition == 7) %>% 
@@ -102,7 +101,7 @@ contrasts(input$phase) <- c(-.5, .5)
 contrasts(input$condition) <- c(-.5, .5)
 
 # alternative model definition (removing target-wise random effects for phase*condition interaction)
-interaction_lmm <- lmer(bis_score ~ phase * condition + (1 + phase*condition | gameID), 
+interaction_lmm <- lmer(bis ~ phase * condition + (1 + phase*condition | gameID), 
                         data = input)
 
 print(summary(interaction_lmm))
