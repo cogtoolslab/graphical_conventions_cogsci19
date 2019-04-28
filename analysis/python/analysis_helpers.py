@@ -8,6 +8,7 @@ import json
 import os
 import pandas as pd
 import numpy as np
+
 from numpy import shape
 from PIL import Image
 import base64
@@ -1221,3 +1222,112 @@ def plot_self_similarity_of(df, sketch_dir, png_name):
             sns.set_style('white')
             plt.subplot(grid[num_row, num_strokes_deleted]).set_xticks([])
             plt.subplot(grid[num_row, num_strokes_deleted]).set_yticks([])
+            
+            
+############################################################################################### 
+# Coloring strokes based on stroke importance
+from matplotlib import colors
+from svgpathtools import parse_path, wsvg, svg2paths
+def get_stroke_importance(df, sketch_dir, png_name):
+    stroke_dir = os.path.join(sketch_dir, 'single_color')
+    gameID = png_name.split('.')[0].split('_')[1]
+    target = png_name.split('.')[0].split('_')[4] + png_name.split('.')[0].split('_')[5]
+    target_ = png_name.split('.')[0].split('_')[4] + '_' + png_name.split('.')[0].split('_')[5]
+    repetition = png_name.split('.')[0].split('_')[6]
+    d = df[(df['gameID'] == gameID) & (df['target'] == target) & (df['base_rep'] == int(repetition))]
+    total_num_strokes = list(d['total_num_strokes'])[0]
+    max_similarity = np.max(np.array(d['similarity']))
+    min_similarity = np.min(np.array(d['similarity']))
+    norm = colors.Normalize(vmin=min_similarity, vmax=max_similarity)
+    cmap = plt.cm.get_cmap('viridis')
+    stroke_colors = []
+    svg_list = ast.literal_eval(D[(D['gameID'] == gameID) & (D['repetition'] == int(repetition)) & (D['target'] == target_)]['svgString'].unique()[0])
+    for stroke_num in range(len(svg_list)):
+        similarity = d[d['num_strokes_deleted'] == stroke_num]['similarity'].unique()[0]
+        rgba = cmap(1 - norm(similarity))
+        color=colors.to_hex(rgba)
+        stroke_colors.append(color)
+    stroke_and_direction = '_coloring.svg'  # deleting which stroke? 
+    stroke_level_path = png_name.split('.')[0] + stroke_and_direction
+    parsed = [parse_path(svg_list[i]) for i in range(len(svg_list))]
+    srh.render_svg_color(parsed, stroke_colors, base_dir=stroke_dir, out_fname=stroke_level_path)
+    svg_paths = srh.generate_svg_path_list(os.path.join(stroke_dir,'svg'))
+    srh.svg_to_png(svg_paths,base_dir=stroke_dir)
+    last_path = stroke_level_path.split('.')[0]+ '.png'
+    path = os.path.join(stroke_dir,'png',last_path)
+    im = Image.open(path)
+    plt.imshow(im)
+    
+    
+    
+###############################################################################################  
+    
+def get_pixel_importance_heatmaps(D, shapenet_ids):
+    composite_heatmaps = []
+    numerator_heatmaps = []
+    denominator_heatmaps = []
+    for lesioned_target in shapenet_ids:
+        print ("getting map for {}".format(lesioned_target))
+        numerator = np.zeros((224, 224))
+        denominator = np.zeros((224, 224))
+        composite = np.zeros((224, 224))
+        counts = np.zeros((224, 224))
+        D_target = D[D['lesioned_target'] == lesioned_target]
+        to_compare_to = [s for s in shapenet_ids if s  != lesioned_target]
+        sim_arr_itself = np.reshape(D_target[D_target['intact_target'] == lesioned_target].sort_values(['x', 'y'])['similarity'].values[:-1], (169, 169))
+        sim_arrs_others = [np.reshape(D_target[D_target['intact_target'] == compare_to].sort_values(['x', 'y'])['similarity'].values[:-1], (169, 169)) for compare_to in to_compare_to]
+        nan_others = [D_target[D_target['intact_target'] == compare_to].sort_values(['x', 'y'])['similarity'].values[-1] for compare_to in to_compare_to]                  
+        for i in range(224 - 56 + 1): # i is the x coordinate 
+            for j in range(224 - 56 + 1): # j is the y coordinate 
+                # numerator 
+                similarity_to_itself = sim_arr_itself[i][j]
+                assert not np.isnan(similarity_to_itself)
+                # denominator `
+                similarities_to_others_lesioned = []
+                similarities_to_others_intact = []
+                for which, compare_to in enumerate(to_compare_to):
+                    similarity_to_other_lesioned = sim_arrs_others[which][i][j]
+                    assert not np.isnan(similarity_to_other_lesioned)
+                    similarities_to_others_lesioned.append(float(similarity_to_other_lesioned))
+                    similarity_to_other_intact = nan_others[which]
+                    assert not np.isnan(similarity_to_other_intact)
+                    similarities_to_others_intact.append(float(similarity_to_other_intact))
+                #relative_similarities = [abs(similarities_to_others_lesioned[p] - similarities_to_others_intact[p]) for p in range(len(similarities_to_others_intact))]
+                relative_similarities = [(float(similarities_to_others_lesioned[p]) - float(similarities_to_others_intact[p])) / float(similarities_to_others_intact[p]) for p in range(len(similarities_to_others_intact))]
+                average_relative_similarity = 100* np.mean(np.array(relative_similarities)) # 100 * 
+                if average_relative_similarity == 0:
+                    average_relative_similarity = 0.05
+                assert not np.isnan(average_relative_similarity)
+                similarity_ratio = float(similarity_to_itself) / float(average_relative_similarity)
+                assert not np.isnan(similarity_ratio)
+                for x in range(56):
+                    for y in range(56):
+                        numerator[j + y, i + x] += float(similarity_to_itself)
+                        denominator[j + y, i + x] += float(average_relative_similarity)
+                        #composite[j + y, i + x] += float(similarity_ratio)
+                        counts[j + y, i + x] += 1.0
+        assert not np.isnan(numerator).any()
+        assert not np.isnan(denominator).any()
+        assert not np.isnan(composite).any()
+        assert not np.isnan(counts).any()
+        if np.any(counts[:, :] == 0):
+            print(lesioned_target)
+            print(counts)
+        numerator_heatmap = numerator / counts # this is where nan appears 
+        assert not np.isnan(numerator_heatmap).any()
+        denominator_heatmap = denominator / counts 
+        assert not np.isnan(denominator_heatmap).any()
+        composite_heatmap = numerator_heatmap / denominator_heatmap
+        assert not np.isnan(composite_heatmap).any()
+        numerator_heatmaps.append(numerator_heatmap)
+        denominator_heatmaps.append(denominator_heatmap)
+        composite_heatmaps.append(composite_heatmap)
+    return composite_heatmaps, numerator_heatmaps, denominator_heatmaps 
+
+############################################################################################### 
+
+############################################################################################### 
+
+############################################################################################### 
+
+############################################################################################### 
