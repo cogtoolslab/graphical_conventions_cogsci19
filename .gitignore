@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.DS_Store
-
+.Rhistory
 
 *.pdf
 *.png
@@ -14,6 +14,8 @@ chairs1k_triplets/
 *.npy
 auth.json
 auth.txt
+.auth.json
+.auth.txt
 
 node_modules/
 
