@@ -42,7 +42,7 @@ sketch_dir = os.path.abspath(os.path.join(proj_dir,'sketches'))
 auth = pd.read_csv('auth.txt', header = None) # this auth.txt file contains the password for the sketchloop user
 pswd = auth.values[0][0]
 user = 'sketchloop'
-host = 'rxdhawkins.me' ## cocolab ip address
+host = 'stanford-cogsci.org' ## cocolab ip address
 
 # have to fix this to be able to analyze from local
 import pymongo as pm
