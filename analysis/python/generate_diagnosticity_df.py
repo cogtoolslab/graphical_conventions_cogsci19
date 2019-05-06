@@ -19,9 +19,9 @@ import matplotlib
 from matplotlib import pylab, mlab, pyplot
 from IPython.core.pylabtools import figsize, getfigs
 plt = pyplot
-import seaborn as sns
-sns.set_context('talk')
-sns.set_style('white')
+# import seaborn as sns
+# sns.set_context('talk')
+# sns.set_style('white')
 
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -52,10 +52,10 @@ if not os.path.exists(csv_dir):
     os.makedirs(csv_dir)       
     
 # Assign variables within imported analysis helpers
-import analysis_helpers as h
-if sys.version_info[0]>=3:
-    from importlib import reload
-reload(h)
+# import analysis_helpers as h
+# if sys.version_info[0]>=3:
+#     from importlib import reload
+# reload(h)
 
 # import svg_rendering_helpers as srh
 # reload(srh)
@@ -97,6 +97,29 @@ shapenets.append(shapenet_2eaab78d6e4c4f2d7b0c85d2effc7e09)
 shapenet_309674bdec2d24d7597976c675750537 = {'filename': "309674bdec2d24d7597976c675750537.png" , 'basic': "waiting", 'subordinate': "waiting_07" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/309674bdec2d24d7597976c675750537.png"}#,width: 256, height: 256}
 shapenets.append(shapenet_309674bdec2d24d7597976c675750537)
 
+def split_up_metadata(M):
+    new_df = pd.DataFrame()
+    for i,m in M.iterrows():
+        feature_ind = m['feature_ind']
+        image_path = m['img_path'].split('/')[-1]
+        shapenet = image_path.split('_')[0]
+        if image_path.split('_')[4] == 'lesioned':
+            isLesioned = True 
+        else:
+            isLesioned = False
+        x = str(image_path.split('_')[5])
+        y = str(image_path.split('_')[6])
+        df_to_add = pd.DataFrame([[shapenet, isLesioned,x, y,  feature_ind]], columns=['shapenet', 'isLesioned', 'x', 'y', 'feature_ind'])
+        new_df = new_df.append(df_to_add)
+
+def compute_similarity(F, inds_to_compare): # inds_to_compare: feature indices
+    features_to_compare = F[inds_to_compare, :]
+    CORRMAT = np.corrcoef(features_to_compare)
+    similarity = np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
+    #np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))#(np.tril(CORRMAT)) # (np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
+    return similarity
+
+
 ### compute similarity between images 
 def get_lesion_image_df(D, M, F):
     d = pd.read_csv('diagnosticity_df_3cf6db91f872d26c222659d33fd79709.csv') # change accordingly
@@ -119,7 +142,7 @@ def get_lesion_image_df(D, M, F):
                 x = m['x']
                 y = m['y']
                 #M_intact = M[M['target'] == intact_num]
-                similarity = h.compute_similarity(F, [feature_ind_of_intact_image, feature_ind_of_lesioned_sketch])
+                similarity = compute_similarity(F, [feature_ind_of_intact_image, feature_ind_of_lesioned_sketch])
                 # df_to_add = pd.DataFrame([[target_shapenet_id, distractor_shapenet_id, x, y, similarity]], columns=['lesioned_target', 'intact_target', 'x', 'y', 'similarity'])
                 # d = d.append(df_to_add)   
                 series = pd.Series([target_shapenet_id, distractor_shapenet_id, x, y, similarity], index=['lesioned_target', 'intact_target', 'x', 'y', 'similarity'])
@@ -139,20 +162,20 @@ def get_lesion_image_df(D, M, F):
             distractor_shapenet_id = distractor_shapenet['filename'].split('.')[0]
             M_distractor = M[M['shapenet'] == distractor_shapenet_id]
             feature_ind_of_intact_image = M_distractor[M_distractor['isLesioned'] == False].iat[0,feature_ind_loc]
-            similarity = h.compute_similarity(F, [feature_ind_of_intact_image, feature_ind_of_non_lesioned_image])
+            similarity = compute_similarity(F, [feature_ind_of_intact_image, feature_ind_of_non_lesioned_image])
             series = pd.Series([target_shapenet_id, distractor_shapenet_id, float('nan'), float('nan'), similarity], index=['lesioned_target', 'intact_target', 'x', 'y', 'similarity'])
             array_to_add.append(series)
     d = d.append(array_to_add, ignore_index=True)   
     return d
 
-reload(h)
-base_path = '../../../data/features/'
-path_to_feats_diagnosticity = base_path + 'diagnosticity/FEATURES_FC6_images--spatial_avg=True_no-channel-norm.npy'
-path_to_meta_diagnosticity = base_path + 'diagnosticity/METADATA_images--spatial_avg=True.csv'
-F_diagnosticity = np.load(path_to_feats_diagnosticity)
+# reload(h)
+# base_path = '../../../data/features/'
+# path_to_feats_diagnosticity = base_path + 'diagnosticity/FEATURES_FC6_images--spatial_avg=True_no-channel-norm.npy'
+# path_to_meta_diagnosticity = base_path + 'diagnosticity/METADATA_images--spatial_avg=True.csv'
+# F_diagnosticity = np.load(path_to_feats_diagnosticity)
 def clean_up_metadata(M):
     return (M.assign(feature_ind=pd.Series(range(len(M)))))
-M_diagnosticity = clean_up_metadata(pd.read_csv(path_to_meta_diagnosticity))
+# M_diagnosticity = clean_up_metadata(pd.read_csv(path_to_meta_diagnosticity))
 # diagnosticity_df = get_lesion_image_df(D, M_diagnosticity, F_diagnosticity)
 
 def get_and_plot_diagnosticity_heatmaps(shapenet_ids, D):
@@ -170,8 +193,24 @@ def get_and_plot_diagnosticity_heatmaps(shapenet_ids, D):
         sns.heatmap(heatmap, ax=ax)
         # turn off axes 
         ax.imshow(im)
+        
+def clean_up_metadata(M):
+    return (M.assign(feature_ind=pd.Series(range(len(M)))))
 
 if __name__ == "__main__":
-	diagnosticity_df= get_lesion_image_df(D, M_diagnosticity, F_diagnosticity)
-	diagnosticity_df.to_csv('diagnosticity_df.csv')
+    D = pd.read_csv(os.path.join(results_dir, 'graphical_conventions.csv'))
+    path_to_feats_diag_56 = 'diagnosticity_56_extracted/FEATURES_vgg_FC6.npy'
+    path_to_meta_diag_56 = 'diagnosticity_56_extracted/METADATA.csv'
+    F_diag_56 = np.load(path_to_feats_diag_56)
+    M_diag_56 = clean_up_metadata(pd.read_csv(path_to_meta_diag_56))
+    print("loaded F and M") 
+    M_diag_56_split = split_up_metadata(M_diag_56)
+    M_diag_56_split.to_csv('M_diag_56.csv')
+    print("done creating M_diag_56") 
+    lesion_image_df_56 = get_lesion_image_df(D, M_diag_56_split, F_diag_56)
+    lesion_image_df_56.to_csv("lesion_image_df_56.csv")
+    print("done creating lesion_image_df_56")
+    lesion_image_df_56 = pd.read_csv("lesion_image_df_56.csv")
+	# diagnosticity_df= get_lesion_image_df(D, M_diagnosticity, F_diagnosticity)
+	# diagnosticity_df.to_csv('diagnosticity_df.csv')
 

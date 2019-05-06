@@ -1258,8 +1258,6 @@ def get_stroke_importance(df, sketch_dir, png_name):
     im = Image.open(path)
     plt.imshow(im)
     
-    
-    
 ###############################################################################################  
     
 def get_pixel_importance_heatmaps(D, shapenet_ids):
@@ -1323,11 +1321,5 @@ def get_pixel_importance_heatmaps(D, shapenet_ids):
         denominator_heatmaps.append(denominator_heatmap)
         composite_heatmaps.append(composite_heatmap)
     return composite_heatmaps, numerator_heatmaps, denominator_heatmaps 
-
-############################################################################################### 
-
-############################################################################################### 
-
-############################################################################################### 
 
 ############################################################################################### 
