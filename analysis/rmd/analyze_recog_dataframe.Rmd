@@ -18,7 +18,10 @@ library(tidyboot)
 
 #### load in data
 ```{r}
-d.recog <- read_csv('../../results/graphical_conventions_recog_data_bis.csv') %>%
+version = 'cogsci' # '2.0, i.e. no interrupting & balanced contexts'
+path = ifelse(version == 'cogsci', 'run3run4.csv', 'run5_submitButton.csv')
+
+d.recog <- read_csv('../../results/csv/graphical_conventions_recog_data_bis.csv') %>%
   mutate(version = factor(version, levels = c("refgame","yoked","scrambled40"), labels = c("communication", "yoked", "shuffled" ))) 
 ```
 
@@ -68,16 +71,21 @@ summary(m2)
 ```
 
 
-## Analysis of accuracies across all three groups: communication, yoked, shuffled
+## Analysis of change in raw accuracy & RT across all three groups: communication, yoked, shuffled
 ```{r}
-d.acc <- read_csv('../../results/graphical_conventions_recog_data.csv') %>%
+d.acc <- read_csv(paste0('../../results/csv/graphical_conventions_recog_data', path)) %>%
   mutate(version = factor(version, levels = c("refgame","yoked","scrambled40"), labels = c("communication", "yoked", "shuffled" ))) %>%
+  filter(condition == 'repeated') %>%
   group_by(version,gameID,repetition) %>%
-  summarize(accuracy=mean(correct))
+  summarize(accuracy=mean(correct), RT = mean(logRT))
 
 d.acc %>%
-  group_by(version) %>%
-  summarize(group_accuracy=mean(accuracy))
+  gather(measure, value, accuracy, RT) %>%
+  filter(repetition %in% c(0,7)) %>%
+  group_by(measure, repetition, version) %>%
+  summarize(m=mean(value)) %>%
+  spread(repetition, m) %>%
+  mutate(diff = `7` - `0`) 
 ```
 
 #### Comparing communication and yoked accuracies

@@ -17,9 +17,11 @@ library(tidyboot)
 ## Import group data
 
 ```{r}
-d <- read_csv('../../results/csv/graphical_conventions_group_data_run5_submitButton.csv')  %>% select(-png)
-d.bis.drawDuration <- read_csv('../../results/csv/graphical_conventions_bis_drawDuration_run5_submitButton.csv')  %>% select(-X1)
-d.bis.numStrokes <- read_csv('../../results/csv/graphical_conventions_bis_numStrokes_run5_submitButton.csv') %>% select(-X1)
+version = 'cogsci' # '2.0, i.e. no interrupting & balanced contexts'
+path = ifelse(version == 'cogsci', 'run3run4.csv', 'run5_submitButton.csv')
+d <- read_csv(paste0('../../results/csv/graphical_conventions_group_data_', path))  %>% select(-png)
+d.bis.drawDuration <- read_csv(paste0('../../results/csv/graphical_conventions_bis_drawDuration_', path))  %>% select(-X1)
+d.bis.numStrokes <- read_csv(paste0('../../results/csv/graphical_conventions_bis_numStrokes_', path)) %>% select(-X1)
 ```
 
 Some statistics we report
@@ -148,16 +150,16 @@ print(coef(summary(interaction_lmm)))
 ```{r}
 
 input <- d %>%
-         filter(repetition == 0 | repetition == 7) %>% 
+         filter(phase %in% c('pre', 'post')) %>% 
          mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
                 condition = as.factor(condition),
                 outcome = as.factor(outcome))
 
 # alternative model definition (removing game-wise random effects for phase*condition interaction)
-interaction_lmm <- glm(outcome ~ phase * condition , family='binomial',
-                        data = input)
-
-summary(interaction_lmm)
+out <- glmer(outcome ~ phase * condition + (1 + phase*condition | gameID),
+              family = 'binomial',data = input
+)
+summary(out)
 ```
 
 ## Raw accuracy in pre and post
@@ -165,26 +167,22 @@ summary(interaction_lmm)
 ```{r}
 d %>% 
   filter(phase== 'pre'| phase == 'post') %>%
-  mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
+  #mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
   group_by(phase,condition) %>%
-  tidyboot_mean(column=mean(outcome_binary))
-
+  tidyboot_mean(column=mean(outcome)) 
 ```
 
 ## compute subject-wise, condition-wise change in accuracy from pre to post
 ```{r}
-
 d_acc <- d %>%
   filter(phase== 'pre'| phase == 'post') %>%
-  mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
+  #mutate(outcome_binary = ifelse(outcome == 'True', 1, 0)) %>%
   group_by(gameID,phase,condition) %>%
-  summarize(accuracy=mean(outcome_binary)) %>%
+  summarize(accuracy=mean(outcome)) %>%
   spread(phase, accuracy) %>%
   mutate(diff = post - pre) %>%
   group_by(condition) %>%
   tidyboot_mean(column=mean(diff)) 
-
-d_acc
 
 d_acc %>%
     ggplot(aes(x = condition, y =empirical_stat)) +

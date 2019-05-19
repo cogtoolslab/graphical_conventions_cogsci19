@@ -76,7 +76,15 @@ June 30, 2018
 - Input: Sketches from communication task and 3D objects
 - Output: Sketch recognizability in context
 
+### 2.0
+
+April 2019
+
+##### stimuli from `refgame 2.0` data: `graphical_conventions_sketches_yoked` `graphical_conventions_sketches_scrambled40` 
+- `iterationName` = `pilot4`
+
 ### 1.2
+`iterationName` = `pilot3`
 
 ##### stimuli from `graphical_conventions_sketches_scrambled40` collection
 
