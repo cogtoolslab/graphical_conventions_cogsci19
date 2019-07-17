@@ -17,7 +17,7 @@ library(tidyboot)
 ## Import group data
 
 ```{r}
-version = 'cogsci' # '2.0, i.e. no interrupting & balanced contexts'
+version = 'cogsci' # 'cogsci' or '2.0, i.e. no interrupting & balanced contexts'
 path = ifelse(version == 'cogsci', 'run3run4.csv', 'run5_submitButton.csv')
 d <- read_csv(paste0('../../results/csv/graphical_conventions_group_data_', path))  %>% select(-png)
 d.bis.drawDuration <- read_csv(paste0('../../results/csv/graphical_conventions_bis_drawDuration_', path))  %>% select(-X1)
@@ -30,8 +30,9 @@ Some statistics we report
 d %>% group_by(generalization) %>% summarize(l = length(unique(gameID)))
 ```
 
+
 ```{r}
-d.bis.drawDuration %>% ggplot(aes(x = bis)) + geom_histogram(bins=50)
+d.bis.drawDuration %>% ggplot(aes(x = bis_score)) + geom_histogram(bins=50)
 ```
 
 ## Generate histograms for numCurvesPerSketch and numStrokes 
@@ -46,6 +47,15 @@ d %>%
   group_by(numStrokes) %>% ggplot(aes(x = numStrokes)) + geom_histogram()
 ```
 
+```{r}
+bbis
+```
+
+```{r}
+d.bis.drawDuration
+```
+
+
 ## Behavioral Results: BIS analysis (on drawDuration)
 
 ```{r}
@@ -53,16 +63,16 @@ d %>%
 bbis <-d.bis.drawDuration %>%
       filter(repetition==0) %>%
       group_by(condition,gameID) %>%
-      summarize(bis = mean(bis))
+      summarize(bis_baseline = mean(bis_score))
 
 # add this "baseline" bis to each row of original bis dataframe
 d.bis.drawDuration <- inner_join(d.bis.drawDuration, bbis, by = c('condition','gameID'), suffix = c("","_baseline")) %>%
-                      mutate(bis_relative = bis - bis_baseline) %>%
+                      mutate(bis_relative = bis_score - bis_baseline) %>%
                       mutate(repetition_1 = repetition + 1)
 
 ```
 
-
+## Visualize change in BIS across repetitions x condition
 
 ```{r}
 d.bootstrap <- d.bis.drawDuration %>% group_by(condition, repetition_1) %>% tidyboot_mean(column=bis_relative)
@@ -86,7 +96,6 @@ d.bootstrap %>%
 ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, units='cm')
 
 ```
-
 
 ## Mixed-effects model for BIS (on drawDuration by phase)
 
