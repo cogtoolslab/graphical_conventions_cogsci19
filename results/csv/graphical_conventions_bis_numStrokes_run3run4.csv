@@ -1,4 +1,4 @@
-,trialNum,numStrokes,repetition,gameID,target,condition,generalization,outcome,bis_score
+,trialNum,numStrokes,repetition,gameID,target,condition,generalization,outcome,bis
 0,1,0.7072588412362446,0,0050-769c4742-aefc-4bea-aeb2-7dc48b51fe82,dining_07,repeated,between,-1.105539374567378,-1.8127982158036227
 1,2,-1.2107312366925547,0,0050-769c4742-aefc-4bea-aeb2-7dc48b51fe82,waiting_04,control,between,0.9045322155551274,2.115263452247682
 2,3,0.7072588412362446,0,0050-769c4742-aefc-4bea-aeb2-7dc48b51fe82,dining_00,repeated,between,0.9045322155551274,0.1972733743188828
