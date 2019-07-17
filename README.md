@@ -32,4 +32,4 @@ How do people agree on ways of communicating visual concepts?
     - Output: timecourse visualizations of key sketch feature variables
 
 - **Write paper**
-  - Cogsci`https://github.com/judithfan/graphical_conventions_latex`
+  - [CogSci '19 paper](https://cogtoolslab.github.io/pdf/hawkinsano_cogsci_2019.pdf)

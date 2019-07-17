@@ -10,8 +10,17 @@ import pandas as pd
 import numpy as np
 
 from numpy import shape
-from PIL import Image
+from PIL import Image, ImageOps
 import base64
+from io import BytesIO
+import requests
+
+import ast 
+import PIL.Image
+from svgpathtools import parse_path
+import svgpathtools
+import math
+import ast 
 
 import scipy.stats as stats
 import matplotlib.pyplot as plt
@@ -22,6 +31,7 @@ import re
 sns.set_context('poster')
 colors = sns.color_palette("cubehelix", 5)
 from svgpathtools import parse_path, wsvg, svg2paths
+from itertools import combinations
 
 # directory & file hierarchy
 proj_dir = os.path.abspath('../../..')
@@ -33,23 +43,6 @@ results_dir = os.path.join(proj_dir,'results')
 ###############################################################################################
 
 #Dictionaries to convert between objects and categories
-
-OBJECT_TO_CATEGORY_run1 = {
-    'basset': 'dog', 'beetle': 'car', 'bloodhound': 'dog', 'bluejay': 'bird',
-    'bluesedan': 'car', 'bluesport': 'car', 'brown': 'car', 'bullmastiff': 'dog',
-    'chihuahua': 'dog', 'crow': 'bird', 'cuckoo': 'bird', 'doberman': 'dog',
-    'goldenretriever': 'dog', 'hatchback': 'car', 'inlay': 'chair', 'knob': 'chair',
-    'leather': 'chair', 'nightingale': 'bird', 'pigeon': 'bird', 'pug': 'dog',
-    'redantique': 'car', 'redsport': 'car', 'robin': 'bird', 'sling': 'chair',
-    'sparrow': 'bird', 'squat': 'chair', 'straight': 'chair', 'tomtit': 'bird',
-    'waiting': 'chair', 'weimaraner': 'dog', 'white': 'car', 'woven': 'chair',
-}
-CATEGORY_TO_OBJECT_run1 = {
-    'dog': ['basset', 'bloodhound', 'bullmastiff', 'chihuahua', 'doberman', 'goldenretriever', 'pug', 'weimaraner'],
-    'car': ['beetle', 'bluesedan', 'bluesport', 'brown', 'hatchback', 'redantique', 'redsport', 'white'],
-    'bird': ['bluejay', 'crow', 'cuckoo', 'nightingale', 'pigeon', 'robin', 'sparrow', 'tomtit'],
-    'chair': ['inlay', 'knob', 'leather', 'sling', 'squat', 'straight', 'waiting', 'woven'],
-}
 
 OBJECT_TO_CATEGORY_run2 = {
     'deck_00':'deck', 'deck_01':'deck', 'deck_02':'deck', 'deck_03':'deck', 'deck_04':'deck', 'deck_05':'deck',
@@ -89,52 +82,166 @@ object_to_shapenet = {
     "waiting_06":"2eaab78d6e4c4f2d7b0c85d2effc7e09",
     "waiting_07":"309674bdec2d24d7597976c675750537"
 }
+################################################################################################
+# pair number dictionary for shapenet pairs 
+pair_num_dict = {('1d1641362ad5a34ac3bd24f986301745', '1da9942b2ab7082b2ba1fdc12ecb5c9e'): 0,
+ ('1d1641362ad5a34ac3bd24f986301745', '23b0da45f23e5fb4f4b6538438a0b930'): 1,
+ ('1d1641362ad5a34ac3bd24f986301745', '2448d9aeda5bb9b0f4b6538438a0b930'): 2,
+ ('1d1641362ad5a34ac3bd24f986301745', '2b5953c986dd08f2f91663a74ccd2338'): 3,
+ ('1d1641362ad5a34ac3bd24f986301745', '2e291f35746e94fa62762c7262e78952'): 4,
+ ('1d1641362ad5a34ac3bd24f986301745', '2eaab78d6e4c4f2d7b0c85d2effc7e09'): 5,
+ ('1d1641362ad5a34ac3bd24f986301745', '309674bdec2d24d7597976c675750537'): 6,
+ ('1d1641362ad5a34ac3bd24f986301745', '30afd2ef2ed30238aa3d0a2f00b54836'): 7,
+ ('1d1641362ad5a34ac3bd24f986301745', '30dc9d9cfbc01e19950c1f85d919ebc2'): 8,
+ ('1d1641362ad5a34ac3bd24f986301745', '3466b6ecd040e252c215f685ba622927'): 9,
+ ('1d1641362ad5a34ac3bd24f986301745', '38f87e02e850d3bd1d5ccc40b510e4bd'): 10,
+ ('1d1641362ad5a34ac3bd24f986301745', '3cf6db91f872d26c222659d33fd79709'): 11,
+ ('1d1641362ad5a34ac3bd24f986301745', '3d7ebe5de86294b3f6bcd046624c43c9'): 12,
+ ('1d1641362ad5a34ac3bd24f986301745', '4c1777173111f2e380a88936375f2ef4'): 13,
+ ('1d1641362ad5a34ac3bd24f986301745', '56262eebe592b085d319c38340319ae4'): 14,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '23b0da45f23e5fb4f4b6538438a0b930'): 15,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '2448d9aeda5bb9b0f4b6538438a0b930'): 16,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '2b5953c986dd08f2f91663a74ccd2338'): 17,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '2e291f35746e94fa62762c7262e78952'): 18,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '2eaab78d6e4c4f2d7b0c85d2effc7e09'): 19,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '309674bdec2d24d7597976c675750537'): 20,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '30afd2ef2ed30238aa3d0a2f00b54836'): 21,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '30dc9d9cfbc01e19950c1f85d919ebc2'): 22,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '3466b6ecd040e252c215f685ba622927'): 23,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '38f87e02e850d3bd1d5ccc40b510e4bd'): 24,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '3cf6db91f872d26c222659d33fd79709'): 25,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '3d7ebe5de86294b3f6bcd046624c43c9'): 26,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '4c1777173111f2e380a88936375f2ef4'): 27,
+ ('1da9942b2ab7082b2ba1fdc12ecb5c9e', '56262eebe592b085d319c38340319ae4'): 28,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '2448d9aeda5bb9b0f4b6538438a0b930'): 29,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '2b5953c986dd08f2f91663a74ccd2338'): 30,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '2e291f35746e94fa62762c7262e78952'): 31,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '2eaab78d6e4c4f2d7b0c85d2effc7e09'): 32,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '309674bdec2d24d7597976c675750537'): 33,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '30afd2ef2ed30238aa3d0a2f00b54836'): 34,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '30dc9d9cfbc01e19950c1f85d919ebc2'): 35,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '3466b6ecd040e252c215f685ba622927'): 36,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '38f87e02e850d3bd1d5ccc40b510e4bd'): 37,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '3cf6db91f872d26c222659d33fd79709'): 38,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '3d7ebe5de86294b3f6bcd046624c43c9'): 39,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '4c1777173111f2e380a88936375f2ef4'): 40,
+ ('23b0da45f23e5fb4f4b6538438a0b930', '56262eebe592b085d319c38340319ae4'): 41,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '2b5953c986dd08f2f91663a74ccd2338'): 42,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '2e291f35746e94fa62762c7262e78952'): 43,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '2eaab78d6e4c4f2d7b0c85d2effc7e09'): 44,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '309674bdec2d24d7597976c675750537'): 45,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '30afd2ef2ed30238aa3d0a2f00b54836'): 46,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '30dc9d9cfbc01e19950c1f85d919ebc2'): 47,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '3466b6ecd040e252c215f685ba622927'): 48,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '38f87e02e850d3bd1d5ccc40b510e4bd'): 49,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '3cf6db91f872d26c222659d33fd79709'): 50,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '3d7ebe5de86294b3f6bcd046624c43c9'): 51,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '4c1777173111f2e380a88936375f2ef4'): 52,
+ ('2448d9aeda5bb9b0f4b6538438a0b930', '56262eebe592b085d319c38340319ae4'): 53,
+ ('2b5953c986dd08f2f91663a74ccd2338', '2e291f35746e94fa62762c7262e78952'): 54,
+ ('2b5953c986dd08f2f91663a74ccd2338', '2eaab78d6e4c4f2d7b0c85d2effc7e09'): 55,
+ ('2b5953c986dd08f2f91663a74ccd2338', '309674bdec2d24d7597976c675750537'): 56,
+ ('2b5953c986dd08f2f91663a74ccd2338', '30afd2ef2ed30238aa3d0a2f00b54836'): 57,
+ ('2b5953c986dd08f2f91663a74ccd2338', '30dc9d9cfbc01e19950c1f85d919ebc2'): 58,
+ ('2b5953c986dd08f2f91663a74ccd2338', '3466b6ecd040e252c215f685ba622927'): 59,
+ ('2b5953c986dd08f2f91663a74ccd2338', '38f87e02e850d3bd1d5ccc40b510e4bd'): 60,
+ ('2b5953c986dd08f2f91663a74ccd2338', '3cf6db91f872d26c222659d33fd79709'): 61,
+ ('2b5953c986dd08f2f91663a74ccd2338', '3d7ebe5de86294b3f6bcd046624c43c9'): 62,
+ ('2b5953c986dd08f2f91663a74ccd2338', '4c1777173111f2e380a88936375f2ef4'): 63,
+ ('2b5953c986dd08f2f91663a74ccd2338', '56262eebe592b085d319c38340319ae4'): 64,
+ ('2e291f35746e94fa62762c7262e78952', '2eaab78d6e4c4f2d7b0c85d2effc7e09'): 65,
+ ('2e291f35746e94fa62762c7262e78952', '309674bdec2d24d7597976c675750537'): 66,
+ ('2e291f35746e94fa62762c7262e78952', '30afd2ef2ed30238aa3d0a2f00b54836'): 67,
+ ('2e291f35746e94fa62762c7262e78952', '30dc9d9cfbc01e19950c1f85d919ebc2'): 68,
+ ('2e291f35746e94fa62762c7262e78952', '3466b6ecd040e252c215f685ba622927'): 69,
+ ('2e291f35746e94fa62762c7262e78952', '38f87e02e850d3bd1d5ccc40b510e4bd'): 70,
+ ('2e291f35746e94fa62762c7262e78952', '3cf6db91f872d26c222659d33fd79709'): 71,
+ ('2e291f35746e94fa62762c7262e78952', '3d7ebe5de86294b3f6bcd046624c43c9'): 72,
+ ('2e291f35746e94fa62762c7262e78952', '4c1777173111f2e380a88936375f2ef4'): 73,
+ ('2e291f35746e94fa62762c7262e78952', '56262eebe592b085d319c38340319ae4'): 74,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '309674bdec2d24d7597976c675750537'): 75,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '30afd2ef2ed30238aa3d0a2f00b54836'): 76,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '30dc9d9cfbc01e19950c1f85d919ebc2'): 77,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '3466b6ecd040e252c215f685ba622927'): 78,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '38f87e02e850d3bd1d5ccc40b510e4bd'): 79,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '3cf6db91f872d26c222659d33fd79709'): 80,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '3d7ebe5de86294b3f6bcd046624c43c9'): 81,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '4c1777173111f2e380a88936375f2ef4'): 82,
+ ('2eaab78d6e4c4f2d7b0c85d2effc7e09', '56262eebe592b085d319c38340319ae4'): 83,
+ ('309674bdec2d24d7597976c675750537', '30afd2ef2ed30238aa3d0a2f00b54836'): 84,
+ ('309674bdec2d24d7597976c675750537', '30dc9d9cfbc01e19950c1f85d919ebc2'): 85,
+ ('309674bdec2d24d7597976c675750537', '3466b6ecd040e252c215f685ba622927'): 86,
+ ('309674bdec2d24d7597976c675750537', '38f87e02e850d3bd1d5ccc40b510e4bd'): 87,
+ ('309674bdec2d24d7597976c675750537', '3cf6db91f872d26c222659d33fd79709'): 88,
+ ('309674bdec2d24d7597976c675750537', '3d7ebe5de86294b3f6bcd046624c43c9'): 89,
+ ('309674bdec2d24d7597976c675750537', '4c1777173111f2e380a88936375f2ef4'): 90,
+ ('309674bdec2d24d7597976c675750537', '56262eebe592b085d319c38340319ae4'): 91,
+ ('30afd2ef2ed30238aa3d0a2f00b54836', '30dc9d9cfbc01e19950c1f85d919ebc2'): 92,
+ ('30afd2ef2ed30238aa3d0a2f00b54836', '3466b6ecd040e252c215f685ba622927'): 93,
+ ('30afd2ef2ed30238aa3d0a2f00b54836', '38f87e02e850d3bd1d5ccc40b510e4bd'): 94,
+ ('30afd2ef2ed30238aa3d0a2f00b54836', '3cf6db91f872d26c222659d33fd79709'): 95,
+ ('30afd2ef2ed30238aa3d0a2f00b54836', '3d7ebe5de86294b3f6bcd046624c43c9'): 96,
+ ('30afd2ef2ed30238aa3d0a2f00b54836', '4c1777173111f2e380a88936375f2ef4'): 97,
+ ('30afd2ef2ed30238aa3d0a2f00b54836', '56262eebe592b085d319c38340319ae4'): 98,
+ ('30dc9d9cfbc01e19950c1f85d919ebc2', '3466b6ecd040e252c215f685ba622927'): 99,
+ ('30dc9d9cfbc01e19950c1f85d919ebc2', '38f87e02e850d3bd1d5ccc40b510e4bd'): 100,
+ ('30dc9d9cfbc01e19950c1f85d919ebc2', '3cf6db91f872d26c222659d33fd79709'): 101,
+ ('30dc9d9cfbc01e19950c1f85d919ebc2', '3d7ebe5de86294b3f6bcd046624c43c9'): 102,
+ ('30dc9d9cfbc01e19950c1f85d919ebc2', '4c1777173111f2e380a88936375f2ef4'): 103,
+ ('30dc9d9cfbc01e19950c1f85d919ebc2', '56262eebe592b085d319c38340319ae4'): 104,
+ ('3466b6ecd040e252c215f685ba622927', '38f87e02e850d3bd1d5ccc40b510e4bd'): 105,
+ ('3466b6ecd040e252c215f685ba622927', '3cf6db91f872d26c222659d33fd79709'): 106,
+ ('3466b6ecd040e252c215f685ba622927', '3d7ebe5de86294b3f6bcd046624c43c9'): 107,
+ ('3466b6ecd040e252c215f685ba622927', '4c1777173111f2e380a88936375f2ef4'): 108,
+ ('3466b6ecd040e252c215f685ba622927', '56262eebe592b085d319c38340319ae4'): 109,
+ ('38f87e02e850d3bd1d5ccc40b510e4bd', '3cf6db91f872d26c222659d33fd79709'): 110,
+ ('38f87e02e850d3bd1d5ccc40b510e4bd', '3d7ebe5de86294b3f6bcd046624c43c9'): 111,
+ ('38f87e02e850d3bd1d5ccc40b510e4bd', '4c1777173111f2e380a88936375f2ef4'): 112,
+ ('38f87e02e850d3bd1d5ccc40b510e4bd', '56262eebe592b085d319c38340319ae4'): 113,
+ ('3cf6db91f872d26c222659d33fd79709', '3d7ebe5de86294b3f6bcd046624c43c9'): 114,
+ ('3cf6db91f872d26c222659d33fd79709', '4c1777173111f2e380a88936375f2ef4'): 115,
+ ('3cf6db91f872d26c222659d33fd79709', '56262eebe592b085d319c38340319ae4'): 116,
+ ('3d7ebe5de86294b3f6bcd046624c43c9', '4c1777173111f2e380a88936375f2ef4'): 117,
+ ('3d7ebe5de86294b3f6bcd046624c43c9', '56262eebe592b085d319c38340319ae4'): 118,
+ ('4c1777173111f2e380a88936375f2ef4', '56262eebe592b085d319c38340319ae4'): 119}
 
 ################################################################################################
+# shapenet chairs info 
+shapenets = []
+shapenet_30afd2ef2ed30238aa3d0a2f00b54836 = {'filename': "30afd2ef2ed30238aa3d0a2f00b54836.png" , 'basic': "dining", 'subordinate': "dining_00" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/30afd2ef2ed30238aa3d0a2f00b54836.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_30afd2ef2ed30238aa3d0a2f00b54836)
+shapenet_30dc9d9cfbc01e19950c1f85d919ebc2 = {'filename': "30dc9d9cfbc01e19950c1f85d919ebc2.png" , 'basic': "dining", 'subordinate': "dining_01" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/30dc9d9cfbc01e19950c1f85d919ebc2.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_30dc9d9cfbc01e19950c1f85d919ebc2 )
+shapenet_4c1777173111f2e380a88936375f2ef4 = {'filename': "4c1777173111f2e380a88936375f2ef4.png" , 'basic': "dining", 'subordinate': "dining_02" , 'subset':"B", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/4c1777173111f2e380a88936375f2ef4.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_4c1777173111f2e380a88936375f2ef4)
+shapenet_3466b6ecd040e252c215f685ba622927 = {'filename': "3466b6ecd040e252c215f685ba622927.png" , 'basic': "dining", 'subordinate': "dining_03" , 'subset':"B", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/3466b6ecd040e252c215f685ba622927.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_3466b6ecd040e252c215f685ba622927)
+shapenet_38f87e02e850d3bd1d5ccc40b510e4bd = {'filename': "38f87e02e850d3bd1d5ccc40b510e4bd.png" , 'basic': "dining", 'subordinate': "dining_04" , 'subset':"B", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/38f87e02e850d3bd1d5ccc40b510e4bd.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_38f87e02e850d3bd1d5ccc40b510e4bd)
+shapenet_3cf6db91f872d26c222659d33fd79709 = {'filename': "3cf6db91f872d26c222659d33fd79709.png" , 'basic': "dining", 'subordinate': "dining_05" , 'subset':"B", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/3cf6db91f872d26c222659d33fd79709.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_3cf6db91f872d26c222659d33fd79709)
+shapenet_3d7ebe5de86294b3f6bcd046624c43c9 = {'filename': "3d7ebe5de86294b3f6bcd046624c43c9.png" , 'basic': "dining", 'subordinate': "dining_06" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/3d7ebe5de86294b3f6bcd046624c43c9.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_3d7ebe5de86294b3f6bcd046624c43c9)
+shapenet_56262eebe592b085d319c38340319ae4 = {'filename': "56262eebe592b085d319c38340319ae4.png" , 'basic': "dining", 'subordinate': "dining_07" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/56262eebe592b085d319c38340319ae4.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_56262eebe592b085d319c38340319ae4)
+shapenet_1d1641362ad5a34ac3bd24f986301745 = {'filename': "1d1641362ad5a34ac3bd24f986301745.png" , 'basic': "waiting", 'subordinate': "waiting_00" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/1d1641362ad5a34ac3bd24f986301745.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_1d1641362ad5a34ac3bd24f986301745)
+shapenet_1da9942b2ab7082b2ba1fdc12ecb5c9e = {'filename': "1da9942b2ab7082b2ba1fdc12ecb5c9e.png" , 'basic': "waiting", 'subordinate': "waiting_01" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/1da9942b2ab7082b2ba1fdc12ecb5c9e.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_1da9942b2ab7082b2ba1fdc12ecb5c9e)
+shapenet_2448d9aeda5bb9b0f4b6538438a0b930 = {'filename': "2448d9aeda5bb9b0f4b6538438a0b930.png" , 'basic': "waiting", 'subordinate': "waiting_02" , 'subset':"B", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/2448d9aeda5bb9b0f4b6538438a0b930.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_2448d9aeda5bb9b0f4b6538438a0b930)
+shapenet_23b0da45f23e5fb4f4b6538438a0b930 = {'filename': "23b0da45f23e5fb4f4b6538438a0b930.png" , 'basic': "waiting", 'subordinate': "waiting_03" , 'subset':"B", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/23b0da45f23e5fb4f4b6538438a0b930.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_23b0da45f23e5fb4f4b6538438a0b930)
+shapenet_2b5953c986dd08f2f91663a74ccd2338 = {'filename': "2b5953c986dd08f2f91663a74ccd2338.png" , 'basic': "waiting", 'subordinate': "waiting_04" , 'subset':"B", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/2b5953c986dd08f2f91663a74ccd2338.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_2b5953c986dd08f2f91663a74ccd2338)
+shapenet_2e291f35746e94fa62762c7262e78952 = {'filename': "2e291f35746e94fa62762c7262e78952.png" , 'basic': "waiting", 'subordinate': "waiting_05" , 'subset':"B", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/2e291f35746e94fa62762c7262e78952.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_2e291f35746e94fa62762c7262e78952)
+shapenet_2eaab78d6e4c4f2d7b0c85d2effc7e09 = {'filename': "2eaab78d6e4c4f2d7b0c85d2effc7e09.png" , 'basic': "waiting", 'subordinate': "waiting_06" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/2eaab78d6e4c4f2d7b0c85d2effc7e09.png"}#,width: 256, height: 256};
+shapenets.append(shapenet_2eaab78d6e4c4f2d7b0c85d2effc7e09)
+shapenet_309674bdec2d24d7597976c675750537 = {'filename': "309674bdec2d24d7597976c675750537.png" , 'basic': "waiting", 'subordinate': "waiting_07" , 'subset':"A", 'url': "https://s3.amazonaws.com/shapenet-graphical-conventions/309674bdec2d24d7597976c675750537.png"}#,width: 256, height: 256}
+shapenets.append(shapenet_309674bdec2d24d7597976c675750537)
 
-### Subhelper 0
-
-def convert_numeric(X,column_id):
-    ## make numeric types for aggregation
-    X[column_id] = pd.to_numeric(X[column_id])
-    return X
-
-###  Subhelper 1
-
-def collapse_within_repetition(D, var, condition, numReps):
-    _D = D[D['condition']==condition]
-    if condition == 'repeated':
-        return (_D.groupby(['gameID','repetition','condition'])[var].mean()).reset_index()
-    else:
-        newD = (_D.groupby(['gameID','repetition','condition'])[var].mean()).reset_index()
-        newD.repetition = newD.repetition.replace(1, numReps-1)
-        return newD
-
-###  Subhelper 2
-
-def plot_repeated_control(D_repeated, D_control, var, ax, numReps):
-    df2 = pd.DataFrame([[float('NaN'), 1, 'control', float('NaN')], [float('NaN'), 2, 'control', float('NaN')], [float('NaN'), 3, 'control', float('NaN')], [float('NaN'), 4, 'control', float('NaN')], [float('NaN'), 5, 'control', float('NaN')],[float('NaN'), 6, 'control', float('NaN')]], columns=['gameID', 'repetition', 'condition', var])
-    D_control_ = D_control.append(df2)
-    sns.lineplot(data=D_repeated,
-           x='repetition',
-           #units='gameID',
-           err_style='bars',
-           y=var,
-           ax=ax)
-
-    sns.pointplot(data=D_control_,
-                   x='repetition',
-                   y=var,
-                   #units='gameID',
-                   err_style='bars',
-                   join=False,
-                   color='r',
-                   dodge=True,
-                   errwidth = 3,
-                   scale = 0.7,
-                   ax=ax)
-
-###############################################################################################
+################################################################################################
 
 def clean_up_metadata(M):
     return (M.assign(feature_ind=pd.Series(range(len(M))))
@@ -142,851 +249,11 @@ def clean_up_metadata(M):
              #drop(columns=['Unnamed: 0'])
 
 ###############################################################################################
-
-# create and plot RDM
-def get_and_plot_RDM(M,F,sorted_feature_ind, axs, x_ind, y_ind, rep):
-    ordered_objs = M['target'].unique()
-    labels = M.target.values
-    means = F
-    ordered_means = means[sorted_feature_ind,:]
-    sns.set_style('white')
-    CORRMAT = np.corrcoef(ordered_means)
-    sns.set_context('paper')
-    ax = axs[y_ind, x_ind]
-    ax.set_title("rep {}".format(rep), fontsize=30)
-    sns.heatmap(1-CORRMAT, vmin=0, vmax=2, cmap="plasma", ax=ax, cbar=False, xticklabels=False, yticklabels=False)
-    RDM = CORRMAT
-    plt.tight_layout()
-    return RDM
-
-###############################################################################################
-
-def plot_accuracy_reps(D):
-    mean_accuracy_list = []
-    for i in range(0,8):
-        outcome_list = (D.loc[D['repetition'] == i])['outcome']
-        mean_accuracy = sum(outcome_list) / float(len(outcome_list))
-        mean_accuracy_list.append(mean_accuracy)
-    D_mean = pd.DataFrame()
-    D_mean['meanAccuracy'] = mean_accuracy_list
-    D_mean['repetition'] = range(0,8)
-    D_mean
-    plt.figure(figsize=(6,6))
-    sns.regplot(data=D_mean,
-             x='repetition',
-             y='meanAccuracy',
-             ci = None)
-    plt.ylim([0.5,1.0])
-    plt.xticks(np.arange(0, 8, step=1))
-
-###############################################################################################
-
-def plot_accuracy_phase(D):
-    for i, o in enumerate(D['outcome']):
-        if o == True:
-            D.set_value(i, 'outcome', 1)
-        else:
-            D.set_value(i, 'outcome', 0)
-    D['outcome'] = D['outcome'].astype(int)
-
-    _D1 = D[D['phase']!='repeated'] ## exclude "repetition-phase" trials
-    D1 = _D1.groupby(['gameID','phase','condition'])['outcome'].mean()
-    D1 = D1.reset_index()
-
-    plt.figure(figsize=(6,6))
-    sns.pointplot(data=D1,
-             x='phase',
-             y='outcome',
-             hue='condition',
-             order=['pre','post'])
-    plt.ylim([0.6,1.0])
-
-###############################################################################################
-
-def ts_grid_repeated_control(D,
-                                      var0, var1, var2, var3,
-                                       numReps=8,
-                                      save_plot=False,
-                                      plot_dir='./plots'):
-
-    '''
-    purpose: get timeseries (with error band) for 4 behavioral measures of interest across repetitions:
-                drawDuration, numStrokes (actions), numCurvesPerSketch (total splines), and numCurvesPerStroke (stroke complexity)
-
-    note: This applies to BOTH repeated and control objects.
-          We are currently aggregating across objects within a repetition within subject, so the error bands
-          only reflect between-subject variability.
-
-    input:
-            D: the group dataframe
-            save_plot: do you want to save the plot?
-            plot_dir: path to where to save out the plot
-
-    output:
-            a timeseries plot
-    '''
-
-    D = convert_numeric(convert_numeric(convert_numeric(convert_numeric(D,var0),var1),var2),var3)
-
-    D0_repeated = collapse_within_repetition(D, var0, 'repeated', numReps)
-    D1_repeated = collapse_within_repetition(D, var1, 'repeated', numReps)
-    D2_repeated = collapse_within_repetition(D, var2, 'repeated', numReps)
-    D3_repeated = collapse_within_repetition(D, var3, 'repeated', numReps)
-    D0_control = collapse_within_repetition(D, var0, 'control', numReps)
-    D1_control = collapse_within_repetition(D, var1, 'control', numReps)
-    D2_control = collapse_within_repetition(D, var2, 'control', numReps)
-    D3_control = collapse_within_repetition(D, var3, 'control', numReps)
-
-    ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
-    num_reps = len(np.unique(D.repetition.values))
-    assert D0_repeated.groupby('gameID')['gameID'].count()[0]==num_reps
-
-    #fig = plt.figure(figsize=(12,12))
-    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(nrows=2, ncols=2, figsize=(12,12))
-
-    plot_repeated_control(D0_repeated, D0_control, var0, ax0, numReps)
-    plot_repeated_control(D1_repeated, D1_control, var1, ax1, numReps)
-    plot_repeated_control(D2_repeated, D2_control, var2, ax2, numReps)
-    plot_repeated_control(D3_repeated, D3_control, var3, ax3, numReps)
-
-    ax0.set_ylim([4, 8])
-    ax0.set(xlim=(-0.5, numReps - 0.5), xticks=range(0,8))
-    ax1.set_ylim([5, 15])
-    ax1.set(xlim=(-0.5, numReps - 0.5), xticks=range(0,8))
-    ax2.set_ylim([15, 25])
-    ax2.set(xlim=(-0.5, numReps - 0.5), xticks=range(0,8))
-    ax3.set_ylim([0.02, 0.045])
-    ax3.set(xlim=(-0.5, numReps - 0.5), xticks=range(0,8))
-
-    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-
-
-###############################################################################################
-
-def line_grid_individual(D,
-                                      var0, var1, var2, var3,
-                                       numReps=8,
-                                      save_plot=False,
-                                      plot_dir='./plots'):
-
-    if numReps == 8:
-        set_size = 4
-    if numReps == 6:
-        set_size = 6
-
-    D = convert_numeric(convert_numeric(convert_numeric(convert_numeric(D,var0),var1),var2),var3)
-
-    ## collapsing across objects within repetition (within pair)
-    ## and only aggregating repeated trials into this sub-dataframe
-    D0 = collapse_within_repetition(D, var0, 'repeated', set_size)
-    D1 = collapse_within_repetition(D, var1, 'repeated', set_size)
-    D2 = collapse_within_repetition(D, var2, 'repeated', set_size)
-    D3 = collapse_within_repetition(D, var3, 'repeated', set_size)
-
-    #fig = plt.figure(figsize=(12,12))
-    fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(nrows=2, ncols=2, figsize=(10,10))
-
-    ## make sure that the number of timepoints now per gameID is equal to the number of repetitions in the game
-    num_reps = len(np.unique(D.repetition.values))
-    assert D0.groupby('gameID')['gameID'].count()[0]==num_reps
-
-    sns.lineplot(data=D0,
-               x='repetition',
-               hue='gameID',
-               units='gameID',
-               y=var0,
-               estimator = None,
-               ax=ax0,
-               legend = False)
-
-    sns.lineplot(data=D1,
-               x='repetition',
-               hue='gameID',
-               units='gameID',
-               y=var1,
-               estimator = None,
-               ax=ax1,
-               legend = False)
-
-    sns.lineplot(data=D2,
-               x='repetition',
-               hue='gameID',
-               units='gameID',
-               y=var2,
-               estimator = None,
-               ax=ax2,
-               legend = False)
-
-    sns.lineplot(data=D3,
-               x='repetition',
-               hue='gameID',
-               units='gameID',
-               y=var3,
-               estimator = None,
-               ax=ax3)
-
-    plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-    #plt.xticks(np.arange(0, numReps, step=1))
-    ax0.set_xticks(np.arange(numReps))
-    ax1.set_xticks(np.arange(numReps))
-    ax2.set_xticks(np.arange(numReps))
-    ax3.set_xticks(np.arange(numReps))
-    ax0.set_xticklabels(np.arange(numReps))
-    ax1.set_xticklabels(np.arange(numReps))
-    ax2.set_xticklabels(np.arange(numReps))
-    ax3.set_xticklabels(np.arange(numReps))
-    ax0.set_ylim([1, 14])
-    ax1.set_ylim([3, 20])
-    ax2.set_ylim([8, 50])
-    ax3.set_ylim([0.01, 0.07])
-    ax3.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-
-###############################################################################################
-
-def compare_conditions_prepost(D, # the dataframe
-                        var='outcome', # the variable you want to see plotted against numRepts
-                        lower_limit = 2,
-                        upper_limit=10,
-                        save_plot=False,
-                        plot_dir='./plots'): # the y range for the plot
-
-    '''
-    purpose: compare repeated and control conditions in the PRE and POST phases with error bars
-    note: We are currently aggregating across objects within a repetition within subject, so the error bars
-          only reflect between-subject variability.
-    input:
-            D: the group dataframe
-            var: the variable you want to see plotted against numReps, e.g., 'drawDuration'
-            limit: the y range for the plot
-            save_plot: do you want to save the plot?
-            plot_dir: path to where to save out the plot
-    output: another dataframe?
-            a point plot
-    '''
-
-    _D1 = D[D['phase']!='repeated'] ## exclude "repetition-phase" trials
-    D1 = _D1.groupby(['gameID','phase','condition'])[var].mean()
-    D1 = D1.reset_index()
-
-    plt.figure(figsize=(6,6))
-    sns.pointplot(data=D1,
-             x='phase',
-             y=var,
-             hue='condition',
-             dodge=True,
-             order=['pre','post'])
-    plt.ylim([lower_limit,upper_limit])
-    #plt.savefig(os.path.join(plot_dir,'timeseries_across_reps_{}.pdf'.format(var)))
-    return D1
-
-###############################################################################################
-
-def print_repeated_sketches(D,
-                                     complete_games,
-                                     sketch_dir):
-
-    _valid_gameids = complete_games
-
-    for g in _valid_gameids:
-        print ('Printing out sketches from game: ' + g)
-        trial_types = ['repeated']
-        for tt in trial_types:
-            _D = D[(D.condition=='repeated') & (D.gameID==g)]
-            all_targs = np.unique(_D.target.values) ## use this later to name the file
-            _D = _D.sort_values(by=['target','repetition'])
-            _i = 1
-            textsize=12
-            fig = plt.figure(figsize=(16,6))
-            for i,_d in _D.iterrows():
-                imgData = _d['png']
-                filestr = base64.b64decode(imgData)
-                fname = 'sketch.png'
-                with open(fname, "wb") as fh:
-                    fh.write(imgData.decode('base64'))
-                textsize = 16
-                # first plot the target
-                im = Image.open(fname)
-                p = plt.subplot(4,8,_i)
-                plt.imshow(im)
-                sns.set_style('white')
-                k = p.get_xaxis().set_ticklabels([])
-                k = p.get_yaxis().set_ticklabels([])
-                k = p.get_xaxis().set_ticks([])
-                k = p.get_yaxis().set_ticks([])
-                outcome = _d['outcome']
-                category = _d['category']
-                if outcome == 1:
-                    sides = ['bottom','top','right','left']
-                    for s in sides:
-                        p.spines[s].set_color((0.4,0.8,0.4))
-                        p.spines[s].set_linewidth(4)
-                else:
-                    sides = ['bottom','top','right','left']
-                    for s in sides:
-                        p.spines[s].set_color((0.9,0.2,0.2))
-                        p.spines[s].set_linewidth(4)
-                if (_i-1 < 8) & (tt in 'repeated'):
-                    plt.title('rep ' + str(_d['repetition']) ,fontsize=textsize)
-                if (_i-1)%8==0:
-                    plt.ylabel(_d['target'] ,fontsize=textsize)
-
-                _i  = _i + 1
-
-            filepath = os.path.join(sketch_dir,'repeated','{}_{}.pdf'.format(g,category))
-            if not os.path.exists(os.path.join(sketch_dir,'repeated')):
-                os.makedirs(os.path.join(sketch_dir,'repeated'))
-            plt.tight_layout()
-            plt.savefig(os.path.join(sketch_dir,'repeated',filepath))
-            plt.close(fig)
-
-
-###############################################################################################
-
-def print_control_sketches(D,
-                                   complete_games,
-                                   sketch_dir):
-
-    for g in complete_games:
-        print ('Printing out sketches from game: ' + g)
-        trial_types = ['control']
-        for tt in trial_types:
-            _D = D[(D.condition=='control') & (D.gameID==g)]
-            all_targs = np.unique(_D.target.values) ## use this later to name the file
-            _D = _D.sort_values(by=['target','repetition'])
-            _i = 1
-            textsize=12
-            fig = plt.figure(figsize=(16,6))
-            for i,_d in _D.iterrows():
-                imgData = _d['png']
-                filestr = base64.b64decode(imgData)
-                fname = 'sketch.png'
-                with open(fname, "wb") as fh:
-                    fh.write(imgData.decode('base64'))
-                textsize = 16
-                # first plot the target
-                im = Image.open(fname)
-                p = plt.subplot(4,2,_i)
-                plt.imshow(im)
-                sns.set_style('white')
-                k = p.get_xaxis().set_ticklabels([])
-                k = p.get_yaxis().set_ticklabels([])
-                k = p.get_xaxis().set_ticks([])
-                k = p.get_yaxis().set_ticks([])
-                outcome = _d['outcome']
-                category = _d['category']
-                if outcome == 1:
-                    sides = ['bottom','top','right','left']
-                    for s in sides:
-                        p.spines[s].set_color((0.4,0.8,0.4))
-                        p.spines[s].set_linewidth(4)
-                else:
-                    sides = ['bottom','top','right','left']
-                    for s in sides:
-                        p.spines[s].set_color((0.9,0.2,0.2))
-                        p.spines[s].set_linewidth(4)
-                if (_i-1 < 2) & (tt in 'control'):
-                    plt.title('rep ' + str(_d['repetition']) ,fontsize=textsize)
-                if (_i-1)%2==0:
-                    plt.ylabel(_d['target'] ,fontsize=textsize)
-
-                _i  = _i + 1
-
-            filepath = os.path.join(sketch_dir,'control','{}_{}.pdf'.format(g,category))
-            if not os.path.exists(os.path.join(sketch_dir,'control')):
-                os.makedirs(os.path.join(sketch_dir,'control'))
-            #plt.savefig(os.path.join(sketch_dir,'control',filepath))
-            #plt.close(fig)
-
-###############################################################################################
-
-def print_repeated_actual(D,
-                                   complete_games,
-                                   set_size):
-
-    if (set_size == 4):
-        index = list(range(1, 37))
-        new_index = filter(lambda x: x%9!=0, index)
-        numReps = 8
-    if (set_size == 6):
-        index = list(range(1, 43))
-        new_index = filter(lambda x: x%7!=0, index)
-        numReps = 6
-
-    for g in complete_games:
-        print ('Printing out sketches from game: ' + g)
-        trial_types = ['repeated']
-        for tt in trial_types:
-            _D = D[(D.condition=='repeated') & (D.gameID==g)]
-            all_targs = np.unique(_D.target.values) ## use this later to name the file
-            _D = _D.sort_values(by=['target','repetition'])
-            _i = 0
-            textsize=12
-            if set_size == 4:
-                fig = plt.figure(figsize=(20,9))
-            if set_size == 6:
-                fig = plt.figure(figsize=(10,10))
-            for i,_d in _D.iterrows():
-                true_index = new_index[_i]
-                if _i % numReps == 0:
-                    target = _d['target']
-                    dir_path = 'chairs1k_pilot'
-                    png_name = target + '.png'
-                    path = os.path.join(dir_path, png_name)
-                    im = Image.open(path)
-                    cropped_im = im.crop((350, 150, 600, 400))
-                    p = plt.subplot(set_size,numReps+1,true_index+numReps)
-                    plt.imshow(cropped_im)
-                    sns.set_style('white')
-                    k = p.get_xaxis().set_ticklabels([])
-                    k = p.get_yaxis().set_ticklabels([])
-                    k = p.get_xaxis().set_ticks([])
-                    k = p.get_yaxis().set_ticks([])
-                imgData = _d['png']
-                filestr = base64.b64decode(imgData)
-                fname = 'sketch.png'
-                with open(fname, "wb") as fh:
-                    fh.write(imgData.decode('base64'))
-                textsize = 16
-                # first plot the target
-                im = Image.open(fname)
-                p = plt.subplot(set_size,numReps+1,true_index)
-                plt.imshow(im)
-                sns.set_style('white')
-                k = p.get_xaxis().set_ticklabels([])
-                k = p.get_yaxis().set_ticklabels([])
-                k = p.get_xaxis().set_ticks([])
-                k = p.get_yaxis().set_ticks([])
-                outcome = _d['outcome']
-                category = _d['category']
-                if outcome == 1:
-                    sides = ['bottom','top','right','left']
-                    for s in sides:
-                        p.spines[s].set_color((0.4,0.8,0.4))
-                        p.spines[s].set_linewidth(4)
-                else:
-                    sides = ['bottom','top','right','left']
-                    for s in sides:
-                        p.spines[s].set_color((0.9,0.2,0.2))
-                        p.spines[s].set_linewidth(4)
-                if (_i < numReps) & (tt in 'repeated'):
-                    plt.title('rep ' + str(_d['repetition']) ,fontsize=textsize)
-                if _i%numReps==0:
-                    plt.ylabel(_d['target'] ,fontsize=textsize)
-                _i  = _i + 1
-
-        #filepath = os.path.join(sketch_dir,'repeated','{}_{}.pdf'.format(g,category))
-        #if not os.path.exists(os.path.join(sketch_dir,'repeated')):
-       #     os.makedirs(os.path.join(sketch_dir,'repeated'))
-        plt.tight_layout()
-        #plt.savefig(os.path.join(sketch_dir,'control',filepath))
-            #plt.close(fig)
-
-###############################################################################################
-
-def print_repeated_control(D,
-                                   complete_games,
-                                   set_size):
-
-    if (set_size == 4):
-        index = list(range(1, 37))
-        new_index = filter(lambda x: x%9!=0, index)
-        numReps = 8
-    if (set_size == 6):
-        index = list(range(1, 43))
-        new_index = filter(lambda x: x%7!=0, index)
-        numReps = 6
-
-    for g in complete_games:
-        print ('Printing out sketches from game: ' + g)
-        trial_types = ['repeated']
-        for tt in trial_types:
-            _D = D[(D.condition=='repeated') & (D.gameID==g)]
-            D_ = D[(D.condition=='control') & (D.gameID==g)]
-            all_targs = np.unique(_D.target.values) ## use this later to name the file
-            _D = _D.sort_values(by=['target','repetition'])
-            _i = 0
-            control_index = 0
-            textsize=12
-
-            if set_size == 4:
-                fig = plt.figure(figsize=(16,6))
-            if set_size == 6:
-                fig = plt.figure(figsize=(10,10))
-
-            for i,_d in _D.iterrows():
-                true_index = new_index[_i]
-                if _i % numReps == 0:
-                    # plot last of control sketch
-                    target = _d['target']
-                    D__ = D_[D_.phase == 'post']
-                    imgData = D__['png'].iloc[control_index]
-                    filestr = base64.b64decode(imgData)
-                    fname = 'sketch.png'
-                    with open(fname, "wb") as fh:
-                        fh.write(imgData.decode('base64'))
-                    textsize = 12
-                    # first plot the target
-                    im = Image.open(fname)
-                    p = plt.subplot(set_size,numReps+1,true_index+numReps)
-                    plt.imshow(im)
-                    if (_i < numReps):
-                        plt.title('control' ,fontsize=textsize)
-                    sns.set_style('white')
-                    k = p.get_xaxis().set_ticklabels([])
-                    k = p.get_yaxis().set_ticklabels([])
-                    k = p.get_xaxis().set_ticks([])
-                    k = p.get_yaxis().set_ticks([])
-                    outcome = D__['outcome'].iloc[control_index]
-                    if outcome == 1:
-                        sides = ['bottom','top','right','left']
-                        for s in sides:
-                            p.spines[s].set_color((0.4,0.8,0.4))
-                            p.spines[s].set_linewidth(4)
-                    else:
-                        sides = ['bottom','top','right','left']
-                        for s in sides:
-                            p.spines[s].set_color((0.9,0.2,0.2))
-                            p.spines[s].set_linewidth(4)
-                imgData = _d['png']
-                filestr = base64.b64decode(imgData)
-                fname = 'sketch.png'
-                with open(fname, "wb") as fh:
-                    fh.write(imgData.decode('base64'))
-                textsize = 16
-                # first plot the target
-                im = Image.open(fname)
-                p = plt.subplot(set_size,numReps+1,true_index)
-                plt.imshow(im)
-                sns.set_style('white')
-                k = p.get_xaxis().set_ticklabels([])
-                k = p.get_yaxis().set_ticklabels([])
-                k = p.get_xaxis().set_ticks([])
-                k = p.get_yaxis().set_ticks([])
-                outcome = _d['outcome']
-                category = _d['category']
-                if outcome == 1:
-                    sides = ['bottom','top','right','left']
-                    for s in sides:
-                        p.spines[s].set_color((0.4,0.8,0.4))
-                        p.spines[s].set_linewidth(4)
-                else:
-                    sides = ['bottom','top','right','left']
-                    for s in sides:
-                        p.spines[s].set_color((0.9,0.2,0.2))
-                        p.spines[s].set_linewidth(4)
-                if (_i < numReps) & (tt in 'repeated'):
-                    plt.title('rep ' + str(_d['repetition']) ,fontsize=textsize)
-                if _i%numReps==0:
-                    plt.ylabel(_d['target'] ,fontsize=textsize)
-                    control_index = control_index + 1
-
-                _i  = _i + 1
-
-        #filepath = os.path.join(sketch_dir,'repeated','{}_{}.pdf'.format(g,category))
-        #if not os.path.exists(os.path.join(sketch_dir,'repeated')):
-        #    os.makedirs(os.path.join(sketch_dir,'repeated'))
-        plt.tight_layout()
-
-###############################################################################################
-
-def get_confusion_matrix(D, category, set_size):
-    obj_list = []
-    objlist = CATEGORY_TO_OBJECT_run2[category]
-    for obj in objlist[:set_size*2]:
-        obj_list.append(obj)
-
-    ## initialize confusion matrix
-    confusion = np.zeros((len(obj_list), len(obj_list)))
-
-    ## generate confusion matrix by incrementing each cell
-    for i, d in D.iterrows():
-        if d['category'] == category:
-            targ_ind = obj_list.index(d['target'])
-            chosen_ind = obj_list.index(d['response'])
-            confusion[targ_ind, chosen_ind] += 1
-
-    ## normalize confusion matrix
-    normed = np.zeros((len(obj_list), len(obj_list)))
-    for i in np.arange(len(confusion)):
-        normed[i,:] = confusion[i,:]/np.sum(confusion[i,:])
-
-    ## plot confusion matrix
-    from matplotlib import cm
-    fig = plt.figure(figsize=(8,8))
-    ax = plt.subplot(111)
-    cax = ax.matshow(normed,vmin=0,vmax=1,cmap=cm.viridis)
-    plt.xticks(range(len(normed)), obj_list, fontsize=12,rotation='vertical')
-    plt.yticks(range(len(normed)), obj_list, fontsize=12)
-    plt.colorbar(cax,shrink=0.8)
-    plt.tight_layout()
-    #plt.savefig('./plots/confusion_matrix_all.pdf')
-    #plt.close(fig)
-
-
-
-###############################################################################################
-
-def get_confusion_matrix(D, category, set_size):
-    obj_list = []
-    objlist = CATEGORY_TO_OBJECT_run2[category]
-    for obj in objlist[:set_size*2]:
-        obj_list.append(obj)
-
-    ## initialize confusion matrix
-    confusion = np.zeros((len(obj_list), len(obj_list)))
-
-    ## generate confusion matrix by incrementing each cell
-    for i, d in D.iterrows():
-        if d['category'] == category:
-            targ_ind = obj_list.index(d['target'])
-            chosen_ind = obj_list.index(d['response'])
-            confusion[targ_ind, chosen_ind] += 1
-
-    ## normalize confusion matrix
-    normed = np.zeros((len(obj_list), len(obj_list)))
-    for i in np.arange(len(confusion)):
-        normed[i,:] = confusion[i,:]/np.sum(confusion[i,:])
-
-    ## plot confusion matrix
-    from matplotlib import cm
-    fig = plt.figure(figsize=(8,8))
-    ax = plt.subplot(111)
-    cax = ax.matshow(normed,vmin=0,vmax=1,cmap=cm.viridis)
-    plt.xticks(range(len(normed)), obj_list, fontsize=12,rotation='vertical')
-    plt.yticks(range(len(normed)), obj_list, fontsize=12)
-    plt.colorbar(cax,shrink=0.8)
-    plt.tight_layout()
-    #plt.savefig('./plots/confusion_matrix_all.pdf')
-    #plt.close(fig)
-
-
-
-###############################################################################################
-
-
-def get_confusion_matrix_on_rep(D, category, set_size, repetition):
-
-    _D = D[D['condition'] == 'repeated']
-    _D = _D[_D['repetition'] == repetition]
-    target_list = _D['target'].tolist()
-    obj_list_ = []
-    obj_list = []
-    objlist = CATEGORY_TO_OBJECT_run2[category]
-    for obj in objlist[:set_size*2]:
-        obj_list_.append(obj)
-    for i in obj_list_:
-        if i in target_list:
-            obj_list.append(i)
-
-    ## initialize confusion matrix
-    confusion = np.zeros((len(obj_list), len(obj_list)))
-
-    ## generate confusion matrix by incrementing each cell
-    for i, d in _D.iterrows():
-        if d['category'] == category:
-            targ_ind = obj_list.index(d['target'])
-            chosen_ind = obj_list.index(d['response'])
-            confusion[targ_ind, chosen_ind] += 1
-
-    ## normalize confusion matrix
-    normed = np.zeros((len(obj_list), len(obj_list)))
-    for i in np.arange(len(confusion)):
-        normed[i,:] = confusion[i,:]/np.sum(confusion[i,:])
-
-    ## plot confusion matrix
-    from matplotlib import cm
-    fig = plt.figure(figsize=(8,8))
-    ax = plt.subplot(111)
-    cax = ax.matshow(normed,vmin=0,vmax=1,cmap=cm.viridis)
-    plt.xticks(range(len(normed)), obj_list, fontsize=12,rotation='vertical')
-    plt.yticks(range(len(normed)), obj_list, fontsize=12)
-    plt.colorbar(cax,shrink=0.8)
-    plt.tight_layout()
-    #plt.savefig('./plots/confusion_matrix_all.pdf')
-    #plt.close(fig)
-
-
-###############################################################################################
-
-def plot_between_interaction_similarity(M, F, rep_name):
-    ### computing average of upper triangle of RDM and plotting across repetitions
-    new_df = pd.DataFrame()
-    for targ in sorted(M['target'].unique()):
-        M_targ = M[M['target'] == targ]
-        M_targ.sort_values(by=[rep_name])
-        for rep in range(8):
-            M_targ_rep = M_targ[M_targ[rep_name] == int(rep)]
-            inds_to_compare = M_targ_rep['feature_ind']
-            features_to_compare = F[inds_to_compare, :]
-            CORRMAT = np.corrcoef(features_to_compare)
-            avr = np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0)) # only upper triangle
-            df_to_add = pd.DataFrame([[rep, targ, avr]], columns=[rep_name, 'target', 'average_similarity'])
-            new_df = new_df.append(df_to_add)
-    sns.set_context('paper')
-    plt.figure(figsize=(8,5))
-    sns.lineplot(data=new_df, x=rep_name, y='average_similarity', estimator = np.mean)
-    plt.xlim(-0.5, 7.5)
-
-###############################################################################################
-
-def scramble_df_across_gameID_within_target_and_rep(M):
-    M_pseudo = pd.DataFrame()
-    for target in M['target'].unique():
-        M_targ = M[M['target'] == target]
-        for rep in M_targ['repetition'].unique():
-            M_targ_rep = M_targ[M_targ['repetition'] == rep]
-            gameIDs = np.array(M_targ_rep['gameID'])
-            np.random.shuffle(gameIDs)
-            M_targ_rep['pseudo_gameID'] = list(gameIDs)
-            M_pseudo = M_pseudo.append(M_targ_rep)
-    return M_pseudo
-
-###############################################################################################
-
-def scramble_df_across_repetition_within_target_and_gameID(M):
-    M_pseudo = pd.DataFrame()
-    for target in M['target'].unique():
-        M_targ = M[M['target'] == target]
-        for gameID in M_targ['gameID'].unique():
-            M_targ_game = M_targ[M_targ['gameID'] == gameID]
-            repetitions = np.array(M_targ_game['repetition'])
-            np.random.shuffle(repetitions)
-            M_targ_game['pseudo_repetition'] = list(repetitions)
-            M_pseudo = M_pseudo.append(M_targ_game)
-    return M_pseudo
-
-###############################################################################################
-
-def make_adjacency_matrix(M, F, gameID_colname):
-    # add scratch index to handle NaNs
-    F_ = np.vstack((F, [float('NaN')] * 4096))
-    arr_of_corrmats = []
-    for game in sorted(M[gameID_colname].unique()): #['3480-03933bf3-5e7e-4ecd-b151-7ae57e6ae826']:
-        for target in sorted(M.query('{} == "{}"'.format(gameID_colname, game)).target.unique()):  #['dining_04']:
-            M_instance = M.query('{} == "{}" and target == "{}"'.format(gameID_colname, game, target))
-            for rep in range(8):
-                if rep not in list(M_instance['repetition']):
-                    df_to_add = pd.DataFrame([[game, float('NaN'), rep, target, len(F)]],
-                                             columns=[gameID_colname, 'trialNum', 'repetition', 'target', 'feature_ind'])
-                    M_instance = M_instance.append(df_to_add)
-            M_instance_sorted = M_instance.sort_values(by=['repetition'])
-            inds_to_compare = M_instance_sorted['feature_ind']
-            features_to_compare = F_[inds_to_compare, :]
-            # transpose array so that features are columns
-            # pandas .corr() handles NaNs better and expects columns
-            pd_CORRMAT = pd.DataFrame(features_to_compare.T).corr()
-            arr_of_corrmats.append(pd_CORRMAT.values)
-
-    # Average across games and targets for each entry in matrix
-    result = np.zeros((8, 8))
-    for i in range(8):
-        for j in range(8):
-            to_add = [mat[i][j] for mat in arr_of_corrmats]
-            result[i][j] = np.nanmean(np.array(to_add))
-
-    average_corr_mat = np.array(result)
-    print(average_corr_mat)
-    # Plot it
-    sns.set_context('paper')
-    fig, ax = plt.subplots(figsize=(5,4))
-    sns.heatmap(1-average_corr_mat, cmap="plasma", cbar=True, ax=ax)
-    plt.tight_layout()
-
-    return arr_of_corrmats
-
-###############################################################################################
-
-def plot_within_interaction_similarity(arr_of_corrmats):
-    one_back_df = pd.DataFrame()
-    for base_rep in range(7):
-        for i, corrmat in enumerate(arr_of_corrmats):
-            corrcoef = corrmat[base_rep][base_rep+1]
-            df_to_add = pd.DataFrame([[i, base_rep, corrcoef]], columns=['corrmat_num','base_rep', 'similarity'])
-            one_back_df = one_back_df.append(df_to_add)
-    sns.lineplot(
-        data=one_back_df,
-        estimator=np.mean,
-        x='base_rep',
-        y='similarity')
-
-###############################################################################################
-
-def standardize(D, dv):
-    new_D = pd.DataFrame()
-    trialNum_list = []
-    dv_list = []
-    rep_list = []
-    game_id_list = []
-    target_list = []
-    condition_list = []
-    for g in D['gameID'].unique():
-        D_game = D[D['gameID'] == g]
-        mean = np.mean(np.array(D_game[dv]))
-        std = np.std(np.array(D_game[dv]))
-        for t in list(D_game['trialNum']):
-            game_id_list.append(g)
-            D_trial = D_game[D_game['trialNum'] == t]
-            trialNum_list.append(t)
-            if std == 0:
-                z_score = 0
-            else:
-                z_score = (list(D_trial[dv])[0] - mean) / float(std)
-            dv_list.append(z_score)
-            rep_list.append(list(D_trial['repetition'])[0])
-            condition_list.append(list(D_trial['condition'])[0])
-            target_list.append(list(D_trial['target'])[0])
-    new_D['trialNum'] = trialNum_list
-    new_D[dv] = dv_list
-    new_D['repetition'] = rep_list
-    new_D['gameID'] = game_id_list
-    new_D['condition'] = condition_list
-    new_D['target'] = target_list
-    return new_D
-
-###############################################################################################
-
-def add_bis_scores(D, dv):
-    new_D = D.copy(deep=True)
-    bis_score_list = []
-    for i,d in D.iterrows():
-        bis_score = d['outcome'] - d[dv]
-        bis_score_list.append(bis_score)
-    new_D['bis_score'] = bis_score_list
-    return new_D
-
-###############################################################################################
-
-def save_bis_scores(D):
-
-    # split into repeated and control
-    D_repeated = D[D['condition'] == 'repeated']
-    D_control = D[D['condition'] == 'control']
-    D_control.repetition = D_control.repetition.replace(1, 7)
-    D = pd.concat([D_repeated, D_control], axis = 0)
-
-    standardized_outcome = standardize(D, 'outcome')
-    standardized_outcome = standardized_outcome.drop(['repetition', 'trialNum', 'gameID','condition', 'target'], axis = 1)
-    standardized_drawDuration = standardize(D, 'drawDuration')
-    standardized_numStrokes = standardize(D, 'numStrokes')
-
-    drawDuration_accuracy = pd.concat([standardized_drawDuration, standardized_outcome], axis = 1)
-    numStrokes_accuracy = pd.concat([standardized_numStrokes, standardized_outcome], axis = 1)
-
-    drawDuration_accuracy_bis = add_bis_scores(drawDuration_accuracy, 'drawDuration')
-    numStrokes_accuracy_bis = add_bis_scores(numStrokes_accuracy, 'numStrokes')
-
-    drawDuration_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'drawDuration')))
-    numStrokes_accuracy_bis.to_csv(os.path.join(results_dir, "graphical_conventions_{}_{}.csv".format('bis_score', 'numStrokes')))
-
-    return drawDuration_accuracy_bis, numStrokes_accuracy_bis
-
-###############################################################################################
-
+    
 def compute_similarity(F, inds_to_compare): # inds_to_compare: feature indices
     features_to_compare = F[inds_to_compare, :]
     CORRMAT = np.corrcoef(features_to_compare)
     similarity = np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
-    #np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))#(np.tril(CORRMAT)) # (np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
     return similarity
 
 ###############################################################################################
@@ -1043,13 +310,14 @@ def plot_stroke_similarity_discrete(d, lesion_later_sketch):
             a.legend()
 
 ###############################################################################################
+
 def compute_similarity_2(F1, F2, inds_to_compare): # inds_to_compare: feature indices
     features_to_compare = [F1[inds_to_compare[0]], F2[inds_to_compare[1]]]
     CORRMAT = np.corrcoef(features_to_compare)
     similarity = np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
-    #np.mean(np.ma.masked_equal(np.tril(CORRMAT, -1), 0))#(np.tril(CORRMAT)) # (np.ma.masked_equal(np.tril(CORRMAT, -1), 0))
     return similarity
 
+###############################################################################################
 
 def get_stroke_analysis_df(D, M, F):
     d = pd.DataFrame()
@@ -1118,6 +386,7 @@ def get_self_similarity_df(D, M, F):
     return d
 
 ###############################################################################################
+
 def plot_self_similarity(d, axs):
     sns.set(style="ticks", rc={"lines.linewidth": 0.7})
     sns.set_context("paper")
@@ -1132,8 +401,7 @@ def plot_self_similarity(d, axs):
             a.set_xlabel('Percentage of strokes deleted')
             
 ###############################################################################################           
-            
-            
+                     
  # delete every stroke from whole sketch and plot similarity to whole sketch against length of stroke 
 def get_one_deleted_df(D, M, F, Ms, Fs):
     d = pd.DataFrame()
@@ -1166,21 +434,10 @@ def get_one_deleted_df(D, M, F, Ms, Fs):
             
 ############################################################################################### 
 
-
-
-import ast 
-import PIL.Image
-from svgpathtools import parse_path
-import svgpathtools
-import math
-import ast 
-
 def arcl(svg):
     return parse_path(svg).length()
 def getArcLengths(svgListString):
     return [arcl(ast.literal_eval(svgListString)[i]) for i in range(len(ast.literal_eval(svgListString)))]
-
-
 
 ############################################################################################### 
 ### Self-similarity individual sketches 
@@ -1257,7 +514,7 @@ def get_stroke_importance(df, sketch_dir, png_name):
     path = os.path.join(stroke_dir,'png',last_path)
     im = Image.open(path)
     plt.imshow(im)
-    
+      
 ###############################################################################################  
     
 def get_pixel_importance_heatmaps(D, shapenet_ids):
@@ -1323,3 +580,158 @@ def get_pixel_importance_heatmaps(D, shapenet_ids):
     return composite_heatmaps, numerator_heatmaps, denominator_heatmaps 
 
 ############################################################################################### 
+
+def get_image(shapenet_id, pad):
+    image_link = 'https://s3.amazonaws.com/shapenet-graphical-conventions/' + shapenet_id + '.png'
+    response = requests.get(image_link)
+    im = Image.open(BytesIO(response.content))
+    padding = (pad, pad, pad, pad)
+    im = ImageOps.expand(im, padding)
+    return im
+
+############################################################################################### 
+
+def get_pixel_importance_heatmap_pair(D, shapenet_pair, pad, kernel):
+    padded_imsize = 224 + 2 * pad 
+    denominator = np.zeros((padded_imsize, padded_imsize))
+    counts = np.zeros((padded_imsize, padded_imsize))
+    if (shapenet_pair[0], shapenet_pair[1]) in pair_num_dict:
+        pair_num = pair_num_dict[(shapenet_pair[0], shapenet_pair[1])]
+    else:
+        pair_num = pair_num_dict[(shapenet_pair[1], shapenet_pair[0])]
+    pair_df = D[D['pair_num'] == pair_num] 
+    sim_arrs_others = np.array(pair_df['similarity'])[:-1]
+    nan_others = np.array(pair_df['similarity'])[-1]                  
+    for i in range(padded_imsize - kernel + 1): # i is the x coordinate 
+        for j in range(padded_imsize - kernel + 1): # j is the y coordinate 
+            similarity_to_other_lesioned = sim_arrs_others[225 * i + j]
+            assert not np.isnan(similarity_to_other_lesioned)
+            similarity_to_other_intact = nan_others
+            assert not np.isnan(similarity_to_other_intact)
+            relative_similarity = float(similarity_to_other_lesioned) - float(similarity_to_other_intact)
+            for x in range(kernel):
+                for y in range(kernel):
+                    denominator[j + y, i + x] += relative_similarity
+                    counts[j + y, i + x] += 1.0
+    assert not np.isnan(denominator).any()
+    assert not np.isnan(counts).any()
+    denominator_heatmap = denominator / counts 
+    assert not np.isnan(denominator_heatmap).any()
+    return denominator_heatmap 
+    
+def get_pixel_importance_heatmaps_updated(D, shapenet_ids, pad, kernel):
+    padded_imsize = 224 + 2 * pad 
+    pair_heatmaps = {}
+    pairs = list(combinations(shapenet_ids, 2))
+    for pair in pairs:
+        print("getting heatmap for pair: {} and {}".format(pair[0], pair[1]))
+        pair_heatmaps[tuple(pair)] = get_pixel_importance_heatmap_pair(D, pair, pad, kernel)
+    heatmaps = []
+    for shapenet in shapenet_ids:
+        heatmap = np.zeros((padded_imsize, padded_imsize))
+        for distractor in shapenet_ids:
+            if shapenet != distractor:
+                 if (shapenet, distractor) in pair_heatmaps:
+                     heatmap_part = pair_heatmaps[(shapenet, distractor)]
+                 else:
+                     heatmap_part = pair_heatmaps[(distractor, shapenet)]
+                 heatmap += heatmap_part
+        heatmaps.append(heatmap)
+    return heatmaps 
+############################################################################################### 
+# function to plot heatmaps 
+def plot_heatmaps(D, shapenet_ids, pad, kernel):
+    denominator_heatmaps_updated = get_pixel_importance_heatmaps_updated(D, shapenet_ids, pad, kernel)
+    sns.set_context('paper')
+    fig, axes = plt.subplots(figsize=(len(shapenet_ids) * 4, 4), nrows=1, ncols=len(shapenet_ids))
+    min_val = np.min(denominator_heatmaps_updated) 
+    max_val = np.max(denominator_heatmaps_updated) 
+    for target_num, target in enumerate(shapenet_ids):
+        im = get_image(target, pad)
+        ax = axes[target_num]
+        heatmap = denominator_heatmaps_updated[target_num]
+        hmax = sns.heatmap(heatmap, ax=ax, alpha = 0.20, vmin=min_val, vmax=max_val, center=0)
+        ax.imshow(im)
+        ax.axis('off')
+    plt.show()
+############################################################################################### 
+# input: shapenet_ids, target_index
+def get_all_heatmaps(shapenet_ids, target, target_index, distractors, pad, kernel, D):
+    target_distractor_heatmaps = [get_pixel_importance_heatmap_pair(D, [target, distractor], pad, kernel) for distractor in distractors]
+    multi_way_heatmap = get_pixel_importance_heatmaps_updated(D, shapenet_ids, pad, kernel)[target_index]
+    all_heatmaps = target_distractor_heatmaps + [multi_way_heatmap]
+    return all_heatmaps
+
+def plot_heatmaps_complete(shapenet_ids, target_index, pad, kernel, D):
+    sns.axes_style('white')
+    fig, axes = plt.subplots(figsize=(16, 16), nrows=len(shapenet_ids), ncols=len(shapenet_ids))
+    target = shapenet_ids[target_index]
+    distractors = [shapenet_ids[i] for i in range(len(shapenet_ids)) if i != target_index] 
+    all_heatmaps = get_all_heatmaps(shapenet_ids, target, target_index, distractors, pad, kernel, D)
+    min_val = np.min(all_heatmaps)
+    max_val = np.max(all_heatmaps) 
+    im = get_image(shapenet_ids[target_index], pad)
+    for i, heatmap in enumerate(all_heatmaps):
+        ax=axes[i, 0]
+        ax.imshow(im)
+        with sns.axes_style("white"):
+            hmax = sns.heatmap(heatmap, ax=ax, alpha = 0.20, vmin=min_val, vmax=max_val, center=0, linecolor='black')
+    for i, distractor in enumerate(distractors):
+        im = get_image(distractor, pad)
+        ax=axes[i, i + 1]
+        ax.imshow(im)
+        ax=axes[len(shapenet_ids) - 1, i + 1]
+        ax.imshow(im)
+    for ax in fig.axes:
+        ax.axis('off')
+    plt.show()
+    return all_heatmaps 
+############################################################################################### 
+
+def RGBA2RGB(image, color=(255, 255, 255)):
+            """Alpha composite an RGBA Image with a specified color.
+            Simpler, faster version than the solutions above.
+            Source: http://stackoverflow.com/a/9459208/284318
+            Keyword Arguments:
+            image -- PIL RGBA Image object
+            color -- Tuple r, g, b (default 255, 255, 255)
+            """
+            image.load()  # needed for split()
+            background = Image.new('RGB', image.size, (0, 0, 0))
+            background.paste(image, mask=image.split()[3])  # 3 is the alpha channel
+            return background
+        
+def render_lesioned_images(pad, box_size):
+    image_dir = os.path.join(sketch_dir,'diagnosticity_{}_intact'.format(str(box_size)))
+    for target_num, shapenet in enumerate(shapenets):
+        image_link = shapenet['url']
+        shapenet_id = shapenet['filename'].split('.')[0]
+        print('rendering lesioned version of {}'.format(shapenet_id))
+        target = shapenet['subordinate']
+        subset = shapenet['subset']
+        response = requests.get(image_link)
+        im = Image.open(BytesIO(response.content))
+        im = RGBA2RGB(im)
+        padding = (pad, pad, pad, pad)
+        im = ImageOps.expand(im, padding)
+        pixels = im.load()
+        width, height = im.size
+        for x in range(width - box_size + 1):
+            for y in range(width - box_size + 1):
+                new = im.copy()
+                new_pixels = new.load()
+                count = 0
+                for i in range(width):
+                    for j in range(height):
+                        new_pixels[i,j] = pixels[i,j]
+                for k in range(box_size): # for every pixel:
+                    for l in range(box_size):
+                        new_pixels[x + k, y + l] = (0, 0, 0)
+                new.save(os.path.join(image_dir, '{}_{}_{}_lesioned_{}_{}_{}.png'.format(shapenet_id, target, subset, str(x), str(y), str(count))))
+                count += 1
+        im.save(os.path.join(image_dir, '{}_{}_{}_intact_{}_{}_{}.png'.format(shapenet_id, target, subset, '0', '0', '0')))
+        
+############################################################################################### 
+        
+        
+        
