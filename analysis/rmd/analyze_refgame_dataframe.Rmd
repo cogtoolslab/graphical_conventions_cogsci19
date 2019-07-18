@@ -32,7 +32,7 @@ d %>% group_by(generalization) %>% summarize(l = length(unique(gameID)))
 
 
 ```{r}
-d.bis.drawDuration %>% ggplot(aes(x = bis_score)) + geom_histogram(bins=50)
+d.bis.drawDuration %>% ggplot(aes(x = bis)) + geom_histogram(bins=50)
 ```
 
 ## Generate histograms for numCurvesPerSketch and numStrokes 
@@ -47,15 +47,6 @@ d %>%
   group_by(numStrokes) %>% ggplot(aes(x = numStrokes)) + geom_histogram()
 ```
 
-```{r}
-bbis
-```
-
-```{r}
-d.bis.drawDuration
-```
-
-
 ## Behavioral Results: BIS analysis (on drawDuration)
 
 ```{r}
@@ -63,20 +54,25 @@ d.bis.drawDuration
 bbis <-d.bis.drawDuration %>%
       filter(repetition==0) %>%
       group_by(condition,gameID) %>%
-      summarize(bis_baseline = mean(bis_score))
+      summarize(bis_baseline = mean(bis))
 
 # add this "baseline" bis to each row of original bis dataframe
 d.bis.drawDuration <- inner_join(d.bis.drawDuration, bbis, by = c('condition','gameID'), suffix = c("","_baseline")) %>%
-                      mutate(bis_relative = bis_score - bis_baseline) %>%
+                      mutate(bis_relative = bis - bis_baseline) %>%
                       mutate(repetition_1 = repetition + 1)
 
 ```
 
+## Bootstrap resample condition, repetition
+
+```{r}
+d.bootstrap <- d.bis.drawDuration %>% group_by(condition,repetition_1) %>% tidyboot_mean(column=bis_relative)
+```
+
+
 ## Visualize change in BIS across repetitions x condition
 
 ```{r}
-d.bootstrap <- d.bis.drawDuration %>% group_by(condition, repetition_1) %>% tidyboot_mean(column=bis_relative)
-
 d.bootstrap %>%
   ggplot(aes(x=repetition_1,y=empirical_stat, color=condition, fill=condition)) + 
     geom_ribbon(aes(ymin=ci_lower, ymax = ci_upper), alpha =.25, color=NA,
