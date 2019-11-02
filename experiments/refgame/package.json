@@ -7,7 +7,7 @@
     "body-parser": "^1.17.2",
     "color-convert": "~1.0.0",
     "colors": "^1.1.2",
-    "csv-parse": "~0.0.6",
+    "csv-parse": "~4.4.6",
     "delta-e": "~0.0.7",
     "express": "^4.16.4",
     "jsonfile": "~2.4.0",
