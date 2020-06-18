@@ -51,67 +51,93 @@ d %>%
 
 ```{r}
 # generate "baseline" bis dataframe that computes pre-phase BIS, grouped by condition and gameID
-bbis <-d.bis.drawDuration %>%
-      filter(repetition==0) %>%
-      group_by(condition,gameID) %>%
-      summarize(bis_baseline = mean(bis))
+bbis <- d.bis.drawDuration %>%
+  filter(repetition==0) %>%
+  group_by(condition,gameID) %>%
+  summarize(bis_baseline = mean(bis))
 
 # add this "baseline" bis to each row of original bis dataframe
-d.bis.drawDuration <- inner_join(d.bis.drawDuration, bbis, by = c('condition','gameID'), suffix = c("","_baseline")) %>%
-                      mutate(bis_relative = bis - bis_baseline) %>%
-                      mutate(repetition_1 = repetition + 1)
-
+d.bis.drawDuration <- d.bis.drawDuration %>%
+  inner_join(bbis, by = c('condition','gameID'), suffix = c("","_baseline")) %>%
+  mutate(bis_relative = bis - bis_baseline,
+         repetition_1 = repetition + 1)
 ```
 
 ## Bootstrap resample condition, repetition
 
 ```{r}
-d.bootstrap <- d.bis.drawDuration %>% group_by(condition,repetition_1) %>% tidyboot_mean(column=bis_relative)
-```
+d.bootstrap <- d.bis.drawDuration %>% 
+  group_by(condition,repetition_1) %>% 
+  tidyboot_mean(bis_relative)
 
-
-## Visualize change in BIS across repetitions x condition
-
-```{r}
 d.bootstrap %>%
   ggplot(aes(x=repetition_1,y=empirical_stat, color=condition, fill=condition)) + 
     geom_ribbon(aes(ymin=ci_lower, ymax = ci_upper), alpha =.25, color=NA,
-                data = d.bootstrap %>% filter(condition == 'repeated')) + # position = dodge, 
-    geom_line(size=1.5)+#data = d.bootstrap %>% filter(condition == 'repeated')) + 
+                data = d.bootstrap %>% filter(condition == 'repeated')) + 
+    geom_line(size=1.5)+
     geom_errorbar(aes(ymin=ci_lower, ymax = ci_upper), width = 0, size = 1.5,
                   data = d.bootstrap %>% filter(condition == 'control')) + 
-    # geom_point(size = 5) + 
-    ylab("relative efficiency") +
-    xlab("repetition") +
+    labs(y = "relative efficiency", x = "repetition") +
     theme_few() +
     scale_x_continuous(breaks = round(seq(min(d.bootstrap$repetition_1), max(d.bootstrap$repetition_1), by =1),1)) + 
     scale_y_continuous(breaks = seq(-0.5,2.5,0.5)) +
     scale_color_manual(values=c("#808080", "#163c4e")) + 
     scale_fill_manual(values=c("#808080", "#163c4e")) + 
-    theme(legend.position = c(0.8, 0.2), text = element_text(size=18), element_line(size=1), element_rect(size=2, color="#00000"))
+    theme(legend.position = c(0.8, 0.2), 
+          text = element_text(size=18), 
+          element_line(size=1), 
+          element_rect(size=2, color="#00000"))
+
 ggsave('../../results/plots/refgame_BIS_timeseries.pdf', width=14, height = 10, units='cm')
 
 ```
 
-## Mixed-effects model for BIS (on drawDuration by phase)
+## Simple effect of BIS in repetition condition
 
 ```{r}
-# preferred model definition for interaction between repetition and condition for bis -- has right syntax but doesn't converge
+d.bis.drawDuration %>%
+  filter(condition == 'repeated') %>%
+  mutate(repetition = scale(repetition)) %>%
+  lmer(bis ~ repetition + (1 + repetition | gameID),
+      data = .,
+      control=lmerControl(optimizer = 'bobyqa')) %>%
+  summary()
+
+d %>%
+  filter(condition == 'repeated') %>%
+  mutate(repetition = scale(repetition)) %>%
+  lmer(drawDuration ~ repetition + (1 + repetition | gameID),
+      data = .,
+      control=lmerControl(optimizer = 'bobyqa')) %>%
+  summary()
+
+d %>%
+  filter(condition == 'repeated') %>%
+  mutate(repetition = scale(repetition)) %>%
+  glmer(outcome ~ repetition + (1 + repetition | gameID),
+      data = .,
+      family='binomial',
+      control=glmerControl(optimizer = 'bobyqa')) %>%
+  summary()
+```
+
+## Mixed-effects model for BIS
+
+```{r}
+# maximal model for interaction between repetition and condition is:
 # interaction_lmm <- lmer(bis ~ phase * condition + (1 + phase*condition | target) + (1 + phase*condition | gameID)
-
-input <- d.bis.drawDuration %>%
-         filter(repetition == 0 | repetition == 7) %>% 
-         mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
-                condition = as.factor(condition))
-
-contrasts(input$phase) <- c(-.5, .5)
-contrasts(input$condition) <- c(-.5, .5)
-
-# alternative model definition (removing target-wise random effects for phase*condition interaction)
-interaction_lmm <- lmer(bis ~ phase * condition + (1 + phase*condition | gameID), 
-                        data = input)
-
-print(summary(interaction_lmm))
+# for convergence, we needed to remove target-wise random effects 
+# for phase*condition interaction and switch to optimization algorithm in lme
+d.bis.drawDuration %>%
+  filter(repetition == 0 | repetition == 7) %>% 
+  mutate(phase = as.factor(ifelse(repetition == 0, 'pre', 'post')),
+         condition = as.factor(condition)) %>%
+  nlme::lme(bis ~ phase * condition,
+            random = ~ phase * condition | gameID,
+            data = .,
+            contrasts = list(phase = contr.sum(2), condition = contr.sum(2)),
+            control = nlme::lmeControl(opt='optim', maxIter = 1000)) %>%
+  summary()
 ```
 
 
