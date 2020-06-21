@@ -1,6 +1,7 @@
 from __future__ import division
 import os
-import urllib, cStringIO
+import urllib
+from io import StringIO
 import pymongo as pm ## first establish ssh tunnel to server where database is running
 import base64
 import numpy as np

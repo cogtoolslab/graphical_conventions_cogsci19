@@ -127,7 +127,7 @@ def get_complete_and_valid_games(games,
                 real_workers = True
         except:
             if (len(game) < 1):
-                print ('There was something wrong with this game {}'.format(game))
+                print('There was something wrong with this game {}'.format(game))
 
         ## check to make sure there are the correct number of clicked Obj events, which should equal the number of trials in the game
         finished_game = False
@@ -145,7 +145,7 @@ def get_complete_and_valid_games(games,
         ## now if BOTH of the above conditions are true, bother to analyze them
         if (real_workers) & (finished_game):
             complete_games.append(game)
-    print ('There are {} complete games in total.'.format(len(complete_games)))
+    print('There are {} complete games in total.'.format(len(complete_games)))
     return complete_games
 
 ###############################################################################################
@@ -196,8 +196,8 @@ def preprocess_dataframe(D):
     D = filter_outlier_games(D,outlier_games)
     
     after_gamecount = D.gameID.nunique()
-    print 'Dataframe initially contained {} unique games. Now contains {} games.'.format(initial_gamecount,after_gamecount)
-    print 'There were {} outlier games: {}. Now filtered.'.format(len(outlier_games),list(outlier_games))    
+    print('Dataframe initially contained {} unique games. Now contains {} games.'.format(initial_gamecount,after_gamecount))
+    print('There were {} outlier games: {}. Now filtered.'.format(len(outlier_games),list(outlier_games))    )
     
     return D
 
@@ -275,8 +275,8 @@ def generate_dataframe(coll, complete_games, iterationName, csv_dir):
                     lastStrokeNum = float(y[y.count() - 1]['currStrokeNum']) # get currStrokeNum at last stroke
                     ns = y.count()
                     if not lastStrokeNum == ns:
-                        print ("ns: " + str(ns))
-                        print ("lastStrokeNum: " + str(lastStrokeNum))
+                        print("ns: " + str(ns))
+                        print("lastStrokeNum: " + str(lastStrokeNum))
 
                     numStrokes.append(lastStrokeNum)
 
@@ -310,7 +310,7 @@ def generate_dataframe(coll, complete_games, iterationName, csv_dir):
                     _im = np.array(im)
 
                     meanPixelIntensity.append(len(np.where(_im[:,:,3].flatten()>thresh)[0])/numpix)
-                    #print "trialNum: {}, meanPixelintensity: {}".format(t['trialNum'], len(np.where(_im[:,:,3].flatten()>thresh)[0])/numpix)
+                    #print("trialNum: {}, meanPixelintensity: {}".format(t['trialNum'], len(np.where(_im[:,:,3].flatten()>thresh)[0])/numpix))
 
                 ### aggregate game metadata
                 TrialNum.append(t['trialNum'])
@@ -359,7 +359,7 @@ def generate_dataframe(coll, complete_games, iterationName, csv_dir):
 
     #D_dining_repeated = D[(D['category'] == 'dining')& (D['condition'] == 'repeated')]
     # Just look at one game
-    print 'Done!'
+    print('Done!')
     return _D
 
 ###############################################################################################
@@ -472,7 +472,7 @@ def save_bis(D, csv_dir, iterationName):
     drawDuration_accuracy_bis.to_csv(os.path.join(csv_dir,'graphical_conventions_bis_drawDuration_{}.csv'.format(iterationName)))
     numStrokes_accuracy_bis.to_csv(os.path.join(csv_dir, 'graphical_conventions_bis_numStrokes_{}.csv'.format(iterationName)))
 
-    print 'Saved BIS dataframe out!'
+    print ('Saved BIS dataframe out!')
 
 ###############################################################################################
 
