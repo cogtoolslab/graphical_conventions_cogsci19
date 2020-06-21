@@ -191,3 +191,31 @@ function UUID () {
   });
   return id;
 };
+
+function checkPreviousParticipant (workerId, callback) {
+  var p = {'workerId': workerId};
+  var postData = {
+    dbname: 'block_construction',
+    query: p,
+    projection: {'_id': 1}
+  };
+  sendPostRequest(
+    'http://localhost:8000/db/exists',
+    {json: postData},
+    (error, res, body) => {
+      try {
+        if (!error && res.statusCode === 200) {
+          console.log("success! Received data " + JSON.stringify(body));
+          callback(body);
+        } else {
+          throw `${error}`;
+        }
+      }
+      catch (err) {
+        console.log(err);
+        console.log('no database; allowing participant to continue');
+        return callback(false);
+      }
+    }
+  );
+};
