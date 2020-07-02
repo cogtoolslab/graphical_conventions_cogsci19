@@ -51,71 +51,19 @@ def check_invalid_sketch(filenames,invalids_path='drawings_to_exclude.txt'):
             valids.append(filenames[i])
     return valids
 
-def make_dataframe(GameIDs, Targets, Repetitions):
-    Y = pd.DataFrame([GameIDs, Targets, Repetitions])
-    Y = Y.transpose()
-    Y.columns = ['gameID','target', 'repetition']
-    return Y
-
-def normalize(X):
-    X = X - X.mean(0)
-    X = X / np.maximum(X.std(0), 1e-5)
-    return X
-
-def preprocess_features(Features, Y, channel_norm=True):
-    _Y = Y #.sort_values(['run_num','gameID','repetition','target'])
-    inds = np.array(_Y.index)
-    if channel_norm==True:
-        _Features = normalize(Features[inds])
-    else:
-        _Features = Features[inds]
-    _Y = _Y.reset_index(drop=True) # reset pandas dataframe index
-    return _Features, _Y
-
-def preprocess_features_for_pca(Features, Y, channel_norm=True):
-    '''
-    main difference from preprocess_features function above
-    is that it does not apply channel-wise z-scoring at this stage... this happens post PCA
-    '''
-    _Y = Y #.sort_values(['run_num','gameID','repetition','target'])
-    inds = np.array(_Y.index)
-    _Features = Features[inds] 
-    _Y = _Y.reset_index(drop=True) # reset pandas dataframe index
-    return _Features, _Y    
-
-def save_features(Features, Y, layer_num, data_type,out_dir='/data/jefan/graphical_conventions/features', channel_norm=True):
-    if not os.path.exists('./features'):
-        os.makedirs('./features')
-    if channel_norm==True:
-        channel_norm_flag = 'channel-norm'
-    else:
-        channel_norm_flag = 'no-channel-norm'
+def save_features(features, meta, args):
+    features_fname = '' 
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
-    np.save(os.path.join(out_dir,'FEATURES_{}_{}_{}.npy'.format(layers[int(layer_num)], data_type, channel_norm_flag)), Features)
-    np.savetxt(os.path.join(out_dir,'FEATURES_{}_{}.txt'.format(layers[int(layer_num)], data_type, channel_norm_flag)), Features, delimiter=',') ## also save as txt file
-    Y.to_csv(os.path.join(out_dir,'METADATA_{}.csv'.format(data_type)), index=True, index_label='feature_ind')
-    print('Saved features out to {}! Channel norm is {}'.format(out_dir, channel_norm))
-    return layers[int(layer_num)]
+    layer_name = layers[int(args.layer_ind)]
+    features_fname = 'FEATURES_vgg_{}'.format(layer_name)
+    np.save(os.path.join(args.out_dir,'{}.npy'.format(features_fname)), 
+            features)
+    meta.to_csv(os.path.join(args.out_dir,'METADATA.csv'), index=True, 
+                index_label='feature_ind')
+    print('Saved features out to {}!'.format(args.out_dir))
 
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
-
-def apply_pca_and_save(F, layer_num, data_type, num_pcs = 512, out_dir='/data/jefan/graphical_conventions/features', channel_norm=True):    
-    pca = PCA(n_components=num_pcs)
-    pca.fit(F)
-    print('Applying PCA and transforming data, using {} components'.format(num_pcs))
-    F_ = pca.fit_transform(F)      
-    # apply channel-wise normalization yet, is do it here, AFTER applying PCA, if channle_norm==True
-    if channel_norm==True:
-        F_ = normalize(F_) 
-        channel_norm_flag = 'channel-norm'        
-    else:
-        channel_norm_flag = 'no-channel-norm'        
-    ## now actually save out
-    np.save(os.path.join(out_dir,'FEATURES_{}_{}_PCA_{}_{}.npy'.format(layers[int(layer_num)], data_type, num_pcs, channel_norm_flag)), F_)
-    np.savetxt(os.path.join(out_dir,'FEATURES_{}_{}_PCA_{}_{}.txt'.format(layers[int(layer_num)], data_type, num_pcs, channel_norm_flag)), F_, delimiter=',')    
-    print('Saved PC-transformed features out to {} Channel norm is {}!').format(out_dir, channel_norm)
-    return F_  
 
 
 if __name__ == "__main__":
@@ -153,23 +101,13 @@ if __name__ == "__main__":
     print('Length of image_paths after filtering: {}'.format(len(image_paths)))    
     
     ## extract features
-    layers = ['P1','P2','P3','P4','P5','FC6','FC7']
     extractor = FeatureExtractor(image_paths,layer=args.layer_ind,\
                                  data_type=args.data_type,\
                                  cuda_device = args.cuda_device,\
-                                 spatial_avg=args.spatial_avg,\
-                                 crop_sketch=args.crop_sketch)
+                                 spatial_avg=args.spatial_avg)
     #Features,RunNums,GameIDs,\
     #TrialNums,Conditions,Targets,Repetitions = extractor.extract_feature_matrix(True)   
-    Features, GameIDs, Targets, Repetitions = extractor.extract_feature_matrix(False) # changed 
-    
-    # organize metadata into dataframe
-    #Y = make_dataframe(RunNums,GameIDs,TrialNums,Conditions,Targets,Repetitions)
-    Y = make_dataframe(Shapenets, Targets, Subsets, IsLesioned, Xs, Ys) # changed 
-    _Features, _Y = preprocess_features(Features, Y, channel_norm=args.channel_norm)
-    _Features_unnormed, _Y2 = preprocess_features_for_pca(Features, Y)
-
+    features, paths = extractor.extract_feature_matrix(False) # changed 
+    meta = pd.DataFrame({'path' : list(extractor.flatten_list(paths))})
     if args.test==False:        
-        layer = save_features(_Features, _Y, args.layer_ind, args.data_type,out_dir = args.out_dir, channel_norm=args.channel_norm)   
-        _Features_PCA = apply_pca_and_save(_Features_unnormed, args.layer_ind, args.data_type, num_pcs = int(args.num_pcs), out_dir=args.out_dir, channel_norm=args.channel_norm)
-       
+        save_features(features, meta, args)
