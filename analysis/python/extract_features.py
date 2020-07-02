@@ -25,9 +25,9 @@ from embeddings_images import *
 '''
 To extract features, run, e.g.:
 
-python extract_image_features.py --data='/home/jefan/graphical_conventions/sketches' --layer_ind=5 --data_type='sketch' --spatial_avg=True --num_pcs=512 --out_dir='/data/jefan/graphical_conventions/features'
+python extract_image_features.py --data='/home/jefan/graphical_conventions/results/sketches/refgame1.2/png' --layer_ind=5 --data_type='sketch' --out_dir='/mnt/pentagon/data/share/graphical_conventions/features/refgame1.2/'
 
-python extract_image_features.py --data='/home/jefan/graphical_conventions/sketches' --layer_ind=5 --data_type='sketch' --spatial_avg=True --channel_norm=False --num_pcs=2048 --out_dir='/data/jefan/graphical_conventions/features/no_crop/'
+python extract_image_features.py --data='/home/jefan/graphical_conventions/results/sketches/refgame2.0/png' --layer_ind=5 --data_type='sketch' --out_dir='/mnt/pentagon/data/share/graphical_conventions/features/refgame2.0/'
 
 '''
 
