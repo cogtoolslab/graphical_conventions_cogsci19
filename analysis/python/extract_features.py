@@ -25,9 +25,9 @@ from embeddings_images import *
 '''
 To extract features, run, e.g.:
 
-python extract_image_features.py --data='/home/jefan/graphical_conventions/results/sketches/refgame1.2/png' --layer_ind=5 --data_type='sketch' --out_dir='/mnt/pentagon/data/share/graphical_conventions/features/refgame1.2/'
+python extract_features.py --data='/home/jefan/graphical_conventions/results/sketches/refgame1.2/png' --layer_ind=5 --data_type='sketch' --out_dir='/mnt/pentagon/data/share/graphical_conventions/features/refgame1.2/'
 
-python extract_image_features.py --data='/home/jefan/graphical_conventions/results/sketches/refgame2.0/png' --layer_ind=5 --data_type='sketch' --out_dir='/mnt/pentagon/data/share/graphical_conventions/features/refgame2.0/'
+python extract_features.py --data='/home/jefan/graphical_conventions/results/sketches/refgame2.0/png' --layer_ind=5 --data_type='sketch' --out_dir='/mnt/pentagon/data/share/graphical_conventions/features/refgame2.0/'
 
 '''
 
@@ -85,12 +85,6 @@ if __name__ == "__main__":
     parser.add_argument('--ext', type=str, help='image extension type (e.g., "png")', default="png")    
 
     args = parser.parse_args()
-    print 'Spatial averaging is {}'.format(args.spatial_avg)
-    print 'Sketch cropping is {}'.format(args.crop_sketch)    
-    print 'Channel norm is {}'.format(args.channel_norm)
-    print 'Testing mode is {}'.format(args.test)
-    print 'VGG layer index is {}'.format(args.layer_ind)
-    print 'Num principal components = {}'.format(args.num_pcs)
     
     ## get list of all sketch paths
     image_paths = sorted(list_files(args.data,args.ext))
