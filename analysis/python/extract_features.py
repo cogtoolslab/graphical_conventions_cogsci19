@@ -25,9 +25,9 @@ from embeddings_images import *
 '''
 To extract features, run, e.g.:
 
-python extract_image_features.py --data='/data/jefan/graphical_conventions/sketches' --layer_ind=5 --data_type='sketch' --spatial_avg=True --num_pcs=512 --out_dir='/data/jefan/graphical_conventions/features'
+python extract_image_features.py --data='/home/jefan/graphical_conventions/sketches' --layer_ind=5 --data_type='sketch' --spatial_avg=True --num_pcs=512 --out_dir='/data/jefan/graphical_conventions/features'
 
-python extract_image_features.py --data='/data/jefan/graphical_conventions/sketches' --layer_ind=5 --data_type='sketch' --spatial_avg=True --channel_norm=False --num_pcs=2048 --out_dir='/data/jefan/graphical_conventions/features/no_crop/'
+python extract_image_features.py --data='/home/jefan/graphical_conventions/sketches' --layer_ind=5 --data_type='sketch' --spatial_avg=True --channel_norm=False --num_pcs=2048 --out_dir='/data/jefan/graphical_conventions/features/no_crop/'
 
 '''
 
@@ -126,7 +126,8 @@ if __name__ == "__main__":
     parser.add_argument('--data', type=str, help='full path to images', \
                         default=os.path.join(sketch_dir,'combined'))
     parser.add_argument('--layer_ind', help='fc6 = 5, fc7 = 6', default=5)
-    parser.add_argument('--num_pcs', help='number of principal components', default=512)    
+    parser.add_argument('--num_pcs', help='number of principal components', default=512)  
+    parser.add_argument('--cuda_device', help='device to use', default=0)  
     parser.add_argument('--data_type', help='"images" or "sketch"', default='images')
     parser.add_argument('--out_dir', help='path to save features to', default='/data/jefan/graphical_conventions/features')    
     parser.add_argument('--spatial_avg', type=bool, help='collapse over spatial dimensions, preserving channel activation only if true', default=True) 
@@ -155,6 +156,7 @@ if __name__ == "__main__":
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
     extractor = FeatureExtractor(image_paths,layer=args.layer_ind,\
                                  data_type=args.data_type,\
+                                 cuda_device = args.cuda_device,\
                                  spatial_avg=args.spatial_avg,\
                                  crop_sketch=args.crop_sketch)
     #Features,RunNums,GameIDs,\

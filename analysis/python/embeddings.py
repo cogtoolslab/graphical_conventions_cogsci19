@@ -79,7 +79,7 @@ class VGG19Embeddings(nn.Module):
 
 class FeatureExtractor():
 
-    def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=0, data_type='images',spatial_avg=True,crop_sketch=False):
+    def __init__(self,paths,layer=6, use_cuda=True, imsize=224, batch_size=64, cuda_device=0, data_type='images',spatial_avg=True):
         self.layer = layer
         self.paths = paths
         self.num_images = len(self.paths)
@@ -87,136 +87,92 @@ class FeatureExtractor():
         self.imsize = imsize
         self.padding = 10
         self.batch_size = batch_size
-        self.cuda_device = cuda_device
+        self.cuda_device = torch.device('cuda:{}'.format(cuda_device))
         self.data_type = data_type ## either 'images' or 'sketches'
-        self.crop_sketch = crop_sketch ## do we want to crop sketches or not?
         self.spatial_avg = spatial_avg ## if true, collapse across spatial dimensions to just preserve channel activation
 
-    def extract_feature_matrix(self, isSketch):
 
-        def RGBA2RGB(image, color=(255, 255, 255)):
-            """Alpha composite an RGBA Image with a specified color.
-            Simpler, faster version than the solutions above.
-            Source: http://stackoverflow.com/a/9459208/284318
-            Keyword Arguments:
-            image -- PIL RGBA Image object
-            color -- Tuple r, g, b (default 255, 255, 255)
-            """
-            image.load()  # needed for split()
-            background = Image.new('RGB', image.size, color)
-            background.paste(image, mask=image.split()[3])  # 3 is the alpha channel
-            return background
-
-        def load_image(path, imsize=224, padding=self.padding, volatile=True, use_cuda=False):
-            im = Image.open(path)
-            if self.data_type=='sketch': ## if the latter condition satisfied, could be 2-dim (300,300) image
-                if (len(np.array(im).shape)==3):
-                    im_ = im# RGBA2RGB(im) #fixed
-                else:
-                    im_ = im.convert(mode="RGB")
+    def load_image(self, path):
+        im = Image.open(path)
+        if self.data_type=='sketch': ## if the latter condition satisfied, could be 2-dim (300,300) image
+            if (len(np.array(im).shape)==3):
+                im_ = im
             else:
-                im_ = im#.convert(mode="RGB")
+                im_ = im.convert(mode="RGB")
+        else:
+            im_ = im
 
+        loader = transforms.Compose([
+            transforms.Pad(padding),
+            transforms.CenterCrop(imsize),
+            transforms.Resize(imsize),
+            transforms.ToTensor()])
 
-            ## POSSIBLY do this preprocessing if you are working with sketches
-            if (self.data_type=='sketch') & (self.crop_sketch==True):
-                arr = np.asarray(im_)
-                w,h,d = np.where(arr<255) # where the image is not white
-                if len(h)==0:
-                    print(path)
-                try:
-                    xlb = min(h)
-                    xub = max(h)
-                    ylb = min(w)
-                    yub = max(w)
-                    lb = min([xlb,ylb])
-                    ub = max([xub,yub])
-                    im_ = im_.crop((lb, lb, ub, ub))
-                except ValueError:
-                    print('Blank image {}'.format(path))
-                    pass
+        im = Variable(loader(im_), volatile=volatile)
+        # im = im.unsqueeze(0)
+        if use_cuda:
+            im = im.cuda(self.cuda_device)
+        return im
 
-            loader = transforms.Compose([
-                transforms.Pad(padding),
-                transforms.CenterCrop(imsize),
-                transforms.Resize(imsize),
-                transforms.ToTensor()])
+    def load_vgg19(self, layer_index):
+        vgg19 = models.vgg19(pretrained=True).cuda(self.cuda_device)
+        vgg19 = VGG19Embeddings(vgg19,layer_index,spatial_avg=self.spatial_avg)
+        vgg19.eval()  # freeze dropout        
 
-            im = Variable(loader(im_), volatile=volatile)
-            # im = im.unsqueeze(0)
-            if use_cuda:
-                im = im.cuda(self.cuda_device)
-            return im
+        # freeze each parameter
+        for p in vgg19.parameters():
+            p.requires_grad = False
 
-        def load_vgg19(layer_index=self.layer,use_cuda=True,cuda_device=self.cuda_device):
-            vgg19 = models.vgg19(pretrained=True).cuda(self.cuda_device)
-            vgg19 = VGG19Embeddings(vgg19,layer_index,spatial_avg=self.spatial_avg)
-            vgg19.eval()  # freeze dropout
-            print('CUDA DEVICE NUM: {}  CROP SKETCH set to {}'.format(self.cuda_device, self.crop_sketch))
+        return vgg19
 
-            # freeze each parameter
-            for p in vgg19.parameters():
-                p.requires_grad = False
+    def flatten_list(x):
+        return np.array([item for sublist in x for item in sublist])
 
-            return vgg19
+    def get_metadata_from_path(path): # change later to be consistent
+        ## sample sketch path: 5947-794501d9-b90d-4151-a7c9-149c399c5df3_dining_06_03.png
+        parsed_path = path.split('/')[-1].split('.')[0].split('_')
+        gameID = parsed_path[0]
+        target = parsed_path[1] + '_' + parsed_path[2]
+        repetition = parsed_path[3]
+        return gameID, target, repetition
 
-        def flatten_list(x):
-            return np.array([item for sublist in x for item in sublist])
+    def generator(self, paths):
+        for path in paths:
+            image = self.load_image(path)                
+            yield (image, path)
 
-        def get_metadata_from_path(path): # change later to be consistent
-            ## sample sketch path: 5947-794501d9-b90d-4151-a7c9-149c399c5df3_dining_06_03.png
-            parsed_path = path.split('/')[-1].split('.')[0].split('_')
-            gameID = parsed_path[0]
-            target = parsed_path[1] + '_' + parsed_path[2]
-            repetition = parsed_path[3]
-            return gameID, target, repetition
+    def extract_feature_matrix(self):
 
-        def generator(paths, imsize=self.imsize, use_cuda=use_cuda):
-            for path in paths:
-                image = load_image(path)
-                gameID, target, repetition = get_metadata_from_path(path)
-                yield (gameID, target, repetition)
+        # define generator        
+        generator = self.generator(self.paths) 
 
-        # define generator
-        # generator = generator(self.paths,imsize=self.imsize,use_cuda=self.use_cuda)
-        generator = generator(self.paths,imsize=self.imsize,use_cuda=self.use_cuda) #changed 
+        # load extractor
+        extractor = self.load_vgg19(self.layer)
 
         # initialize sketch and label matrices
         Features = []
-        GameIDs = []
-        Targets = []
-        Repetitions = []
-
+        Paths = []
         n = 0
         quit = False
-
-        # load appropriate extractor
-        extractor = load_vgg19(layer_index=self.layer)
 
         # generate batches of sketches and labels
         if generator:
             while True:
                 batch_size = self.batch_size
-                sketch_batch = Variable(torch.zeros(batch_size, 3, self.imsize, self.imsize))
+                img_batch = torch.zeros(batch_size, 3, self.imsize, self.imsize)
+                paths_batch = []
                 if use_cuda:
-                    sketch_batch = sketch_batch.cuda(self.cuda_device)
-                shapenet_batch = []
-                target_batch = []
-                subset_batch = []
-                is_lesioned_batch = []
-                x_batch = []
-                y_batch = []
+                    img_batch = img_batch.to(self.cuda_device)
 
                 if (n+1)%20==0:
                     print('Batch {}'.format(n + 1))
+
                 for b in range(batch_size):
                     try:
-                        #sketch, runNum, gameID, trialNum, condition, target, repetition, num_strokes_deleted = generator.next() 
-                        sketch, gameID, target, repetition = generator.next() # changed 
-                        sketch_batch[b] = sketch
-                        gameID_batch.append(gameID)
-                        target_batch.append(target)
-                        repetition_batch.append(repetition)
+                        img, path = next(generator)
+                        img_batch[b] = img
+                        paths_batch.append(path)
+
                     except StopIteration:
                         quit = True
                         print('stopped!')
@@ -224,27 +180,20 @@ class FeatureExtractor():
 
                 n = n + 1
                 if n == self.num_images//self.batch_size:
-                    sketch_batch = sketch_batch.narrow(0,0,b)
-                    gameID_batch = gameID_batch[:b + 1]
-                    target_batch = target_batch[:b + 1]
-                    repetition_batch = repetition_batch[: b + 1]
+                    img_batch = img_batch.narrow(0,0,b)
+                    paths_batch = paths_batch[:b + 1]
 
                 # extract features from batch
-                sketch_batch = extractor(sketch_batch)
-                sketch_batch = sketch_batch[0].cpu().data.numpy()
+                feats_batch = extractor(img_batch)
+                feats_batch = feats_batch.cpu().data.numpy()
 
-                if len(Features)==0:
-                    Features = sketch_batch
+                if len(features)==0:
+                    features = feats_batch
                 else:
-                    Features = np.vstack((Features,sketch_batch))
-
-                GameIDs.append(gameID_batch)
-                Targets.append(target_batch)
-                Repetitions.append(repetition_batch)
-
+                    features = np.vstack((features,feats_batch))
+                
+                paths.append(paths_batch)
                 if n == self.num_images//batch_size + 1:
                     break
 
-        GameIDs, Targets, Repetitions = map(flatten_list,\
-                                            [GameIDs, Targets, Repetitions])
-        return Features, GameIDs, Targets, Repetitions
+        return features, paths
