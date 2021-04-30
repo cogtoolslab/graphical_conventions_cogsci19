@@ -49,6 +49,9 @@ def check_invalid_sketch(filenames,invalids_path='drawings_to_exclude.txt'):
             valids.append(filenames[i])
     return valids
 
+def flatten_list(x):
+    return np.array([item for sublist in x for item in sublist])
+
 def save_features(features, meta, args):
     features_fname = '' 
     layers = ['P1','P2','P3','P4','P5','FC6','FC7']
@@ -100,6 +103,6 @@ if __name__ == "__main__":
     #Features,RunNums,GameIDs,\
     #TrialNums,Conditions,Targets,Repetitions = extractor.extract_feature_matrix(True)   
     features, paths = extractor.extract_feature_matrix() # changed 
-    meta = pd.DataFrame({'path' : list(extractor.flatten_list(paths))})
+    meta = pd.DataFrame({'path' : list(flatten_list(paths))})
     if args.test==False:        
         save_features(features, meta, args)
