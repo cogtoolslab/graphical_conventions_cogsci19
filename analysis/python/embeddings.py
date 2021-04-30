@@ -95,7 +95,7 @@ class FeatureExtractor():
     def load_image(self, path):
         im = Image.open(path)
         if self.data_type=='sketch': ## if the latter condition satisfied, could be 2-dim (300,300) image
-            if (len(np.array(im).shape)==3):
+            if (len(np.array(im).shape)==3) & (np.array(im).shape[-1]==3):
                 im_ = im
             else:
                 im_ = im.convert(mode="RGB")
@@ -108,8 +108,9 @@ class FeatureExtractor():
             transforms.Resize(self.imsize),
             transforms.ToTensor()])
 
-        im = Variable(loader(im_), volatile=volatile)
+        im = Variable(loader(im_), volatile=True)
         # im = im.unsqueeze(0)
+        print(im.size())
         if use_cuda:
             im = im.cuda(self.cuda_device)
         return im

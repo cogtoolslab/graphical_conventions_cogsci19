@@ -99,7 +99,7 @@ if __name__ == "__main__":
                                  spatial_avg=args.spatial_avg)
     #Features,RunNums,GameIDs,\
     #TrialNums,Conditions,Targets,Repetitions = extractor.extract_feature_matrix(True)   
-    features, paths = extractor.extract_feature_matrix(False) # changed 
+    features, paths = extractor.extract_feature_matrix() # changed 
     meta = pd.DataFrame({'path' : list(extractor.flatten_list(paths))})
     if args.test==False:        
         save_features(features, meta, args)
