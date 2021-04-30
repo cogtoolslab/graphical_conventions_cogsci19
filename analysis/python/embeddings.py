@@ -188,9 +188,9 @@ class FeatureExtractor():
                 feats_batch = [feat.cpu().data.numpy() for feat in feats_batch]
                 #                feats_batch = feats_batch.cpu().data.numpy()
 
-
-if 'features' in locals():
-    features = feats_batch
+                features = []
+                if len(features)==0:
+                    features = feats_batch
                 else:
                     features = np.vstack((features,feats_batch))
                     
