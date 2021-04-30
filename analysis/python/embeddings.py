@@ -175,12 +175,15 @@ class FeatureExtractor():
                         print('stopped!')
                         break
 
-                n = n + 1
                 if n == self.num_images//self.batch_size:
-                    img_batch = img_batch.narrow(0,0,b)
+                    print('b', b)
+                    print(img_batch.size())
+                    img_batch = torch.narrow(img_batch,0,0,b)
+                    print(img_batch.size())
                     paths_batch = paths_batch[:b + 1]
 
                 # extract features from batch
+                n += 1
                 feats_batch = extractor(img_batch)
                 feats_batch = [feat.cpu().data.numpy() for feat in feats_batch]
                 feats_batch = np.squeeze(np.array(feats_batch), axis=0)
