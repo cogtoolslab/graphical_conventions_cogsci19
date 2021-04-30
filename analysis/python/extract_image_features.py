@@ -1,5 +1,3 @@
-from __future__ import division
-
 import torch
 import torchvision.models as models
 import torch.nn as nn
@@ -20,7 +18,7 @@ import re
 from PIL import Image
 import base64
 
-from embeddings_images import *
+from embeddings import *
 
 '''
 To extract features, run, e.g.:
@@ -51,10 +49,10 @@ def check_invalid_sketch(filenames,invalids_path='drawings_to_exclude.txt'):
             valids.append(filenames[i])
     return valids
 
-def make_dataframe(Shapenets, Targets, Subsets, IsLesioned, Xs,Ys):
-    Y = pd.DataFrame([Shapenets, Targets, Subsets, IsLesioned,Xs,Ys])
+def make_dataframe(Paths):
+    Y = pd.DataFrame([Paths])
     Y = Y.transpose()
-    Y.columns = ['shapenet','target', 'subset', 'isLesioned','x','y']
+    Y.columns = ['path']
     return Y
 
 def normalize(X):
@@ -159,11 +157,11 @@ if __name__ == "__main__":
                                  crop_sketch=args.crop_sketch)
     #Features,RunNums,GameIDs,\
     #TrialNums,Conditions,Targets,Repetitions = extractor.extract_feature_matrix(True)   
-    Features, Shapenets, Targets, Subsets, IsLesioned, Xs, Ys = extractor.extract_feature_matrix(False) # changed 
+    Features, Paths = extractor.extract_feature_matrix(False) # changed 
     
     # organize metadata into dataframe
     #Y = make_dataframe(RunNums,GameIDs,TrialNums,Conditions,Targets,Repetitions)
-    Y = make_dataframe(Shapenets, Targets, Subsets, IsLesioned, Xs, Ys) # changed 
+    Y = make_dataframe(Paths) # changed 
     _Features, _Y = preprocess_features(Features, Y, channel_norm=args.channel_norm)
     _Features_unnormed, _Y2 = preprocess_features_for_pca(Features, Y)
 
