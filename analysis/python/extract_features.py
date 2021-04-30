@@ -1,5 +1,3 @@
-from __future__ import division
-
 import torch
 import torchvision.models as models
 import torch.nn as nn
@@ -20,7 +18,7 @@ import re
 from PIL import Image
 import base64
 
-from embeddings_images import *
+from embeddings import *
 
 '''
 To extract features, run, e.g.:

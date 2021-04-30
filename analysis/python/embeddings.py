@@ -103,9 +103,9 @@ class FeatureExtractor():
             im_ = im
 
         loader = transforms.Compose([
-            transforms.Pad(padding),
-            transforms.CenterCrop(imsize),
-            transforms.Resize(imsize),
+            transforms.Pad(self.padding),
+            transforms.CenterCrop(self.imsize),
+            transforms.Resize(self.imsize),
             transforms.ToTensor()])
 
         im = Variable(loader(im_), volatile=volatile)
