@@ -107,10 +107,9 @@ class FeatureExtractor():
             transforms.CenterCrop(self.imsize),
             transforms.Resize(self.imsize),
             transforms.ToTensor()])
-
-        im = Variable(loader(im_), volatile=True)
+        with torch.no_grad():
+            im = Variable(loader(im_))
         # im = im.unsqueeze(0)
-        print(im.size())
         if use_cuda:
             im = im.cuda(self.cuda_device)
         return im
@@ -186,13 +185,15 @@ class FeatureExtractor():
 
                 # extract features from batch
                 feats_batch = extractor(img_batch)
-                feats_batch = feats_batch.cpu().data.numpy()
+                feats_batch = [feat.cpu().data.numpy() for feat in feats_batch]
+                #                feats_batch = feats_batch.cpu().data.numpy()
 
-                if len(features)==0:
-                    features = feats_batch
+
+if 'features' in locals():
+    features = feats_batch
                 else:
                     features = np.vstack((features,feats_batch))
-                
+                    
                 paths.append(paths_batch)
                 if n == self.num_images//batch_size + 1:
                     break
