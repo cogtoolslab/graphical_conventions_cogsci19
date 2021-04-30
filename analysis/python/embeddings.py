@@ -125,9 +125,6 @@ class FeatureExtractor():
 
         return vgg19
 
-    def flatten_list(x):
-        return np.array([item for sublist in x for item in sublist])
-
     def get_metadata_from_path(path): # change later to be consistent
         ## sample sketch path: 5947-794501d9-b90d-4151-a7c9-149c399c5df3_dining_06_03.png
         parsed_path = path.split('/')[-1].split('.')[0].split('_')
