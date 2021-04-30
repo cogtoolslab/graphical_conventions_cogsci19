@@ -150,8 +150,8 @@ class FeatureExtractor():
         extractor = self.load_vgg19(self.layer)
 
         # initialize sketch and label matrices
-        Features = []
-        Paths = []
+        features = []
+        paths = []
         n = 0
         quit = False
 
@@ -164,7 +164,7 @@ class FeatureExtractor():
                 if use_cuda:
                     img_batch = img_batch.to(self.cuda_device)
 
-                if (n+1)%20==0:
+                if (n+1)%5==0:
                     print('Batch {}'.format(n + 1))
 
                 for b in range(batch_size):
@@ -186,9 +186,10 @@ class FeatureExtractor():
                 # extract features from batch
                 feats_batch = extractor(img_batch)
                 feats_batch = [feat.cpu().data.numpy() for feat in feats_batch]
+                feats_batch = np.squeeze(np.array(feats_batch), axis=0)
                 #                feats_batch = feats_batch.cpu().data.numpy()
+#                print('features shape', features.shape)
 
-                features = []
                 if len(features)==0:
                     features = feats_batch
                 else:
