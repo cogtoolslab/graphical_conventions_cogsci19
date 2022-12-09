@@ -9,7 +9,7 @@
     "colors": "^1.1.2",
     "csv-parse": "~4.4.6",
     "delta-e": "~0.0.7",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "jsonfile": "~2.4.0",
     "lodash": "^4.17.13",
     "minimist": "^1.2.0",
